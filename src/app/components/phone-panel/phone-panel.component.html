@@ -1,0 +1,64 @@
+<div class=" container-fluid">
+  <div class=" phone-panel">
+    <div class=" logo">
+      <a href="javascript:void(0)"> Logo </a>
+    </div>
+    <div class=" phone-caller-id">
+      <span style="border-right: 3px solid #232323;">CallerID:</span>
+      <input type="text" style="width:150px">
+    </div>
+    <div class=" user-name">
+      <span style="border-right: 3px solid #232323;">Welcome Ryan</span>
+    </div>
+    <div class=" device-panel">
+      <span class=" device-mic"><i class="fas fa-microphone"></i></span>
+      <span class=" device-receiver"><i class="fas fa-headset"></i></span>
+    </div>
+    <div class=" line-panel">
+      <div style="height: 50%; padding: 3px;">
+        <input type="radio">
+        <span>Line 1:</span>
+        <input type="text" class="line-input" placeholder="CallerID Info">
+      </div>
+      <div style="height: 50%; padding: 3px;">
+        <input type="radio">
+        <span>Line 2:</span>
+        <input type="text" class="line-input" placeholder="CallerID Info">
+      </div>
+    </div>
+    <div class=" call-btns-panel">
+      <button class=" btn btn-fill btn-danger phone-control">End</button>
+      <button class=" btn btn-fill btn-normal phone-control">Mute</button>
+      <button class=" btn btn-fill btn-normal phone-control">Hold</button>
+      <input type="number phone-control">
+      <button class=" btn btn-fill btn-normal phone-control">X-fer</button>
+      <button class=" btn btn-fill btn-normal phone-control">Conf</button>
+      <button class=" btn btn-fill btn-normal phone-control">
+        <span class=" device-receiver"><i class="fas fa-headset"></i></span>
+      </button>
+      <input type="text">
+    </div>
+  </div>
+</div>  
+
+<ng-template #content let-modal>
+  <div class=" modal-header">
+    <input
+      class=" form-control"
+      id="inlineFormInputGroup"
+      placeholder="SEARCH"
+      type="text"
+    />
+
+    <button
+      aria-label="Close"
+      class=" close"
+      data-dismiss="modal"
+      type="button"
+      (click)="modal.dismiss('Cross click')"
+    >
+      <i class=" tim-icons icon-simple-remove"> </i>
+    </button>
+  </div>
+
+</ng-template>
