@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { SimpleUser, SimpleUserDelegate, SimpleUserOptions } from 'sip.js/lib/platform/web';
-import { UserAgent, UserAgentOptions, Registerer } from 'sip.js';
+import { getButtons, addInputValue, getInputValue } from '../../utilities/ui-utils';
+import { UserAgent, UserAgentOptions, Registerer, Inviter } from 'sip.js';
+
 
 const authName = `9FE12102-FAB4-4524-ACF4-641F247145E7`;
 const authPassword = `E3F2D`;
@@ -23,6 +24,16 @@ export class PhonePanelComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const keypad = getButtons(`btn-number`);
+
+    keypad.forEach((button) => {
+      button.addEventListener(`click`, () => {
+        const toneNum = button.textContent;
+        if (toneNum) {
+          addInputValue(`call-number`, toneNum);
+        }
+      });
+    });
   }
 
   connectToServer(): void {
@@ -30,9 +41,10 @@ export class PhonePanelComponent implements OnInit {
       server: this.webSocketServer
     };
 
-    const uri = UserAgent.makeURI(`sip:orfpbx3.cdyne.net:1443`);
+    // const uri = UserAgent.makeURI(`sip:orfpbx3.cdyne.net:1443`);
+    const uri = UserAgent.makeURI(`sip:alice@${this.serverURL}`)
 
-    console.log("++++++++++++++++++", uri);
+    console.log(`++++++++++++++++++`, uri);
 
     const userAgentOptions: UserAgentOptions = {
       authorizationPassword: authPassword,
@@ -46,11 +58,20 @@ export class PhonePanelComponent implements OnInit {
     this.registerer = new Registerer(this.userAgent);
 
     console.log(`+++++++++++++++++`, this.registerer);
+  }
 
+  makeCall(): void {
+    const targetNum = getInputValue(`call-number`);
     this.userAgent.start()
       .then(() => {
-        console.log(`++++++++++++++++++++++++ Successed to connect`);
-        this.registerer.register();
+        console.log(`++++++++++++++++++++++++++ Successed to connect`);
+
+        const target = UserAgent.makeURI(`sip:${targetNum}@${this.serverURL}`);
+
+        console.log(`++++++++++++++++++`, target);
+
+        const inviter = new Inviter(this.userAgent, target);
+        inviter.invite();
       })
       .catch((error: Error) => {
         console.error(`Failed to connect`);
