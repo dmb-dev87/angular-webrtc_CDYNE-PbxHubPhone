@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {AfterViewInit, Component, OnInit} from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { getButtons, addInputValue, getInputValue } from '../../utilities/ui-utils';
 import { UserAgent, UserAgentOptions, Registerer, Inviter } from 'sip.js';
@@ -13,9 +13,9 @@ const authPassword = `E3F2D`;
   styleUrls: ['./phone-panel.component.scss']
 })
 
-export class PhonePanelComponent implements OnInit {
+export class PhonePanelComponent implements OnInit, AfterViewInit {
   private webSocketServer = environment.socketServer;
-  private serverURL = environment.serverURL;
+  private hostURL = environment.hostURL;
   private userAgent = null;
   private registerer = null;
 
@@ -24,8 +24,11 @@ export class PhonePanelComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const keypad = getButtons(`btn-number`);
 
+  }
+
+  ngAfterViewInit(): void {
+    const keypad = getButtons(`btn-number`);
     keypad.forEach((button) => {
       button.addEventListener(`click`, () => {
         const toneNum = button.textContent;
@@ -41,43 +44,45 @@ export class PhonePanelComponent implements OnInit {
       server: this.webSocketServer
     };
 
-    // const uri = UserAgent.makeURI(`sip:orfpbx3.cdyne.net:1443`);
-    const uri = UserAgent.makeURI(`sip:alice@${this.serverURL}`)
+    const uri = UserAgent.makeURI(`sip:2001@${this.hostURL}`)
 
     console.log(`++++++++++++++++++`, uri);
 
     const userAgentOptions: UserAgentOptions = {
       authorizationPassword: authPassword,
       authorizationUsername: authName,
+      forceRport: true,
+      contactName: `Bojan`,
       transportOptions,
       uri
     };
 
     this.userAgent = new UserAgent(userAgentOptions);
-
     this.registerer = new Registerer(this.userAgent);
 
-    console.log(`+++++++++++++++++`, this.registerer);
-  }
-
-  makeCall(): void {
-    const targetNum = getInputValue(`call-number`);
     this.userAgent.start()
       .then(() => {
-        console.log(`++++++++++++++++++++++++++ Successed to connect`);
-
-        const target = UserAgent.makeURI(`sip:${targetNum}@${this.serverURL}`);
-
-        console.log(`++++++++++++++++++`, target);
-
-        const inviter = new Inviter(this.userAgent, target);
-        inviter.invite();
+        console.log(`++++++++++++++++++++ Successed to connect`);
+        this.registerer.register();
+        console.log(`+++++++++++++++++`, this.registerer);
       })
       .catch((error: Error) => {
         console.error(`Failed to connect`);
         console.error(error);
         alert(`Failed to connect.\n` + error);
       });
+  }
+
+  makeCall(): void {
+    const targetNum = getInputValue(`call-number`);
+    if (!this.registerer.registered) {
+      console.error(`Failed to call, have to register`);
+    }
+
+    const target = UserAgent.makeURI(`sip:${targetNum}@${this.hostURL}`);
+
+    const inviter = new Inviter(this.userAgent, target);
+    inviter.invite();
   }
 
 }

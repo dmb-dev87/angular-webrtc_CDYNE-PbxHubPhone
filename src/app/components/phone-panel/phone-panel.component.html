@@ -30,7 +30,7 @@
       <button class=" btn btn-fill btn-danger phone-control">End</button>
       <button class=" btn btn-fill btn-normal phone-control">Mute</button>
       <button class=" btn btn-fill btn-normal phone-control">Hold</button>
-      <input type="number" class=" phone-control" id="call-number">
+      <input type="text" class=" phone-control" id="call-number">
       <button class=" btn btn-fill btn-normal phone-control" (click)="makeCall()">Call</button>
       <button class=" btn btn-fill btn-normal phone-control">X-fer</button>
       <button class=" btn btn-fill btn-normal phone-control">Conf</button>
@@ -42,16 +42,7 @@
   </div>
   <div class=" number-panel">
     <div class=" number-group">
-      <button class=" btn btn-fill btn-number">1</button>
-      <button class=" btn btn-fill btn-number">2</button>
-      <button class=" btn btn-fill btn-number">3</button>
-      <button class=" btn btn-fill btn-number">4</button>
-      <button class=" btn btn-fill btn-number">5</button>
-      <button class=" btn btn-fill btn-number">6</button>
-      <button class=" btn btn-fill btn-number">7</button>
-      <button class=" btn btn-fill btn-number">8</button>
-      <button class=" btn btn-fill btn-number">9</button>
-      <button class=" btn btn-fill btn-number">0</button>
+      <button *ngFor="let n of [1,2,3,4,5,6,7,8,9,0];" class=" btn btn-fill btn-number">{{n}}</button>
       <button class=" btn btn-fill btn-number">#</button>
       <button class=" btn btn-fill btn-number">*</button>
     </div>
