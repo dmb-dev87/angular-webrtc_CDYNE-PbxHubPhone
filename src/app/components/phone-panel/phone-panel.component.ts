@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { getButtons, addInputValue, getInputValue } from '../../utilities/ui-utils';
-import { UserAgent, UserAgentOptions, Registerer, Inviter } from 'sip.js';
+import {WebUser, WebUserDelegate, WebUserOptions} from '../../utilities/webphone/web-user';
 
 
 const authName = `9FE12102-FAB4-4524-ACF4-641F247145E7`;
@@ -16,11 +16,11 @@ const authPassword = `E3F2D`;
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   private webSocketServer = environment.socketServer;
   private hostURL = environment.hostURL;
-  private userAgent = null;
-  private registerer = null;
+  private webUser = null;
+  private session = null;
 
   constructor() {
-    this.connectToServer();
+
   }
 
   ngOnInit(): void {
@@ -37,34 +37,30 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         }
       });
     });
+
+    this.connectToServer();
   }
 
   connectToServer(): void {
-    const transportOptions = {
-      server: this.webSocketServer
-    };
+    const webUserOptions: WebUserOptions = {
+      userAgentOptions: {
+        authorizationPassword: authPassword,
+        authorizationUsername: authName,
+        forceRport: true,
+        contactName: `Bojan`,
+      },
+      aor: `sip:2001@${this.hostURL}`
+    }
 
-    const uri = UserAgent.makeURI(`sip:2001@${this.hostURL}`)
+    this.webUser = new WebUser(this.webSocketServer, webUserOptions);
+    // this.registerer = new Registerer(this.userAgent);
 
-    console.log(`++++++++++++++++++`, uri);
-
-    const userAgentOptions: UserAgentOptions = {
-      authorizationPassword: authPassword,
-      authorizationUsername: authName,
-      forceRport: true,
-      contactName: `Bojan`,
-      transportOptions,
-      uri
-    };
-
-    this.userAgent = new UserAgent(userAgentOptions);
-    this.registerer = new Registerer(this.userAgent);
-
-    this.userAgent.start()
+    this.webUser
+      .connect()
       .then(() => {
+        this.webUser.register(undefined);
         console.log(`++++++++++++++++++++ Successed to connect`);
-        this.registerer.register();
-        console.log(`+++++++++++++++++`, this.registerer);
+        // this.registerer.register();
       })
       .catch((error: Error) => {
         console.error(`Failed to connect`);
@@ -75,14 +71,27 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   makeCall(): void {
     const targetNum = getInputValue(`call-number`);
-    if (!this.registerer.registered) {
+
+    if (!this.webUser.registered) {
       console.error(`Failed to call, have to register`);
+      this.webUser.register(undefined);
     }
 
-    const target = UserAgent.makeURI(`sip:${targetNum}@${this.hostURL}`);
+    const target = `sip:${targetNum}@${this.hostURL}`;
 
-    const inviter = new Inviter(this.userAgent, target);
-    inviter.invite();
+    this.webUser.call(target).catch((error: Error) => {
+      console.error(`Failed to place call`);
+      console.error(error);
+      alert(`Failed to place call.\n` + error);
+    });
+  }
+
+  hangupCall(): void {
+    this.webUser.hangup().catch((error: Error) => {
+      console.error(`Failed to hangup call`);
+      console.error(error);
+      alert(`Failed to hangup call.\n` + error);
+    });
   }
 
 }
