@@ -6,6 +6,8 @@ import {WebUser, WebUserDelegate, WebUserOptions} from '../../utilities/webphone
 
 const authName = `9FE12102-FAB4-4524-ACF4-641F247145E7`;
 const authPassword = `E3F2D`;
+const extenNumber = `2001`;
+const displayName = `Bojan`;
 
 // const authName = `F26D43A5-6D69-443A-AFF3-BB19D35C52CF`;
 // const authPassword = `62AC9`;
@@ -48,9 +50,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   connectToServer(): void {
     const audioElement = getAudio(`remoteAudio`);
     const videoElement = getVideo(`localVideo`);
-
-
-
     console.log(`+++++++++++++++++++++++++=`, audioElement);
     // const webUserOptions: SimpleUserOptions = {
     const webUserOptions: WebUserOptions = {
@@ -70,9 +69,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         authorizationPassword: authPassword,
         authorizationUsername: authName,
         forceRport: true,
-        contactName: `Bojan`,
+        contactName: displayName,
       },
-      aor: `sip:2001@${this.hostURL}`
+      aor: `sip:${extenNumber}@${this.hostURL}`
     }
 
     // this.webUser = new SimpleUser(this.webSocketServer, webUserOptions);
