@@ -1,8 +1,7 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { getButtons, addInputValue, getInputValue, getAudio, getVideo, getButton } from '../../utilities/ui-utils';
-import {WebUser, WebUserDelegate, WebUserOptions} from '../../utilities/webphone';
-// import { SimpleUser, SimpleUserDelegate, SimpleUserOptions } from 'sip.js/lib/platform/web';
+import { WebUser, WebUserDelegate, WebUserOptions } from '../../utilities/webphone';
 
 const authName = `9FE12102-FAB4-4524-ACF4-641F247145E7`;
 const authPassword = `E3F2D`;
@@ -11,6 +10,8 @@ const displayName = `Bojan`;
 
 // const authName = `F26D43A5-6D69-443A-AFF3-BB19D35C52CF`;
 // const authPassword = `62AC9`;
+// const extenNumber = `2004`;
+// const displayName = `Dojan`;
 
 @Component({
   selector: 'app-phone-panel',
@@ -50,8 +51,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   connectToServer(): void {
     const audioElement = getAudio(`remoteAudio`);
     const videoElement = getVideo(`localVideo`);
-    console.log(`+++++++++++++++++++++++++=`, audioElement);
-    // const webUserOptions: SimpleUserOptions = {
     const webUserOptions: WebUserOptions = {
       media: {
         constraints: {
@@ -74,18 +73,17 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       aor: `sip:${extenNumber}@${this.hostURL}`
     }
 
-    // this.webUser = new SimpleUser(this.webSocketServer, webUserOptions);
     this.webUser = new WebUser(this.webSocketServer, webUserOptions);
 
     // const delegate: SimpleUserDelegate = {
     const delegate: WebUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(this.webUser),
       onCallReceived: this.makeCallReceivedCallback(this.webUser),
-      onCallHangup: this.makeCallHangupCallback(this.webUser)
-      // onRegistered: makeRegisteredCallback(user, registerButton, unregisterButton),
-      // onUnregistered: makeUnregisteredCallback(user, registerButton, unregisterButton),
-      // onServerConnect: makeServerConnectCallback(user, connectButton, disconnectButton, registerButton, beginButton),
-      // onServerDisconnect: makeServerDisconnectCallback(user, connectButton, disconnectButton, registerButton, beginButton)
+      onCallHangup: this.makeCallHangupCallback(this.webUser),
+      onRegistered: this.makeRegisteredCallback(this.webUser),
+      onUnregistered: this.makeUnregisteredCallback(this.webUser),
+      onServerConnect: this.makeServerConnectCallback(this.webUser),
+      onServerDisconnect: this.makeServerDisconnectCallback(this.webUser)
     };
 
     this.webUser.delegate = delegate;
@@ -93,7 +91,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.webUser
       .connect()
       .then(() => {
-        // this.webUser.register(undefined);
         console.log(`++++++++++++++++++++ Successed to connect`);
         this.register();
       })
@@ -144,7 +141,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // makeCallCreatedCallback(user: SimpleUser): () => void {
   makeCallCreatedCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call created`);
@@ -157,7 +153,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  // makeCallReceivedCallback(user: SimpleUser): () => void {
   makeCallReceivedCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call received`);
@@ -169,7 +164,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  // makeCallHangupCallback(user: SimpleUser): () => void {
   makeCallHangupCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call hangup`);
@@ -177,6 +171,37 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       const endButton = getButton(`end-call`);
       beginButton.disabled = !user.isConnected();
       endButton.disabled = false;
+    };
+  }
+
+  makeRegisteredCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] registered`);
+    };
+  }
+
+  makeUnregisteredCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] unregistered`);
+    };
+  }
+
+  makeServerConnectCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] connected`);
+      const beginButton = getButton(`begin-call`);
+      beginButton.disabled = false;
+    };
+  }
+
+  makeServerDisconnectCallback(user: WebUser): () => void {
+    return (error?: Error) => {
+      console.log(`[${user.id}] disconnected`);
+      const beginButton = getButton(`begin-call`);
+      beginButton.disabled = true;
+      if (error) {
+        alert(`[${user.id}] Server disconnected.\n` + error.message);
+      }
     };
   }
 
