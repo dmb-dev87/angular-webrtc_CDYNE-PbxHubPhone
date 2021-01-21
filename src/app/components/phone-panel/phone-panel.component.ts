@@ -1,8 +1,8 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
 import { environment } from '../../../environments/environment';
-import {getButtons, addInputValue, getInputValue, getAudio, getVideo, getButton} from '../../utilities/ui-utils';
-import {WebUser, WebUserDelegate, WebUserOptions} from '../../utilities/webphone/web-user';
-
+import { getButtons, addInputValue, getInputValue, getAudio, getVideo, getButton } from '../../utilities/ui-utils';
+import {WebUser, WebUserDelegate, WebUserOptions} from '../../utilities/webphone';
+// import { SimpleUser, SimpleUserDelegate, SimpleUserOptions } from 'sip.js/lib/platform/web';
 
 const authName = `9FE12102-FAB4-4524-ACF4-641F247145E7`;
 const authPassword = `E3F2D`;
@@ -52,6 +52,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
 
     console.log(`+++++++++++++++++++++++++=`, audioElement);
+    // const webUserOptions: SimpleUserOptions = {
     const webUserOptions: WebUserOptions = {
       media: {
         constraints: {
@@ -74,8 +75,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       aor: `sip:2001@${this.hostURL}`
     }
 
+    // this.webUser = new SimpleUser(this.webSocketServer, webUserOptions);
     this.webUser = new WebUser(this.webSocketServer, webUserOptions);
 
+    // const delegate: SimpleUserDelegate = {
     const delegate: WebUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(this.webUser),
       onCallReceived: this.makeCallReceivedCallback(this.webUser),
@@ -142,6 +145,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // makeCallCreatedCallback(user: SimpleUser): () => void {
   makeCallCreatedCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call created`);
@@ -154,6 +158,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
+  // makeCallReceivedCallback(user: SimpleUser): () => void {
   makeCallReceivedCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call received`);
@@ -165,13 +170,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
+  // makeCallHangupCallback(user: SimpleUser): () => void {
   makeCallHangupCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call hangup`);
       const beginButton = getButton(`begin-call`);
       const endButton = getButton(`end-call`);
       beginButton.disabled = !user.isConnected();
-      endButton.disabled = true;
+      endButton.disabled = false;
     };
   }
 

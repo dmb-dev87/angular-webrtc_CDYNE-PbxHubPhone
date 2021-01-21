@@ -23,7 +23,8 @@ import {
 } from 'sip.js';
 import { Logger } from 'sip.js/lib/core';
 import { holdModifier } from '../modifiers';
-import { SessionDescriptionHandler } from '../session-description-handler';
+// import { SessionDescriptionHandler } from '../session-description-handler';
+import { SessionDescriptionHandler } from 'sip.js/lib/platform/web/session-description-handler';
 import { Transport } from '../transport';
 import { WebUserDelegate } from './web-user-delegate';
 import { WebUserOptions } from './web-user-options';

@@ -2,12 +2,12 @@ import {
   BodyAndContentType,
   SessionDescriptionHandler as SessionDescriptionHandlerDefinition,
   SessionDescriptionHandlerModifier
-} from 'sip.js';
-import { Logger } from 'sip.js/lib/core';
-import { MediaStreamFactory } from './media-stream-factory';
-import { SessionDescriptionHandlerConfiguration } from './session-description-handler-configuration';
-import { SessionDescriptionHandlerOptions } from './session-description-handler-options';
-import { PeerConnectionDelegate } from './peer-connection-delegate';
+} from "../../../api";
+import { Logger } from "../../../core";
+import { MediaStreamFactory } from "./media-stream-factory";
+import { SessionDescriptionHandlerConfiguration } from "./session-description-handler-configuration";
+import { SessionDescriptionHandlerOptions } from "./session-description-handler-options";
+import { PeerConnectionDelegate } from "./peer-connection-delegate";
 
 // Terminology notes for those not familiar...
 //
@@ -55,7 +55,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
   protected _peerConnectionDelegate: PeerConnectionDelegate | undefined;
 
   private iceGatheringCompletePromise: Promise<void> | undefined;
-  private iceGatheringCompleteTimeoutId: null | ReturnType<typeof setTimeout> = null;
+  private iceGatheringCompleteTimeoutId: number | undefined;
   private iceGatheringCompleteResolve: ResolveFunction | undefined;
   private iceGatheringCompleteReject: RejectFunction | undefined;
   private localMediaStreamConstraints: MediaStreamConstraints | undefined;
@@ -72,7 +72,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
     mediaStreamFactory: MediaStreamFactory,
     sessionDescriptionHandlerConfiguration?: SessionDescriptionHandlerConfiguration
   ) {
-    logger.debug(`SessionDescriptionHandler.constructor`);
+    logger.debug("SessionDescriptionHandler.constructor");
     this.logger = logger;
     this.mediaStreamFactory = mediaStreamFactory;
     this.sessionDescriptionHandlerConfiguration = sessionDescriptionHandlerConfiguration;
@@ -159,19 +159,19 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
   // The addtrack event does not get fired when JavaScript code explicitly adds tracks to the stream (by calling addTrack()).
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaStream/onaddtrack
   private static dispatchAddTrackEvent(stream: MediaStream, track: MediaStreamTrack): void {
-    stream.dispatchEvent(new MediaStreamTrackEvent(`addtrack`, { track }));
+    stream.dispatchEvent(new MediaStreamTrackEvent("addtrack", { track }));
   }
   // The removetrack event does not get fired when JavaScript code explicitly removes tracks from the stream (by calling removeTrack()).
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaStream/onremovetrack
   private static dispatchRemoveTrackEvent(stream: MediaStream, track: MediaStreamTrack): void {
-    stream.dispatchEvent(new MediaStreamTrackEvent(`removetrack`, { track }));
+    stream.dispatchEvent(new MediaStreamTrackEvent("removetrack", { track }));
   }
 
   /**
    * Stop tracks and close peer connection.
    */
   public close(): void {
-    this.logger.debug(`SessionDescriptionHandler.close`);
+    this.logger.debug("SessionDescriptionHandler.close");
     if (this._peerConnection === undefined) {
       return;
     }
@@ -197,9 +197,9 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
     options?: SessionDescriptionHandlerOptions,
     modifiers?: Array<SessionDescriptionHandlerModifier>
   ): Promise<BodyAndContentType> {
-    this.logger.debug(`SessionDescriptionHandler.getDescription`);
+    this.logger.debug("SessionDescriptionHandler.getDescription");
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
     // Callback on data channel creation
     this.onDataChannel = options?.onDataChannel;
@@ -223,11 +223,11 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
       .then((sessionDescription) => {
         return {
           body: sessionDescription.sdp,
-          contentType: `application/sdp`
+          contentType: "application/sdp"
         };
       })
       .catch((error) => {
-        this.logger.error(`SessionDescriptionHandler.getDescription failed - ` + error);
+        this.logger.error("SessionDescriptionHandler.getDescription failed - " + error);
         throw error;
       });
   }
@@ -237,8 +237,8 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * @param contentType - The content type that is in the SIP Message.
    */
   public hasDescription(contentType: string): boolean {
-    this.logger.debug(`SessionDescriptionHandler.hasDescription`);
-    return contentType === `application/sdp`;
+    this.logger.debug("SessionDescriptionHandler.hasDescription");
+    return contentType === "application/sdp";
   }
 
   /**
@@ -248,19 +248,19 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * @param options - Options object to be used by sendDtmf.
    */
   public sendDtmf(tones: string, options?: { duration: number; interToneGap: number }): boolean {
-    this.logger.debug(`SessionDescriptionHandler.sendDtmf`);
+    this.logger.debug("SessionDescriptionHandler.sendDtmf");
     if (this._peerConnection === undefined) {
-      this.logger.error(`SessionDescriptionHandler.sendDtmf failed - peer connection closed`);
+      this.logger.error("SessionDescriptionHandler.sendDtmf failed - peer connection closed");
       return false;
     }
     const senders = this._peerConnection.getSenders();
     if (senders.length === 0) {
-      this.logger.error(`SessionDescriptionHandler.sendDtmf failed - no senders`);
+      this.logger.error("SessionDescriptionHandler.sendDtmf failed - no senders");
       return false;
     }
     const dtmfSender = senders[0].dtmf;
     if (!dtmfSender) {
-      this.logger.error(`SessionDescriptionHandler.sendDtmf failed - no DTMF sender`);
+      this.logger.error("SessionDescriptionHandler.sendDtmf failed - no DTMF sender");
       return false;
     }
     const duration = options?.duration;
@@ -271,7 +271,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
       this.logger.error(e);
       return false;
     }
-    this.logger.log(`SessionDescriptionHandler.sendDtmf sent via RTP: ` + tones.toString());
+    this.logger.log("SessionDescriptionHandler.sendDtmf sent via RTP: " + tones.toString());
     return true;
   }
 
@@ -286,22 +286,22 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
     options?: SessionDescriptionHandlerOptions,
     modifiers?: Array<SessionDescriptionHandlerModifier>
   ): Promise<void> {
-    this.logger.debug(`SessionDescriptionHandler.setDescription`);
+    this.logger.debug("SessionDescriptionHandler.setDescription");
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
 
     // Callback on data channel creation
     this.onDataChannel = options?.onDataChannel;
 
     // SDP type
-    const type = this._peerConnection.signalingState === `have-local-offer` ? `answer` : `offer`;
+    const type = this._peerConnection.signalingState === "have-local-offer" ? "answer" : "offer";
 
     return this.getLocalMediaStream(options)
       .then(() => this.applyModifiers({ sdp, type }, modifiers))
       .then((sessionDescription) => this.setRemoteSessionDescription(sessionDescription))
       .catch((error) => {
-        this.logger.error(`SessionDescriptionHandler.setDescription failed - ` + error);
+        this.logger.error("SessionDescriptionHandler.setDescription failed - " + error);
         throw error;
       });
   }
@@ -315,16 +315,16 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
     sdp: RTCSessionDescriptionInit,
     modifiers?: Array<SessionDescriptionHandlerModifier>
   ): Promise<RTCSessionDescriptionInit> {
-    this.logger.debug(`SessionDescriptionHandler.applyModifiers`);
+    this.logger.debug("SessionDescriptionHandler.applyModifiers");
     if (!modifiers || modifiers.length === 0) {
       return Promise.resolve(sdp);
     }
     return modifiers
       .reduce((cur, next) => cur.then(next), Promise.resolve(sdp))
       .then((modified) => {
-        this.logger.debug(`SessionDescriptionHandler.applyModifiers - modified sdp`);
+        this.logger.debug("SessionDescriptionHandler.applyModifiers - modified sdp");
         if (!modified.sdp || !modified.type) {
-          throw new Error(`Invalid SDP.`);
+          throw new Error("Invalid SDP.");
         }
         return { sdp: modified.sdp, type: modified.type };
       });
@@ -340,7 +340,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    */
   protected createDataChannel(options?: SessionDescriptionHandlerOptions): Promise<void> {
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
     // only create a data channel if requested
     if (options?.dataChannel !== true) {
@@ -351,12 +351,12 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
       return Promise.resolve();
     }
     switch (this._peerConnection.signalingState) {
-      case `stable`:
+      case "stable":
         // if we are stable, assume we are creating a local offer so create a data channel
-        this.logger.debug(`SessionDescriptionHandler.createDataChannel - creating data channel`);
+        this.logger.debug("SessionDescriptionHandler.createDataChannel - creating data channel");
         try {
           this._dataChannel = this._peerConnection.createDataChannel(
-            options?.dataChannelLabel || ``,
+            options?.dataChannelLabel || "",
             options?.dataChannelOptions
           );
           if (this.onDataChannel) {
@@ -366,14 +366,14 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
         } catch (error) {
           return Promise.reject(error);
         }
-      case `have-remote-offer`:
+      case "have-remote-offer":
         return Promise.resolve();
-      case `have-local-offer`:
-      case `have-local-pranswer`:
-      case `have-remote-pranswer`:
-      case `closed`:
+      case "have-local-offer":
+      case "have-local-pranswer":
+      case "have-remote-pranswer":
+      case "closed":
       default:
-        return Promise.reject(new Error(`Invalid signaling state ` + this._peerConnection.signalingState));
+        return Promise.reject(new Error("Invalid signaling state " + this._peerConnection.signalingState));
     }
   }
 
@@ -383,23 +383,23 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    */
   protected createLocalOfferOrAnswer(options?: SessionDescriptionHandlerOptions): Promise<RTCSessionDescriptionInit> {
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
     switch (this._peerConnection.signalingState) {
-      case `stable`:
+      case "stable":
         // if we are stable, assume we are creating a local offer
-        this.logger.debug(`SessionDescriptionHandler.createLocalOfferOrAnswer - creating SDP offer`);
+        this.logger.debug("SessionDescriptionHandler.createLocalOfferOrAnswer - creating SDP offer");
         return this._peerConnection.createOffer(options?.offerOptions);
-      case `have-remote-offer`:
+      case "have-remote-offer":
         // if we have a remote offer, assume we are creating a local answer
-        this.logger.debug(`SessionDescriptionHandler.createLocalOfferOrAnswer - creating SDP answer`);
+        this.logger.debug("SessionDescriptionHandler.createLocalOfferOrAnswer - creating SDP answer");
         return this._peerConnection.createAnswer(options?.answerOptions);
-      case `have-local-offer`:
-      case `have-local-pranswer`:
-      case `have-remote-pranswer`:
-      case `closed`:
+      case "have-local-offer":
+      case "have-local-pranswer":
+      case "have-remote-pranswer":
+      case "closed":
       default:
-        return Promise.reject(new Error(`Invalid signaling state ` + this._peerConnection.signalingState));
+        return Promise.reject(new Error("Invalid signaling state " + this._peerConnection.signalingState));
     }
   }
 
@@ -408,15 +408,15 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * @param options - Session description handler options.
    */
   protected getLocalMediaStream(options?: SessionDescriptionHandlerOptions): Promise<void> {
-    this.logger.debug(`SessionDescriptionHandler.getLocalMediaStream`);
+    this.logger.debug("SessionDescriptionHandler.getLocalMediaStream");
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
     let constraints: MediaStreamConstraints = { ...options?.constraints };
 
     // if we already have a local media stream...
     if (this.localMediaStreamConstraints) {
-      // ignore constraint `downgrades`
+      // ignore constraint "downgrades"
       constraints.audio = constraints.audio || this.localMediaStreamConstraints.audio;
       constraints.video = constraints.video || this.localMediaStreamConstraints.video;
 
@@ -448,10 +448,10 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * @param stream - Media stream containing tracks to be utilized.
    */
   protected setLocalMediaStream(stream: MediaStream): Promise<void> {
-    this.logger.debug(`SessionDescriptionHandler.setLocalMediaStream`);
+    this.logger.debug("SessionDescriptionHandler.setLocalMediaStream");
 
     if (!this._peerConnection) {
-      throw new Error(`Peer connection undefined.`);
+      throw new Error("Peer connection undefined.");
     }
     const pc = this._peerConnection;
 
@@ -461,7 +461,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
 
     const updateTrack = (newTrack: MediaStreamTrack): void => {
       const kind = newTrack.kind;
-      if (kind !== `audio` && kind !== `video`) {
+      if (kind !== "audio" && kind !== "video") {
         throw new Error(`Unknown new track kind ${kind}.`);
       }
       const sender = pc.getSenders().find((sender) => sender.track && sender.track.kind === kind);
@@ -531,13 +531,13 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * Gets the peer connection's local session description.
    */
   protected getLocalSessionDescription(): Promise<RTCSessionDescription> {
-    this.logger.debug(`SessionDescriptionHandler.getLocalSessionDescription`);
+    this.logger.debug("SessionDescriptionHandler.getLocalSessionDescription");
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
     const sdp = this._peerConnection.localDescription;
     if (!sdp) {
-      return Promise.reject(new Error(`Failed to get local session description`));
+      return Promise.reject(new Error("Failed to get local session description"));
     }
     return Promise.resolve(sdp);
   }
@@ -547,9 +547,9 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * @param sessionDescription - sessionDescription The session description.
    */
   protected setLocalSessionDescription(sessionDescription: RTCSessionDescriptionInit): Promise<void> {
-    this.logger.debug(`SessionDescriptionHandler.setLocalSessionDescription`);
+    this.logger.debug("SessionDescriptionHandler.setLocalSessionDescription");
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
     return this._peerConnection.setLocalDescription(sessionDescription);
   }
@@ -559,31 +559,31 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * @param sessionDescription - The session description.
    */
   protected setRemoteSessionDescription(sessionDescription: RTCSessionDescriptionInit): Promise<void> {
-    this.logger.debug(`SessionDescriptionHandler.setRemoteSessionDescription`);
+    this.logger.debug("SessionDescriptionHandler.setRemoteSessionDescription");
     if (this._peerConnection === undefined) {
-      return Promise.reject(new Error(`Peer connection closed.`));
+      return Promise.reject(new Error("Peer connection closed."));
     }
     const sdp = sessionDescription.sdp;
     let type: RTCSdpType;
     switch (this._peerConnection.signalingState) {
-      case `stable`:
+      case "stable":
         // if we are stable assume this is a remote offer
-        type = `offer`;
+        type = "offer";
         break;
-      case `have-local-offer`:
+      case "have-local-offer":
         // if we made an offer, assume this is a remote answer
-        type = `answer`;
+        type = "answer";
         break;
-      case `have-local-pranswer`:
-      case `have-remote-offer`:
-      case `have-remote-pranswer`:
-      case `closed`:
+      case "have-local-pranswer":
+      case "have-remote-offer":
+      case "have-remote-pranswer":
+      case "closed":
       default:
-        return Promise.reject(new Error(`Invalid signaling state ` + this._peerConnection.signalingState));
+        return Promise.reject(new Error("Invalid signaling state " + this._peerConnection.signalingState));
     }
     if (!sdp) {
-      this.logger.error(`SessionDescriptionHandler.setRemoteSessionDescription failed - cannot set null sdp`);
-      return Promise.reject(new Error(`SDP is undefined`));
+      this.logger.error("SessionDescriptionHandler.setRemoteSessionDescription failed - cannot set null sdp");
+      return Promise.reject(new Error("SDP is undefined"));
     }
     return this._peerConnection.setRemoteDescription({ sdp, type });
   }
@@ -597,13 +597,13 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * @param track - Media stream track to be utilized.
    */
   protected setRemoteTrack(track: MediaStreamTrack): void {
-    this.logger.debug(`SessionDescriptionHandler.setRemoteTrack`);
+    this.logger.debug("SessionDescriptionHandler.setRemoteTrack");
 
     const remoteStream = this._remoteMediaStream;
 
     if (remoteStream.getTrackById(track.id)) {
       this.logger.debug(`SessionDescriptionHandler.setRemoteTrack - have remote ${track.kind} track`);
-    } else if (track.kind === `audio`) {
+    } else if (track.kind === "audio") {
       this.logger.debug(`SessionDescriptionHandler.setRemoteTrack - adding remote ${track.kind} track`);
       remoteStream.getAudioTracks().forEach((track) => {
         track.stop();
@@ -612,7 +612,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
       });
       remoteStream.addTrack(track);
       SessionDescriptionHandler.dispatchAddTrackEvent(remoteStream, track);
-    } else if (track.kind === `video`) {
+    } else if (track.kind === "video") {
       this.logger.debug(`SessionDescriptionHandler.setRemoteTrack - adding remote ${track.kind} track`);
       remoteStream.getVideoTracks().forEach((track) => {
         track.stop();
@@ -628,16 +628,16 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * Called when ICE gathering completes and resolves any waiting promise.
    */
   protected iceGatheringComplete(): void {
-    this.logger.debug(`SessionDescriptionHandler.iceGatheringComplete`);
+    this.logger.debug("SessionDescriptionHandler.iceGatheringComplete");
     // clear timer if need be
     if (this.iceGatheringCompleteTimeoutId !== undefined) {
-      this.logger.debug(`SessionDescriptionHandler.iceGatheringComplete - clearing timeout`);
+      this.logger.debug("SessionDescriptionHandler.iceGatheringComplete - clearing timeout");
       clearTimeout(this.iceGatheringCompleteTimeoutId);
       this.iceGatheringCompleteTimeoutId = undefined;
     }
     // resolve and cleanup promise if need be
     if (this.iceGatheringCompletePromise !== undefined) {
-      this.logger.debug(`SessionDescriptionHandler.iceGatheringComplete - resolving promise`);
+      this.logger.debug("SessionDescriptionHandler.iceGatheringComplete - resolving promise");
       this.iceGatheringCompleteResolve && this.iceGatheringCompleteResolve();
       this.iceGatheringCompletePromise = undefined;
       this.iceGatheringCompleteResolve = undefined;
@@ -647,23 +647,23 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
 
   /**
    * Wait for ICE gathering to complete.
-   * @param restart - If true, waits if current state is `complete` (waits for transition to `complete`).
+   * @param restart - If true, waits if current state is "complete" (waits for transition to "complete").
    * @param timeout - Milliseconds after which waiting times out. No timeout if 0.
    */
   protected waitForIceGatheringComplete(restart = false, timeout = 0): Promise<void> {
-    this.logger.debug(`SessionDescriptionHandler.waitForIceGatheringToComplete`);
+    this.logger.debug("SessionDescriptionHandler.waitForIceGatheringToComplete");
     if (this._peerConnection === undefined) {
-      return Promise.reject(`Peer connection closed.`);
+      return Promise.reject("Peer connection closed.");
     }
     // guard already complete
-    if (!restart && this._peerConnection.iceGatheringState === `complete`) {
-      this.logger.debug(`SessionDescriptionHandler.waitForIceGatheringToComplete - already complete`);
+    if (!restart && this._peerConnection.iceGatheringState === "complete") {
+      this.logger.debug("SessionDescriptionHandler.waitForIceGatheringToComplete - already complete");
       return Promise.resolve();
     }
     // only one may be waiting, reject any prior
     if (this.iceGatheringCompletePromise !== undefined) {
-      this.logger.debug(`SessionDescriptionHandler.waitForIceGatheringToComplete - rejecting prior waiting promise`);
-      this.iceGatheringCompleteReject && this.iceGatheringCompleteReject(new Error(`Promise superseded.`));
+      this.logger.debug("SessionDescriptionHandler.waitForIceGatheringToComplete - rejecting prior waiting promise");
+      this.iceGatheringCompleteReject && this.iceGatheringCompleteReject(new Error("Promise superseded."));
       this.iceGatheringCompletePromise = undefined;
       this.iceGatheringCompleteResolve = undefined;
       this.iceGatheringCompleteReject = undefined;
@@ -672,10 +672,9 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
       this.iceGatheringCompleteResolve = resolve;
       this.iceGatheringCompleteReject = reject;
       if (timeout > 0) {
-        this.logger.debug(`SessionDescriptionHandler.waitForIceGatheringToComplete - timeout in ` + timeout);
-        // @ts-ignore
+        this.logger.debug("SessionDescriptionHandler.waitForIceGatheringToComplete - timeout in " + timeout);
         this.iceGatheringCompleteTimeoutId = setTimeout(() => {
-          this.logger.debug(`SessionDescriptionHandler.waitForIceGatheringToComplete - timeout`);
+          this.logger.debug("SessionDescriptionHandler.waitForIceGatheringToComplete - timeout");
           this.iceGatheringComplete();
         }, timeout);
       }
@@ -687,9 +686,9 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
    * Initializes the peer connection event handlers
    */
   private initPeerConnectionEventHandlers(): void {
-    this.logger.debug(`SessionDescriptionHandler.initPeerConnectionEventHandlers`);
+    this.logger.debug("SessionDescriptionHandler.initPeerConnectionEventHandlers");
 
-    if (!this._peerConnection) throw new Error(`Peer connection undefined.`);
+    if (!this._peerConnection) throw new Error("Peer connection undefined.");
     const peerConnection = this._peerConnection;
 
     peerConnection.onconnectionstatechange = (event): void => {
@@ -736,7 +735,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
     peerConnection.onicegatheringstatechange = (event): void => {
       const newState = peerConnection.iceGatheringState;
       this.logger.debug(`SessionDescriptionHandler.onicegatheringstatechange ${newState}`);
-      if (newState === `complete`) {
+      if (newState === "complete") {
         this.iceGatheringComplete(); // complete waiting for ICE gathering to complete
       }
       if (this._peerConnectionDelegate?.onicegatheringstatechange) {
@@ -768,7 +767,7 @@ export class SessionDescriptionHandler implements SessionDescriptionHandlerDefin
 
     peerConnection.ontrack = (event): void => {
       const kind = event.track.kind;
-      const enabled = event.track.enabled ? `enabled` : `disabled`;
+      const enabled = event.track.enabled ? "enabled" : "disabled";
       this.logger.debug(`SessionDescriptionHandler.ontrack ${kind} ${enabled}`);
       this.setRemoteTrack(event.track);
       if (this._peerConnectionDelegate?.ontrack) {

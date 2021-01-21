@@ -1,4 +1,4 @@
-import { SessionDescriptionHandlerOptions as SessionDescriptionHandlerOptionsDefinition } from 'sip.js';
+import { SessionDescriptionHandlerOptions as SessionDescriptionHandlerOptionsDefinition } from "../../../api";
 
 /**
  * Options for {@link SessionDescriptionHandler}.

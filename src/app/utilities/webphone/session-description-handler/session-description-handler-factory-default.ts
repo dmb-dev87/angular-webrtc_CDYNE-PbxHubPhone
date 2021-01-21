@@ -1,10 +1,10 @@
-import { Session } from 'sip.js';
-import { defaultMediaStreamFactory } from './media-stream-factory-default';
-import { defaultPeerConnectionConfiguration } from './peer-connection-configuration-default';
-import { SessionDescriptionHandler } from './session-description-handler';
-import { SessionDescriptionHandlerConfiguration } from './session-description-handler-configuration';
-import { SessionDescriptionHandlerFactory } from './session-description-handler-factory';
-import { SessionDescriptionHandlerFactoryOptions } from './session-description-handler-factory-options';
+import { Session } from "../../../api";
+import { defaultMediaStreamFactory } from "./media-stream-factory-default";
+import { defaultPeerConnectionConfiguration } from "./peer-connection-configuration-default";
+import { SessionDescriptionHandler } from "./session-description-handler";
+import { SessionDescriptionHandlerConfiguration } from "./session-description-handler-configuration";
+import { SessionDescriptionHandlerFactory } from "./session-description-handler-factory";
+import { SessionDescriptionHandlerFactoryOptions } from "./session-description-handler-factory-options";
 
 /**
  * Function which returns a SessionDescriptionHandlerFactory.

@@ -1,4 +1,4 @@
-import { SessionDescriptionHandler } from './session-description-handler';
+import { SessionDescriptionHandler } from "./session-description-handler";
 
 /**
  * Interface of factory function which produces a MediaStream.

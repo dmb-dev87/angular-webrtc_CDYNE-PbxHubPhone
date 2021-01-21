@@ -1,4 +1,4 @@
-import { MediaStreamFactory } from './media-stream-factory';
+import { MediaStreamFactory } from "./media-stream-factory";
 
 /**
  * Function which returns a MediaStreamFactory.
@@ -15,7 +15,7 @@ export function defaultMediaStreamFactory(): MediaStreamFactory {
     // a page loaded using HTTPS or the file:/// URL scheme, or a page loaded from localhost.
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#Privacy_and_security
     if (navigator.mediaDevices === undefined) {
-      return Promise.reject(new Error(`Media devices not available in insecure contexts.`));
+      return Promise.reject(new Error("Media devices not available in insecure contexts."));
     }
     return navigator.mediaDevices.getUserMedia.call(navigator.mediaDevices, constraints);
   };
