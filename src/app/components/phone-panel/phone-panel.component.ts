@@ -19,8 +19,6 @@ const displayName = `Bojan`;
   styleUrls: ['./phone-panel.component.scss']
 })
 
-
-
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   private webSocketServer = environment.socketServer;
   private hostURL = environment.hostURL;
@@ -126,11 +124,24 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     const target = `sip:${targetNum}@${this.hostURL}`;
 
-    this.webUser.call(target).catch((error: Error) => {
-      console.error(`Failed to place call`);
-      console.error(error);
-      alert(`Failed to place call.\n` + error);
-    });
+    this.webUser
+      .call(target, undefined, {
+        requestDelegate: {
+          onReject: (response) => {
+            console.warn(`[${this.webUser.id}] INVITE rejected`);
+            let message = `Session invitation to "${targetNum}" rejected.\n`;
+            message += `Reason: ${response.message.reasonPhrase}\n`;
+            message += `Perhaps "${targetNum}" is not connected or registered?\n`;
+            message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
+            alert(message);
+          }
+        }
+      })
+      .catch((error: Error) => {
+        console.error(`Failed to place call`);
+        console.error(error);
+        alert(`Failed to place call.\n` + error);
+      });
   }
 
   hangupCall(): void {
