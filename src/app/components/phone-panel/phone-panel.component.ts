@@ -8,6 +8,8 @@ const authPassword = `E3F2D`;
 const extenNumber = `2001`;
 const displayName = `Bojan`;
 
+const ringAudio = new Audio(`assets/sound/ring.mp3`);
+
 // const authName = `F26D43A5-6D69-443A-AFF3-BB19D35C52CF`;
 // const authPassword = `62AC9`;
 // const extenNumber = `2004`;
@@ -23,9 +25,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private webSocketServer = environment.socketServer;
   private hostURL = environment.hostURL;
   private webUser = null;
+  private invitationState = null;
 
   constructor() {
-
   }
 
   ngOnInit(): void {
@@ -103,7 +105,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.webUser
       .register(undefined)
       .then(() => {
-        console.log(`++++++++++++++++++ Register success`, this.webUser.registerer.registered);
+        console.log(`++++++++++++++++++ Register success`);
       })
       .catch((error: Error) => {
         console.error(`[${this.webUser.id}] failed to register`);
@@ -112,44 +114,67 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
   }
 
-  makeCall(): void {
+  clickCall(): void {
     const targetNum = getInputValue(`call-number`);
-
-    console.log(`+++++++++++++++++++++++++`, this.webUser.registered);
 
     if (!this.webUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
       this.webUser.register(undefined);
     }
 
-    const target = `sip:${targetNum}@${this.hostURL}`;
-
-    this.webUser
-      .call(target, undefined, {
-        requestDelegate: {
-          onReject: (response) => {
-            console.warn(`[${this.webUser.id}] INVITE rejected`);
-            let message = `Session invitation to "${targetNum}" rejected.\n`;
-            message += `Reason: ${response.message.reasonPhrase}\n`;
-            message += `Perhaps "${targetNum}" is not connected or registered?\n`;
-            message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
-            alert(message);
+    if (this.invitationState === true) {
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
+      this.invitationState = false;
+      this.webUser
+        .answer(undefined)
+        .catch( (err: Error) => {
+          console.error(`[${this.webUser.id}] failed to answer call`);
+          console.error(err);
+          alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
+        });
+    } else {
+      const target = `sip:${targetNum}@${this.hostURL}`;
+      this.webUser
+        .call(target, undefined, {
+          requestDelegate: {
+            onReject: (response) => {
+              console.warn(`[${this.webUser.id}] INVITE rejected`);
+              let message = `Session invitation to "${targetNum}" rejected.\n`;
+              message += `Reason: ${response.message.reasonPhrase}\n`;
+              message += `Perhaps "${targetNum}" is not connected or registered?\n`;
+              message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
+              alert(message);
+            }
           }
-        }
-      })
-      .catch((error: Error) => {
-        console.error(`Failed to place call`);
-        console.error(error);
-        alert(`Failed to place call.\n` + error);
-      });
+        })
+        .catch((err: Error) => {
+          console.error(`Failed to place call`);
+          console.error(err);
+          alert(`Failed to place call.\n` + err);
+        });
+    }
   }
 
   hangupCall(): void {
-    this.webUser.hangup().catch((error: Error) => {
-      console.error(`Failed to hangup call`);
-      console.error(error);
-      alert(`Failed to hangup call.\n` + error);
-    });
+    if (this.invitationState === true) {
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
+      this.invitationState = false;
+      this.webUser
+        .decline()
+        .catch((err: Error) => {
+          console.error(`[${this.webUser.id}] failed to decline call`);
+          console.error(err);
+          alert(`[${this.webUser.id}] Failed to decline call.\n` + err);
+        });
+    } else {
+      this.webUser.hangup().catch((err: Error) => {
+        console.error(`Failed to hangup call`);
+        console.error(err);
+        alert(`Failed to hangup call.\n` + err);
+      });
+    }
   }
 
   makeCallCreatedCallback(user: WebUser): () => void {
@@ -166,12 +191,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   makeCallReceivedCallback(user: WebUser): () => void {
     return () => {
-      console.log(`[${user.id}] call received`);
-      user.answer().catch((error: Error) => {
-        console.error(`[${user.id}] failed to answer call`);
-        console.error(error);
-        alert(`[${user.id}] Failed to answer call.\n` + error);
-      });
+      const beginButton = getButton(`begin-call`);
+      const endButton = getButton(`end-call`);
+
+      beginButton.disabled = false;
+      endButton.disabled = false;
+
+      this.invitationState = true;
+      ringAudio.play();
     };
   }
 
@@ -206,12 +233,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeServerDisconnectCallback(user: WebUser): () => void {
-    return (error?: Error) => {
+    return (err?: Error) => {
       console.log(`[${user.id}] disconnected`);
       const beginButton = getButton(`begin-call`);
       beginButton.disabled = true;
-      if (error) {
-        alert(`[${user.id}] Server disconnected.\n` + error.message);
+      if (err) {
+        alert(`[${user.id}] Server disconnected.\n` + err.message);
       }
     };
   }

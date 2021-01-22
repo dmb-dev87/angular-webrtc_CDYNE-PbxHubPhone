@@ -27,11 +27,11 @@
       </div>
     </div>
     <div class=" call-btns-panel">
-      <button class=" btn btn-fill btn-danger phone-control" id="end-call" (click)="hangupCall()">End</button>
+      <button class=" btn btn-fill btn-danger phone-control" id="end-call" (click)="hangupCall()" disabled>End</button>
       <button class=" btn btn-fill btn-normal phone-control">Mute</button>
       <button class=" btn btn-fill btn-normal phone-control">Hold</button>
       <input type="text" class=" phone-control" id="call-number">
-      <button class=" btn btn-fill btn-normal phone-control" id="begin-call" (click)="makeCall()">Call</button>
+      <button class=" btn btn-fill btn-normal phone-control" id="begin-call" (click)="clickCall()" disabled>Call</button>
       <button class=" btn btn-fill btn-normal phone-control">X-fer</button>
       <button class=" btn btn-fill btn-normal phone-control">Conf</button>
       <button class=" btn btn-fill btn-normal phone-control">
