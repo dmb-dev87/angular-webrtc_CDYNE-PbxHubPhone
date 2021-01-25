@@ -1,19 +1,11 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { getButtons, addInputValue, getInputValue, getAudio, getVideo, getButton } from '../../utilities/ui-utils';
 import { WebUser, WebUserDelegate, WebUserOptions } from '../../utilities/webphone';
-
-const authName = `9FE12102-FAB4-4524-ACF4-641F247145E7`;
-const authPassword = `E3F2D`;
-const extenNumber = `2001`;
-const displayName = `Bojan`;
+import { PhoneUser } from '../../models/phoneuser';
+import { PhoneUserService} from '../../services/phoneuser.service';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
-
-// const authName = `F26D43A5-6D69-443A-AFF3-BB19D35C52CF`;
-// const authPassword = `62AC9`;
-// const extenNumber = `2004`;
-// const displayName = `Dojan`;
 
 @Component({
   selector: 'app-phone-panel',
@@ -26,8 +18,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private hostURL = environment.hostURL;
   private webUser = null;
   private invitationState = null;
+  private phoneUser: PhoneUser = new PhoneUser();
 
-  constructor() {
+  constructor(private phoneUserService: PhoneUserService) {
+    this.phoneUserService.load();
   }
 
   ngOnInit(): void {
@@ -45,7 +39,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
     });
 
-    this.connectToServer();
+    this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
+      this.phoneUser = phoneuser.data;
+      if (this.phoneUser) {
+        this.connectToServer();
+      }
+    });
   }
 
   connectToServer(): void {
@@ -65,12 +64,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         }
       },
       userAgentOptions: {
-        authorizationPassword: authPassword,
-        authorizationUsername: authName,
+        authorizationPassword: this.phoneUser.authPassword,
+        authorizationUsername: this.phoneUser.authName,
         forceRport: true,
-        contactName: displayName,
+        contactName: this.phoneUser.displayName,
       },
-      aor: `sip:${extenNumber}@${this.hostURL}`
+      aor: `sip:${this.phoneUser.extenNumber}@${this.hostURL}`
     }
 
     this.webUser = new WebUser(this.webSocketServer, webUserOptions);
