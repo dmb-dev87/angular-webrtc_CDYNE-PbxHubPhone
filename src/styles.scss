@@ -44,12 +44,14 @@
   color: #ffffff;
   .device-mic {
     border-top: 3px solid #f80101;
+    border-right: none;
     padding-top: 5px;
     margin-right: 5px;
     margin-left: 10px;
   }
   .device-receiver {
     border-top: 3px solid #6bb04c;
+    border-right: none;
     padding-top: 5px;
     margin-left: 10px;
     margin-right: 5px;
@@ -59,6 +61,11 @@
 .line-panel {
   padding: 0px 30px;
   font-size: 0.5rem;
+
+  div {
+    height: 50%;
+    padding: 3px;
+  }
 
   span {
     color: #ffffff;

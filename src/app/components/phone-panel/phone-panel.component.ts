@@ -18,10 +18,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private hostURL = environment.hostURL;
   private webUser = null;
   private invitationState = null;
-  private phoneUser: PhoneUser = new PhoneUser();
+  private _phoneUser: PhoneUser = undefined;
 
   constructor(private phoneUserService: PhoneUserService) {
     this.phoneUserService.load();
+  }
+
+  get phoneUser(): PhoneUser {
+    return this._phoneUser;
+  }
+
+  set phoneUser(phoneUser: PhoneUser | undefined) {
+    this._phoneUser = phoneUser;
   }
 
   ngOnInit(): void {
@@ -40,8 +48,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     });
 
     this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
-      this.phoneUser = phoneuser.data;
-      if (this.phoneUser) {
+      this._phoneUser = phoneuser.data;
+      if (this._phoneUser) {
         this.connectToServer();
       }
     });
@@ -90,7 +98,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.webUser
       .connect()
       .then(() => {
-        console.log(`++++++++++++++++++++ Successed to connect`);
         this.register();
       })
       .catch((error: Error) => {
@@ -103,9 +110,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   register(): void {
     this.webUser
       .register(undefined)
-      .then(() => {
-        console.log(`++++++++++++++++++ Register success`);
-      })
       .catch((error: Error) => {
         console.error(`[${this.webUser.id}] failed to register`);
         console.error(error);
@@ -197,6 +201,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       endButton.disabled = false;
 
       this.invitationState = true;
+
+      ringAudio.loop = true;
+      ringAudio.autoplay = true;
       ringAudio.play();
     };
   }
@@ -241,5 +248,4 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
     };
   }
-
 }

@@ -4,39 +4,37 @@
       <a href="javascript:void(0)"> Logo </a>
     </div>
     <div class=" phone-caller-id">
-      <span style="border-right: 3px solid #232323;">CallerID:</span>
-      <input type="text" style="width:150px">
+      <span>CallerID:</span>
+      <span class="col-md-12">{{this.phoneUser?.authName}}</span>
     </div>
     <div class=" user-name">
-      <span style="border-right: 3px solid #232323;">Welcome Ryan</span>
+      <span>Welcome {{this.phoneUser?.displayName}}</span>
     </div>
     <div class=" device-panel">
       <span class=" device-mic"><i class="fas fa-microphone"></i></span>
       <span class=" device-receiver"><i class="fas fa-headset"></i></span>
     </div>
     <div class=" line-panel">
-      <div style="height: 50%; padding: 3px;">
+      <div>
         <input type="radio">
         <span>Line 1:</span>
         <input type="text" class="line-input" placeholder="CallerID Info">
       </div>
-      <div style="height: 50%; padding: 3px;">
+      <div>
         <input type="radio">
         <span>Line 2:</span>
         <input type="text" class="line-input" placeholder="CallerID Info">
       </div>
     </div>
     <div class=" call-btns-panel">
-      <button class=" btn btn-fill btn-danger phone-control" id="end-call" (click)="hangupCall()" disabled>End</button>
       <button class=" btn btn-fill btn-normal phone-control">Mute</button>
       <button class=" btn btn-fill btn-normal phone-control">Hold</button>
+      <button class=" btn btn-fill btn-danger phone-control" id="end-call" (click)="hangupCall()" disabled>End</button>
       <input type="text" class=" phone-control" id="call-number">
       <button class=" btn btn-fill btn-normal phone-control" id="begin-call" (click)="clickCall()" disabled>Call</button>
       <button class=" btn btn-fill btn-normal phone-control">X-fer</button>
       <button class=" btn btn-fill btn-normal phone-control">Conf</button>
-      <button class=" btn btn-fill btn-normal phone-control">
-        <span class=" device-receiver"><i class="fas fa-record-vinyl"></i></span>
-      </button>
+      <button class=" btn btn-fill btn-normal phone-control"><i class="fas fa-record-vinyl"></i></button>
       <input type="text">
     </div>
   </div>
@@ -53,9 +51,11 @@
   <p>Your browser doesn't support HTML5 audio.</p>
 </audio>
 
-<video id="localVideo" width="100%" muted="muted" hidden>
-  <p>Your browser doesn't support HTML5 video.</p>
-</video>
+<div class="video" hidden>
+  <video id="localVideo" width="100%">
+    <p>Your browser doesn't support HTML5 video.</p>
+  </video>
+</div>
 
 <ng-template #content let-modal>
   <div class=" modal-header">
