@@ -1,11 +1,11 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { getButtons, addInputValue, getInputValue } from '../../utilities/ui-utils';
-import { UserAgent, UserAgentOptions, Registerer, Inviter } from 'sip.js';
+import { getButtons, addInputValue, getInputValue, getAudio, getVideo, getButton } from '../../utilities/ui-utils';
+import { WebUser, WebUserDelegate, WebUserOptions } from '../../utilities/webphone';
+import { PhoneUser } from '../../models/phoneuser';
+import { PhoneUserService} from '../../services/phoneuser.service';
 
-
-const authName = `9FE12102-FAB4-4524-ACF4-641F247145E7`;
-const authPassword = `E3F2D`;
+const ringAudio = new Audio(`assets/sound/ring.mp3`);
 
 @Component({
   selector: 'app-phone-panel',
@@ -16,11 +16,12 @@ const authPassword = `E3F2D`;
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   private webSocketServer = environment.socketServer;
   private hostURL = environment.hostURL;
-  private userAgent = null;
-  private registerer = null;
+  private webUser = null;
+  private invitationState = null;
+  private phoneUser: PhoneUser = new PhoneUser();
 
-  constructor() {
-    this.connectToServer();
+  constructor(private phoneUserService: PhoneUserService) {
+    this.phoneUserService.load();
   }
 
   ngOnInit(): void {
@@ -37,34 +38,60 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         }
       });
     });
+
+    this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
+      this.phoneUser = phoneuser.data;
+      if (this.phoneUser) {
+        this.connectToServer();
+      }
+    });
   }
 
   connectToServer(): void {
-    const transportOptions = {
-      server: this.webSocketServer
+    const audioElement = getAudio(`remoteAudio`);
+    const videoElement = getVideo(`localVideo`);
+    const webUserOptions: WebUserOptions = {
+      media: {
+        constraints: {
+          audio: true,
+          video: false
+        },
+        local: {
+          video: videoElement
+        },
+        remote: {
+          audio: audioElement
+        }
+      },
+      userAgentOptions: {
+        authorizationPassword: this.phoneUser.authPassword,
+        authorizationUsername: this.phoneUser.authName,
+        forceRport: true,
+        contactName: this.phoneUser.displayName,
+      },
+      aor: `sip:${this.phoneUser.extenNumber}@${this.hostURL}`
+    }
+
+    this.webUser = new WebUser(this.webSocketServer, webUserOptions);
+
+    // const delegate: SimpleUserDelegate = {
+    const delegate: WebUserDelegate = {
+      onCallCreated: this.makeCallCreatedCallback(this.webUser),
+      onCallReceived: this.makeCallReceivedCallback(this.webUser),
+      onCallHangup: this.makeCallHangupCallback(this.webUser),
+      onRegistered: this.makeRegisteredCallback(this.webUser),
+      onUnregistered: this.makeUnregisteredCallback(this.webUser),
+      onServerConnect: this.makeServerConnectCallback(this.webUser),
+      onServerDisconnect: this.makeServerDisconnectCallback(this.webUser)
     };
 
-    const uri = UserAgent.makeURI(`sip:2001@${this.hostURL}`)
+    this.webUser.delegate = delegate;
 
-    console.log(`++++++++++++++++++`, uri);
-
-    const userAgentOptions: UserAgentOptions = {
-      authorizationPassword: authPassword,
-      authorizationUsername: authName,
-      forceRport: true,
-      contactName: `Bojan`,
-      transportOptions,
-      uri
-    };
-
-    this.userAgent = new UserAgent(userAgentOptions);
-    this.registerer = new Registerer(this.userAgent);
-
-    this.userAgent.start()
+    this.webUser
+      .connect()
       .then(() => {
         console.log(`++++++++++++++++++++ Successed to connect`);
-        this.registerer.register();
-        console.log(`+++++++++++++++++`, this.registerer);
+        this.register();
       })
       .catch((error: Error) => {
         console.error(`Failed to connect`);
@@ -73,16 +100,146 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
   }
 
-  makeCall(): void {
+  register(): void {
+    this.webUser
+      .register(undefined)
+      .then(() => {
+        console.log(`++++++++++++++++++ Register success`);
+      })
+      .catch((error: Error) => {
+        console.error(`[${this.webUser.id}] failed to register`);
+        console.error(error);
+        alert(`[${this.webUser.id}] Failed to register.\n` + error);
+      });
+  }
+
+  clickCall(): void {
     const targetNum = getInputValue(`call-number`);
-    if (!this.registerer.registered) {
+
+    if (!this.webUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
+      this.webUser.register(undefined);
     }
 
-    const target = UserAgent.makeURI(`sip:${targetNum}@${this.hostURL}`);
+    if (this.invitationState === true) {
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
+      this.invitationState = false;
+      this.webUser
+        .answer(undefined)
+        .catch( (err: Error) => {
+          console.error(`[${this.webUser.id}] failed to answer call`);
+          console.error(err);
+          alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
+        });
+    } else {
+      const target = `sip:${targetNum}@${this.hostURL}`;
+      this.webUser
+        .call(target, undefined, {
+          requestDelegate: {
+            onReject: (response) => {
+              console.warn(`[${this.webUser.id}] INVITE rejected`);
+              let message = `Session invitation to "${targetNum}" rejected.\n`;
+              message += `Reason: ${response.message.reasonPhrase}\n`;
+              message += `Perhaps "${targetNum}" is not connected or registered?\n`;
+              message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
+              alert(message);
+            }
+          }
+        })
+        .catch((err: Error) => {
+          console.error(`Failed to place call`);
+          console.error(err);
+          alert(`Failed to place call.\n` + err);
+        });
+    }
+  }
 
-    const inviter = new Inviter(this.userAgent, target);
-    inviter.invite();
+  hangupCall(): void {
+    if (this.invitationState === true) {
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
+      this.invitationState = false;
+      this.webUser
+        .decline()
+        .catch((err: Error) => {
+          console.error(`[${this.webUser.id}] failed to decline call`);
+          console.error(err);
+          alert(`[${this.webUser.id}] Failed to decline call.\n` + err);
+        });
+    } else {
+      this.webUser.hangup().catch((err: Error) => {
+        console.error(`Failed to hangup call`);
+        console.error(err);
+        alert(`Failed to hangup call.\n` + err);
+      });
+    }
+  }
+
+  makeCallCreatedCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] call created`);
+
+      const beginButton = getButton(`begin-call`);
+      const endButton = getButton(`end-call`);
+
+      beginButton.disabled = true;
+      endButton.disabled = false;
+    };
+  }
+
+  makeCallReceivedCallback(user: WebUser): () => void {
+    return () => {
+      const beginButton = getButton(`begin-call`);
+      const endButton = getButton(`end-call`);
+
+      beginButton.disabled = false;
+      endButton.disabled = false;
+
+      this.invitationState = true;
+      ringAudio.play();
+    };
+  }
+
+  makeCallHangupCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] call hangup`);
+      const beginButton = getButton(`begin-call`);
+      const endButton = getButton(`end-call`);
+      beginButton.disabled = !user.isConnected();
+      endButton.disabled = false;
+    };
+  }
+
+  makeRegisteredCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] registered`);
+    };
+  }
+
+  makeUnregisteredCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] unregistered`);
+    };
+  }
+
+  makeServerConnectCallback(user: WebUser): () => void {
+    return () => {
+      console.log(`[${user.id}] connected`);
+      const beginButton = getButton(`begin-call`);
+      beginButton.disabled = false;
+    };
+  }
+
+  makeServerDisconnectCallback(user: WebUser): () => void {
+    return (err?: Error) => {
+      console.log(`[${user.id}] disconnected`);
+      const beginButton = getButton(`begin-call`);
+      beginButton.disabled = true;
+      if (err) {
+        alert(`[${user.id}] Server disconnected.\n` + err.message);
+      }
+    };
   }
 
 }
