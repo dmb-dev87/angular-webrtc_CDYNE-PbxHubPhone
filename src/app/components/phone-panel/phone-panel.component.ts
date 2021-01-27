@@ -6,6 +6,8 @@ import { PhoneUser } from '../../models/phoneuser';
 import { PhoneUserService} from '../../services/phoneuser.service';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
+const webSocketServer = environment.socketServer;
+const hostURL = environment.hostURL;
 
 @Component({
   selector: 'app-phone-panel',
@@ -14,34 +16,46 @@ const ringAudio = new Audio(`assets/sound/ring.mp3`);
 })
 
 export class PhonePanelComponent implements OnInit, AfterViewInit {
-  private webSocketServer = environment.socketServer;
-  private hostURL = environment.hostURL;
+  numberBtnToggle = false;
   private webUser = null;
   private invitationState = null;
-  private phoneUser: PhoneUser = new PhoneUser();
+  private _phoneUser: PhoneUser = undefined;
 
   constructor(private phoneUserService: PhoneUserService) {
     this.phoneUserService.load();
   }
 
-  ngOnInit(): void {
+  get phoneUser(): PhoneUser {
+    return this._phoneUser;
+  }
 
+  set phoneUser(phoneUser: PhoneUser | undefined) {
+    this._phoneUser = phoneUser;
+  }
+
+  ngOnInit(): void {
+    this.numberBtnToggle = false;
   }
 
   ngAfterViewInit(): void {
-    const keypad = getButtons(`btn-number`);
-    keypad.forEach((button) => {
-      button.addEventListener(`click`, () => {
-        const toneNum = button.textContent;
-        if (toneNum) {
-          addInputValue(`call-number`, toneNum);
-        }
-      });
-    });
+    // const keypad = getButtons(`btn-number`);
+    // keypad.forEach((button) => {
+    //   button.addEventListener(`click`, () => {
+    //     const toneNum = button.textContent;
+    //     if (toneNum) {
+    //       addInputValue(`call-number`, toneNum);
+    //     }
+    //   });
+    // });
+
+    const numberToggle = getButton(`number-toggle`);
+    numberToggle.addEventListener(`click`, () => {
+      this.numberBtnToggle = !this.numberBtnToggle;
+    })
 
     this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
-      this.phoneUser = phoneuser.data;
-      if (this.phoneUser) {
+      this._phoneUser = phoneuser.data;
+      if (this._phoneUser) {
         this.connectToServer();
       }
     });
@@ -69,10 +83,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         forceRport: true,
         contactName: this.phoneUser.displayName,
       },
-      aor: `sip:${this.phoneUser.extenNumber}@${this.hostURL}`
+      aor: `sip:${this.phoneUser.extenNumber}@${hostURL}`
     }
 
-    this.webUser = new WebUser(this.webSocketServer, webUserOptions);
+    this.webUser = new WebUser(webSocketServer, webUserOptions);
 
     // const delegate: SimpleUserDelegate = {
     const delegate: WebUserDelegate = {
@@ -90,7 +104,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.webUser
       .connect()
       .then(() => {
-        console.log(`++++++++++++++++++++ Successed to connect`);
         this.register();
       })
       .catch((error: Error) => {
@@ -103,14 +116,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   register(): void {
     this.webUser
       .register(undefined)
-      .then(() => {
-        console.log(`++++++++++++++++++ Register success`);
-      })
       .catch((error: Error) => {
         console.error(`[${this.webUser.id}] failed to register`);
         console.error(error);
         alert(`[${this.webUser.id}] Failed to register.\n` + error);
       });
+  }
+
+  clickNumber(toneNum: string): void {
+    addInputValue(`call-number`, toneNum);
   }
 
   clickCall(): void {
@@ -133,7 +147,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
         });
     } else {
-      const target = `sip:${targetNum}@${this.hostURL}`;
+      const target = `sip:${targetNum}@${hostURL}`;
       this.webUser
         .call(target, undefined, {
           requestDelegate: {
@@ -197,6 +211,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       endButton.disabled = false;
 
       this.invitationState = true;
+
+      ringAudio.loop = true;
+      ringAudio.autoplay = true;
       ringAudio.play();
     };
   }
@@ -241,5 +258,4 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
     };
   }
-
 }
