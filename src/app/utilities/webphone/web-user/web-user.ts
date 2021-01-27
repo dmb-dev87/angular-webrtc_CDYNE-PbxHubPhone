@@ -169,9 +169,12 @@ export class WebUser {
         // Initialize our session
         this.initSession(invitation, referralInviterOptions);
 
+        const uri = this.session.remoteIdentity.uri;
+        const displayName = this.session.remoteIdentity.displayName;
+
         // Delegate
         if (this.delegate && this.delegate.onCallReceived) {
-          this.delegate.onCallReceived();
+          this.delegate.onCallReceived(`${displayName} ${uri.user}`);
         } else {
           this.logger.warn(`[${this.id}] No handler available, rejecting INVITE...`);
           invitation

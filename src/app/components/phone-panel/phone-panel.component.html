@@ -6,10 +6,11 @@
           <a href="javascript:void(0)"> Logo </a>
         </div>
         <div class=" col-6 caller-id">
-          <span>CallerID: {{this.phoneUser?.authName}}</span>
+          <span>CallerID: </span>
+          <span>{{callerId}}</span>
         </div>
         <div class=" col-4 user-name">
-          <span>Welcome {{this.phoneUser?.displayName}}</span>
+          <span>Welcome {{phoneUser?.displayName}}</span>
         </div>
       </div>
     </div>
@@ -34,26 +35,26 @@
           </div>
         </div>
         <div class=" col-4 btns-panel">
-          <button class=" btn btn-fill btn-normal phone-control">Mute</button>
-          <button class=" btn btn-fill btn-normal phone-control">Hold</button>
+          <button class=" btn btn-fill btn-normal phone-control" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+          <button class=" btn btn-fill btn-normal phone-control" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
         </div>
       </div>
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 phone-pad">
       <div class=" row">
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-danger" id="end-call" (click)="hangupCall()" disabled><i class="fas fa-phone-slash"></i></button>
+          <button class=" btn btn-fill btn-danger" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
         </div>
         <div class=" input-number">
           <input type="text" id="call-number">
           <button id="number-toggle"><i class="fas fa-bars"></i></button>
         </div>
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-success" id="begin-call" (click)="clickCall()" disabled><i class="fas fa-phone-alt"></i></button>
+          <button class=" btn btn-fill btn-success" id="begin-call" (click)="clickCall()"><i class="fas fa-phone-alt"></i></button>
         </div>
       </div>
       <div class=" row number-pad" *ngIf="this.numberBtnToggle">
-        <div class=" col number-group">
+        <div class=" number-group">
           <div class=" row">
             <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
           </div>
