@@ -186,40 +186,40 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onMute(): void {
     this.muteToggle = !this.muteToggle;
-    if (this.muteToggle) {
-      this.webUser.mute();
-      if (this.webUser.isMuted() === false) {
-        this.muteToggle = false;
-        console.error(`[${this.webUser.id}] failed to mute call`);
-        alert(`Failed to mute call.\n`);
-      }
-    } else {
-      this.webUser.unmute();
-      if (this.webUser.isMuted() === true) {
-        this.muteToggle = true;
-        console.error(`[${this.webUser.id}] failed to unmute call`);
-        alert(`Failed to unmute call.\n`);
-      }
-    }
+    // if (this.muteToggle) {
+    //   this.webUser.mute();
+    //   if (this.webUser.isMuted() === false) {
+    //     this.muteToggle = false;
+    //     console.error(`[${this.webUser.id}] failed to mute call`);
+    //     alert(`Failed to mute call.\n`);
+    //   }
+    // } else {
+    //   this.webUser.unmute();
+    //   if (this.webUser.isMuted() === true) {
+    //     this.muteToggle = true;
+    //     console.error(`[${this.webUser.id}] failed to unmute call`);
+    //     alert(`Failed to unmute call.\n`);
+    //   }
+    // }
   }
 
   onHold(): void {
     this.holdToggle = !this.holdToggle;
-    if (this.holdToggle) {
-      this.webUser.hold().catch((error: Error) => {
-        this.holdToggle = false;
-        console.error(`[${this.webUser.id}] failed to hold call`);
-        console.error(error);
-        alert(`Failed to hold call.\n` + error);
-      });
-    } else {
-      this.webUser.unhold().catch((error: Error) => {
-        this.holdToggle = true;
-        console.error(`[${this.webUser.id}] failed to unhold call`);
-        console.error(error);
-        alert(`Failed to unhold call.\n` + error);
-      });
-    }
+    // if (this.holdToggle) {
+    //   this.webUser.hold().catch((error: Error) => {
+    //     this.holdToggle = false;
+    //     console.error(`[${this.webUser.id}] failed to hold call`);
+    //     console.error(error);
+    //     alert(`Failed to hold call.\n` + error);
+    //   });
+    // } else {
+    //   this.webUser.unhold().catch((error: Error) => {
+    //     this.holdToggle = true;
+    //     console.error(`[${this.webUser.id}] failed to unhold call`);
+    //     console.error(error);
+    //     alert(`Failed to unhold call.\n` + error);
+    //   });
+    // }
   }
 
   makeCallCreatedCallback(user: WebUser): () => void {

@@ -34,10 +34,6 @@
   color: #ffffff;
 }
 
-.btns-panel {
-  padding: 20px 0px;
-}
-
 .info-pad {
   justify-content: center;
 
@@ -62,7 +58,9 @@
 }
 
 .control-pad {
-  justify-content: center;
+  div.row {
+    justify-content: center;
+  }
 
   .audio-panel {
     font-size: 1.25rem;
@@ -84,6 +82,7 @@
 
   .line-panel {
     margin-top: 10px;
+    margin-left: 20px;
     font-size: 0.75rem;
 
     span {
@@ -94,6 +93,14 @@
 
     input {
       width: 50%;
+    }
+  }
+
+  .btns-panel {
+    padding: 3px 0px;
+
+    .btn {
+      padding: 5px 20px;
     }
   }
 }
@@ -119,6 +126,10 @@
       border: none;
       background-color: #ffffff;
     }
+  }
+
+  .btns-panel {
+    padding: 20px 0px;
   }
 }
 
