@@ -6,6 +6,8 @@ import { PhoneUser } from '../../models/phoneuser';
 import { PhoneUserService} from '../../services/phoneuser.service';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
+const webSocketServer = environment.socketServer;
+const hostURL = environment.hostURL;
 
 @Component({
   selector: 'app-phone-panel',
@@ -14,8 +16,7 @@ const ringAudio = new Audio(`assets/sound/ring.mp3`);
 })
 
 export class PhonePanelComponent implements OnInit, AfterViewInit {
-  private webSocketServer = environment.socketServer;
-  private hostURL = environment.hostURL;
+  numberBtnToggle = false;
   private webUser = null;
   private invitationState = null;
   private _phoneUser: PhoneUser = undefined;
@@ -33,19 +34,24 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-
+    this.numberBtnToggle = false;
   }
 
   ngAfterViewInit(): void {
-    const keypad = getButtons(`btn-number`);
-    keypad.forEach((button) => {
-      button.addEventListener(`click`, () => {
-        const toneNum = button.textContent;
-        if (toneNum) {
-          addInputValue(`call-number`, toneNum);
-        }
-      });
-    });
+    // const keypad = getButtons(`btn-number`);
+    // keypad.forEach((button) => {
+    //   button.addEventListener(`click`, () => {
+    //     const toneNum = button.textContent;
+    //     if (toneNum) {
+    //       addInputValue(`call-number`, toneNum);
+    //     }
+    //   });
+    // });
+
+    const numberToggle = getButton(`number-toggle`);
+    numberToggle.addEventListener(`click`, () => {
+      this.numberBtnToggle = !this.numberBtnToggle;
+    })
 
     this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
       this._phoneUser = phoneuser.data;
@@ -77,10 +83,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         forceRport: true,
         contactName: this.phoneUser.displayName,
       },
-      aor: `sip:${this.phoneUser.extenNumber}@${this.hostURL}`
+      aor: `sip:${this.phoneUser.extenNumber}@${hostURL}`
     }
 
-    this.webUser = new WebUser(this.webSocketServer, webUserOptions);
+    this.webUser = new WebUser(webSocketServer, webUserOptions);
 
     // const delegate: SimpleUserDelegate = {
     const delegate: WebUserDelegate = {
@@ -117,6 +123,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
   }
 
+  clickNumber(toneNum: string): void {
+    addInputValue(`call-number`, toneNum);
+  }
+
   clickCall(): void {
     const targetNum = getInputValue(`call-number`);
 
@@ -137,7 +147,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
         });
     } else {
-      const target = `sip:${targetNum}@${this.hostURL}`;
+      const target = `sip:${targetNum}@${hostURL}`;
       this.webUser
         .call(target, undefined, {
           requestDelegate: {

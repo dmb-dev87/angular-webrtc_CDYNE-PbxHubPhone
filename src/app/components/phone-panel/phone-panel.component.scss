@@ -1,3 +1,157 @@
+.main-panel {
+  background: #ffffff;
+  border: none;
+  font-size: 1rem;
+}
+
+.container-fluid {
+  padding: 3px;
+}
+
+.phone-panel {
+  display: flex;
+  align-items: center;
+  background-color: #1d1d1d;
+  border-left: 2px solid #c5c5c5;
+  border-right: 2px solid #c5c5c5;
+  border-top: 2px solid #c5c5c5;
+  border-bottom: 1px solid #1d1d1d;
+}
+
+.btn {
+  padding: 5px 14px;
+}
+
+.btn-normal {
+  margin-left: 5px;
+  margin-right: 5px;
+  background: #4a4a4a;
+  background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
+  background-size: 210% 210%;
+  background-position: top right;
+  background-color: #4a4a4a;
+  transition: all 0.15s ease;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+.btns-panel {
+  padding: 20px 0px;
+}
+
+.info-pad {
+  justify-content: center;
+
+  .logo {
+    background-color: #ffffff;
+    padding: 24px 20px;
+
+    a {
+      color: #000000;
+    }
+  }
+
+  .caller-id {
+    color: #ffffff;
+    padding: 10px 10px;
+  }
+
+  .user-name {
+    color: #69ad4b;
+    padding: 24px 0px;
+  }
+}
+
+.control-pad {
+  justify-content: center;
+
+  .audio-panel {
+    font-size: 1.25rem;
+    padding: 24px 0px;
+    color: #ffffff;
+
+    .mic-control {
+      border-top: 3px solid #f80101;
+      padding-top: 5px;
+      margin: 0px 10px;
+    }
+
+    .receiver-control {
+      border-top: 3px solid #6bb04c;
+      padding-top: 5px;
+      margin: 0px 10px;
+    }
+  }
+
+  .line-panel {
+    margin-top: 10px;
+    font-size: 0.75rem;
+
+    span {
+      color: #ffffff;
+      margin-left: 5px;
+      margin-right: 10px;
+    }
+
+    input {
+      width: 50%;
+    }
+  }
+}
+
+.phone-pad {
+  margin: auto;
+  position: relative;
+
+  div.row {
+    justify-content: center;
+  }
+
+  .input-number {
+    margin: 0px 10px;
+    padding: 24px 0px;
+
+    input {
+      border: none;
+      background-color: #ffffff;
+    }
+
+    button {
+      border: none;
+      background-color: #ffffff;
+    }
+  }
+}
+
+.number-pad {
+  margin: 0px 0px;
+  position: absolute;
+  top: 78px;
+  left: 140px;
+
+  .number-group {
+    padding: 8px 20px;
+    align-items: center;
+    background-color: #1d1d1d;
+    border-left: 4px solid #c5c5c5;
+    border-right: 4px solid #c5c5c5;
+    border-bottom: 4px solid #5e5e5e;
+  }
+
+  .btn-number {
+    background: #4a4a4a;
+    background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
+    background-size: 210% 210%;
+    background-position: top right;
+    background-color: #4a4a4a;
+    transition: all 0.15s ease;
+    box-shadow: none;
+    color: #ffffff;
+    padding: 5px 14px;
+    margin: 5px 10px;
+  }
+}
+
 .video {
   display: flex;
   background: black;
@@ -17,8 +171,4 @@
   width: 40px;
   top: 150px;
   left: 10px;
-}
-
-span {
-  border-right: 3px solid #232323;
 }

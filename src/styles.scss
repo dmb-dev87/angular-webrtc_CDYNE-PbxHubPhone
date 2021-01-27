@@ -1,125 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
 .main-panel {
   background: #ffffff;
   border: none;
   font-size: 1rem;
 }
 
-.container-fluid {
-  padding: 3px;
+.mat-radio-outer-circle {
+  border-color: rgba(255, 255, 255, 0.54);
 }
 
-.phone-panel {
-  display: flex;
-  align-items: center;
-  background-color: #1d1d1d;
-  border-left: 2px solid #c5c5c5;
-  border-right: 2px solid #c5c5c5;
-  border-top: 2px solid #c5c5c5;
-  border-bottom: 1px solid #1d1d1d;
-}
-
-.logo {
-  background-color: #ffffff;
-  padding: 18px 20px;
-
-  a {
-    color: #000000;
-  }
-}
-
-.phone-caller-id {
-  color: #ffffff;
-  padding: 10px 10px;
-}
-
-.user-name {
-  color: #69ad4b;
-  padding: 0px 10px;
-}
-
-.device-panel {
-  font-size: 1.25rem;
-  color: #ffffff;
-  .device-mic {
-    border-top: 3px solid #f80101;
-    border-right: none;
-    padding-top: 5px;
-    margin-right: 5px;
-    margin-left: 10px;
-  }
-  .device-receiver {
-    border-top: 3px solid #6bb04c;
-    border-right: none;
-    padding-top: 5px;
-    margin-left: 10px;
-    margin-right: 5px;
-  }
-}
-
-.line-panel {
-  padding: 0px 30px;
-  font-size: 0.5rem;
-
-  div {
-    height: 50%;
-    padding: 3px;
-  }
-
-  span {
-    color: #ffffff;
-    margin-left: 5px;
-    margin-right: 10px;
-  }
-
-  .line-input {
-    width: 80px;
-  }
-}
-
-.btn {
-  padding: 5px 14px;
-}
-
-.btn-normal {
-  background: #4a4a4a;
-  background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
-  background-size: 210% 210%;
-  background-position: top right;
-  background-color: #4a4a4a;
-  transition: all 0.15s ease;
-  box-shadow: none;
-  color: #ffffff;
-}
-
-.phone-control {
-  margin-left: 5px;
-  margin-right: 5px;
-}
-
-.number-panel {
-  .number-group {
-    position: absolute;
-    left: 770px;
-    width: 504px;
-    padding: 8px 10px;
-    align-items: center;
-    background-color: #1d1d1d;
-    border-left: 4px solid #c5c5c5;
-    border-right: 4px solid #c5c5c5;
-    border-bottom: 4px solid #5e5e5e;
-  }
-}
-
-.btn-number {
-  background: #4a4a4a;
-  background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
-  background-size: 210% 210%;
-  background-position: top right;
-  background-color: #4a4a4a;
-  transition: all 0.15s ease;
-  box-shadow: none;
-  color: #ffffff;
-  margin: 0px 2px;
-}

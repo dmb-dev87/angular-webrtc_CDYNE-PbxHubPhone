@@ -28,8 +28,9 @@
               "src/assets"
             ],
             "styles": [
-              "src/assets/scss/black-dashboard.scss",
-              "src/styles.scss",              
+              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+              "src/assets/scss/black-dashboard.scss",              
+              "src/styles.scss",
               "node_modules/@fortawesome/fontawesome-free/css/all.css"
             ],
             "scripts": []
@@ -93,6 +94,7 @@
               "src/assets"
             ],
             "styles": [
+              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.scss"
             ],
             "scripts": []
