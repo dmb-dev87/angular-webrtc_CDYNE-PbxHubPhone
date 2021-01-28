@@ -36,10 +36,10 @@
         </div>
         <div class=" btns-panel">
           <div>
-            <button class=" btn btn-fill btn-normal phone-control" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+            <button class=" btn btn-fill btn-normal phone-control" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
           </div>
           <div>
-            <button class=" btn btn-fill btn-normal phone-control" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+            <button class=" btn btn-fill btn-normal phone-control" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
           </div>
         </div>
       </div>

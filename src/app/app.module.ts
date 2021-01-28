@@ -12,6 +12,8 @@ import { reducers, metaReducers } from './reducers';
 import { effects } from './effects';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+import { NgxSoapModule } from 'ngx-soap';
+
 import { MaterialModule } from './material.module';
 
 @NgModule({
@@ -27,6 +29,7 @@ import { MaterialModule } from './material.module';
     EffectsModule.forRoot(effects),
     BrowserAnimationsModule,
     MaterialModule,
+    NgxSoapModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
