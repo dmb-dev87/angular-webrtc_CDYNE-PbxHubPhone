@@ -14,6 +14,14 @@ export function getButtons(id: string): Array<HTMLButtonElement> {
   return buttons;
 }
 
+export function setInputValue(id: string, val: string): void {
+  const el = document.getElementById(id);
+  if (!(el instanceof HTMLInputElement)) {
+    throw new Error(`Element "${id} not a input element.`);
+  }
+  el.value = val;
+}
+
 export function addInputValue(id: string, val: string): void {
   const el = document.getElementById(id);
   if (!(el instanceof HTMLInputElement)) {

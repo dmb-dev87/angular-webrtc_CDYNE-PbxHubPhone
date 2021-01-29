@@ -163,6 +163,28 @@
   }
 }
 
+.search-pad {
+  margin: 0px 0px;
+  position: absolute;
+  z-index: 9999;
+  width: 100%;
+  top: 78px;
+  background-color: transparent;
+
+  .search-list {
+    padding: 8px 20px;
+    background-color: #1d1d1d;
+    border: 2px solid #c5c5c5;
+    border-top: none;
+    width: 250px;
+
+    p {
+      text-align: left;
+      color: #ffffff;
+    }
+  }
+}
+
 .video {
   display: flex;
   background: black;

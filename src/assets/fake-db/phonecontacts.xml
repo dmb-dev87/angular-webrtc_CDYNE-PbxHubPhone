@@ -1,0 +1,28 @@
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Body>
+        <User_GetDirectoryResponse xmlns="http://tempuri.org/">
+            <User_GetDirectoryResult xmlns:a="http://schemas.datacontract.org/2004/07/PBXControlWS" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                <a:PbxUserLite>
+                    <a:Extension>2001</a:Extension>
+                    <a:FirstName>Bojan</a:FirstName>
+                    <a:LastName>Vladov</a:LastName>
+                </a:PbxUserLite>
+                <a:PbxUserLite>
+                    <a:Extension>2002</a:Extension>
+                    <a:FirstName>Ryan</a:FirstName>
+                    <a:LastName>Greene</a:LastName>
+                </a:PbxUserLite>
+                <a:PbxUserLite>
+                    <a:Extension>2003</a:Extension>
+                    <a:FirstName>Agent</a:FirstName>
+                    <a:LastName>One</a:LastName>
+                </a:PbxUserLite>
+                <a:PbxUserLite>
+                    <a:Extension>2004</a:Extension>
+                    <a:FirstName>Agent</a:FirstName>
+                    <a:LastName>two</a:LastName>
+                </a:PbxUserLite>
+            </User_GetDirectoryResult>
+        </User_GetDirectoryResponse>
+    </s:Body>
+</s:Envelope>

@@ -50,11 +50,11 @@
           <button class=" btn btn-fill btn-danger" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
         </div>
         <div class=" input-number">
-          <input type="text" id="call-number">
+          <input matInput type="text" id="call-number" (input)="searchContact()">
           <button id="number-toggle"><i class="fas fa-bars"></i></button>
         </div>
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-success" id="begin-call" (click)="clickCall()"><i class="fas fa-phone-alt"></i></button>
+          <button class=" btn btn-fill btn-success" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
         </div>
       </div>
       <div class=" row number-pad" *ngIf="this.numberBtnToggle">
@@ -70,6 +70,18 @@
           </div>
           <div class=" row">
             <button *ngFor="let n of ['#', '0', '*'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
+          </div>
+        </div>
+      </div>
+      <div class=" row search-pad" *ngIf="this.searchResult.length > 0 && !this.numberBtnToggle">
+        <div class=" search-list">
+          <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
+            <div class=" col-8">
+              <p>{{item.firstName}} {{item.lastName}}</p>
+            </div>
+            <div class=" col-4">
+              <p>{{item.extension}}</p>
+            </div>
           </div>
         </div>
       </div>
