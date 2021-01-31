@@ -25,7 +25,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   searchResult = [];
 
   private webUser = null;
-  private invitationState = null;
+  private callState = false;
+  private invitationState = false;
   private _phoneUser: PhoneUser = undefined;
   private _phoneContacts: Array<PhoneContact> = [];
 
@@ -144,12 +145,21 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   clickNumber(toneNum: string): void {
-    addInputValue(`call-number`, toneNum);
+    if (this.callState === false) {
+      addInputValue(`call-number`, toneNum);
 
-    this.beginButton.disabled = false;
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
+      this.beginButton.disabled = false;
+      this.endButton.disabled = true;
+      this.muteButton.disabled = true;
+      this.holdButton.disabled = true;
+    }
+    else {
+      setInputValue(`call-number`, ``);
+      this.webUser.sendDTMF(toneNum)
+        .then(() => {
+          addInputValue(`call-number`, toneNum);
+        });
+    }
   }
 
   makeCall(): void {
@@ -163,6 +173,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.muteButton.disabled = false;
     this.holdButton.disabled = false;
 
+    this.callState = true;
+
     if (this.invitationState === true) {
       ringAudio.pause();
       ringAudio.currentTime = 0;
@@ -170,6 +182,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.webUser
         .answer(undefined)
         .catch( (err: Error) => {
+          this.callState = true;
           console.error(`[${this.webUser.id}] failed to answer call`);
           console.error(err);
           alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
@@ -188,10 +201,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
               message += `Perhaps "${targetNum}" is not connected or registered?\n`;
               message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
               alert(message);
+              this.callState = false;
             }
           }
         })
         .catch((err: Error) => {
+          this.callState = false;
           console.error(`Failed to place call`);
           console.error(err);
           alert(`Failed to place call.\n` + err);
@@ -204,6 +219,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endButton.disabled = true;
     this.muteButton.disabled = true;
     this.holdButton.disabled = true;
+
+    setInputValue(`call-number`, ``);
+
+    this.callState = false;
 
     if (this.invitationState === true) {
       ringAudio.pause();
