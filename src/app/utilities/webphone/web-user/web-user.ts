@@ -50,6 +50,7 @@ export class WebUser {
   private registerer: Registerer | undefined = undefined;
   private registerRequested = false;
   private session: Session | undefined = undefined;
+  private sessionTwo: Session | undefined = undefined;
   private userAgent: UserAgent;
 
   /**
@@ -188,6 +189,38 @@ export class WebUser {
             });
         }
       },
+      // onRefer: (referral: Referral): void => {
+      //   this.logger.log(`[${this.id}] Received REFERRAL`);
+      //
+      //   if (this.session) {
+      //     this.logger.warn(`[${this.id}] Session already in progress, rejecting REFERRAL...`);
+      //     referral
+      //       .reject()
+      //       .then(() => {
+      //         this.logger.log(`[${this.id}] Rejected REFERRAL`);
+      //       })
+      //       .catch((error: Error) => {
+      //         this.logger.error(`[${this.id}] Failed to reject REFERRAL`);
+      //         this.logger.error(error.toString());
+      //       });
+      //     return;
+      //   }
+      //
+      //   if (this.delegate && this.delegate.onReferralReceived) {
+      //     this.delegate.onReferralReceived();
+      //   } else {
+      //     this.logger.warn(`[${this.id}] No handler available, rejecting REFERRAL...`);
+      //     referral
+      //       .reject()
+      //       .then(() => {
+      //         this.logger.log(`[${this.id}] Rejected REFERRAL`);
+      //       })
+      //       .catch((error: Error) => {
+      //         this.logger.error(`[${this.id}] Failed to reject REFERRAL`);
+      //         this.logger.error(error.toString());
+      //       });
+      //   }
+      // },
       // Handle incoming messages
       onMessage: (message: Message): void => {
         message.accept().then(() => {
@@ -851,6 +884,7 @@ export class WebUser {
           });
       },
       onRefer: (referral: Referral): void => {
+        console.log(`+++++++++++++++++++++++++++++ incoming refer`);
         referral
           .accept()
           .then(() => this.sendInvite(referral.makeInviter(referralInviterOptions), referralInviterOptions))
@@ -1071,4 +1105,57 @@ export class WebUser {
     this.logger.log(`[${this.id}] Terminating in state ${this.session.state}, no action taken`);
     return Promise.resolve();
   }
+
+  public transfer(destination: string): Promise<void> {
+    this.logger.log(`[${this.id}] Beginning Session...`);
+
+    if (!this.session) {
+      return Promise.reject(new Error(`Session does not exists.`));
+    }
+
+    this.setHold(true)
+      .catch((error: Error) => {
+        console.error(`[${this.id}] failed to hold call`);
+        console.error(error);
+        alert(`Failed to hold call.\n` + error);
+        return Promise.reject(new Error(`Failed to hold line one.`));
+      });
+
+    const target = UserAgent.makeURI(destination);
+    if (!target) {
+      return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
+    }
+
+    // Use our configured constraints as InviterOptions if none provided
+    this.sessionTwo = new Inviter(this.userAgent, target);
+
+    return this.session.refer(this.sessionTwo).then(() => {
+      return;
+    });
+  }
+
+  // public acceptRefer(invitationAcceptOptions?: InvitationAcceptOptions): Promise<void> {
+  //   this.logger.log(`[${this.id}] Accepting Refer...`);
+  //
+  //   if (!this.session) {
+  //     return Promise.reject(new Error(`Session does not exist.`));
+  //   }
+  //
+  //   if (!(this.session instanceof Invitation)) {
+  //     return Promise.reject(new Error(`Session not instance of Invitation.`));
+  //   }
+  //
+  //   // Use our configured constraints as InvitationAcceptOptions if none provided
+  //   if (!invitationAcceptOptions) {
+  //     invitationAcceptOptions = {};
+  //   }
+  //   if (!invitationAcceptOptions.sessionDescriptionHandlerOptions) {
+  //     invitationAcceptOptions.sessionDescriptionHandlerOptions = {};
+  //   }
+  //   if (!invitationAcceptOptions.sessionDescriptionHandlerOptions.constraints) {
+  //     invitationAcceptOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
+  //   }
+  //
+  //   return this.session.accept(invitationAcceptOptions);
+  // }
 }

@@ -33,24 +33,10 @@ export class PhonecontactsService {
         .append('Accept', '*/*')
         .append('Access-Control-Allow-Methods', 'GET,POST')
         .append('Access-Control-Allow-Origin', '*')
-        // .append('Access-Control-Allow-Headers',
-          // 'Access-Control-Allow-Headers, Access-Control-Allow-Origin, Access-Control-Request-Method')
         .append('Content-Encoding', 'gzip, deflate, br')
         .append('SOAPAction', soapAction),
       responseType: 'text'
     });
-
-    // return this.http.get(`/assets/fake-db/phonecontacts.xml`,
-    //   {
-    //     headers: new HttpHeaders()
-    //       .set('Content-Type', 'text/xml')
-    //       .append('Access-Control-Allow-Methods', 'GET')
-    //       .append('Access-Control-Allow-Origin', '*')
-    //       .append('Access-Control-Allow-Headers',
-    //         'Access-Control-Allow-Headers, Access-Control-Allow-Origin, Access-Control-Request-Method')
-    //       .append('Content-Type', 'text/xml; charset=utf-8'),
-    //     responseType: 'text'
-    //   });
   }
 
   getPhoneContacts(): any {

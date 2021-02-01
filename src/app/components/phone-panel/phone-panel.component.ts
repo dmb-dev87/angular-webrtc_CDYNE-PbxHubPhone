@@ -23,10 +23,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   muteToggle = false;
   holdToggle = false;
   searchResult = [];
+  selectLine = `1`;
 
   private webUser = null;
   private callState = false;
   private invitationState = false;
+  private referralState = false;
   private _phoneUser: PhoneUser = undefined;
   private _phoneContacts: Array<PhoneContact> = [];
 
@@ -117,7 +119,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       onRegistered: this.makeRegisteredCallback(this.webUser),
       onUnregistered: this.makeUnregisteredCallback(this.webUser),
       onServerConnect: this.makeServerConnectCallback(this.webUser),
-      onServerDisconnect: this.makeServerDisconnectCallback(this.webUser)
+      onServerDisconnect: this.makeServerDisconnectCallback(this.webUser),
+      // onReferralReceived: this.makeReferralReceivedCallback(this.webUser),
     };
 
     this.webUser.delegate = delegate;
@@ -188,6 +191,19 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
         });
     }
+    // else if (this.referralState === true) {
+    //   ringAudio.pause();
+    //   ringAudio.currentTime = 0;
+    //   this.referralState = false;
+    //   this.webUser
+    //     .acceptRefer()
+    //     .catch((err: Error) => {
+    //       this.callState = true;
+    //       console.error(`[${this.webUser.id}] failed to answer call`);
+    //       console.error(err);
+    //       alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
+    //     });
+    // }
     else {
       const targetNum = getInputValue(`call-number`);
       const target = `sip:${targetNum}@${hostURL}`;
@@ -349,6 +365,21 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
+  // makeReferralReceivedCallback(user: WebUser): () => void {
+  //   return () => {
+  //     this.beginButton.disabled = false;
+  //     this.endButton.disabled = false;
+  //     this.muteButton.disabled = false;
+  //     this.holdButton.disabled = false;
+  //
+  //     this.referralState = true;
+  //
+  //     ringAudio.loop = true;
+  //     ringAudio.autoplay = true;
+  //     ringAudio.play();
+  //   };
+  // }
+
   searchContact(): void {
     const searchWord = getInputValue(`call-number`);
     if (searchWord) {
@@ -382,4 +413,26 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
     this.searchResult = [];
   }
+
+  transfer(): void {
+    console.log(`++++++++++++++++++++++++++++++`, this.selectLine);
+    if (this.selectLine === '2') {
+      const transferCaller = getInputValue(`callerid_line2`);
+
+      if (transferCaller === undefined) {
+        return;
+      }
+
+      const target = `sip:${transferCaller}@${hostURL}`;
+
+      this.webUser.transfer(target)
+        .catch((error: Error) => {
+          console.error(`[${this.webUser.id}] failed to transfer call`);
+          console.error(error);
+          alert(`Failed to transfer call.\n` + error);
+        });
+    }
+
+  }
+
 }
