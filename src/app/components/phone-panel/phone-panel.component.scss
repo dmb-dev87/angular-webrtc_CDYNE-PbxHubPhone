@@ -18,7 +18,7 @@
 }
 
 .btn {
-  padding: 5px 14px;
+  padding: 5px 10px;
 }
 
 .btn-normal {
@@ -32,10 +32,6 @@
   transition: all 0.15s ease;
   box-shadow: none;
   color: #ffffff;
-}
-
-.btns-panel {
-  padding: 20px 0px;
 }
 
 .info-pad {
@@ -52,7 +48,7 @@
 
   .caller-id {
     color: #ffffff;
-    padding: 10px 10px;
+    padding: 24px 10px;
   }
 
   .user-name {
@@ -62,7 +58,9 @@
 }
 
 .control-pad {
-  justify-content: center;
+  div.row {
+    justify-content: center;
+  }
 
   .audio-panel {
     font-size: 1.25rem;
@@ -84,6 +82,7 @@
 
   .line-panel {
     margin-top: 10px;
+    margin-left: 20px;
     font-size: 0.75rem;
 
     span {
@@ -94,6 +93,14 @@
 
     input {
       width: 50%;
+    }
+  }
+
+  .btns-panel {
+    padding: 3px 0px;
+
+    .btn {
+      padding: 5px 20px;
     }
   }
 }
@@ -120,13 +127,19 @@
       background-color: #ffffff;
     }
   }
+
+  .btns-panel {
+    padding: 20px 0px;
+  }
 }
 
 .number-pad {
   margin: 0px 0px;
   position: absolute;
+  z-index: 9999;
   top: 78px;
-  left: 140px;
+  width: 100%;
+  background-color: transparent;
 
   .number-group {
     padding: 8px 20px;
@@ -147,6 +160,28 @@
     color: #ffffff;
     padding: 5px 14px;
     margin: 5px 10px;
+  }
+}
+
+.search-pad {
+  margin: 0px 0px;
+  position: absolute;
+  z-index: 9999;
+  width: 100%;
+  top: 78px;
+  background-color: transparent;
+
+  .search-list {
+    padding: 8px 20px;
+    background-color: #1d1d1d;
+    border: 2px solid #c5c5c5;
+    border-top: none;
+    width: 250px;
+
+    p {
+      text-align: left;
+      color: #ffffff;
+    }
   }
 }
 

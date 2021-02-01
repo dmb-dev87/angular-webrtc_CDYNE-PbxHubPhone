@@ -23,7 +23,7 @@ export interface WebUserDelegate {
    * Callback for handling incoming INVITE requests.
    * The callback must either accept or reject the incoming call by calling `answer()` or `decline()` respectively.
    */
-  onCallReceived?(): void;
+  onCallReceived?(callerId: string): void;
 
   /**
    * Called when a call is hung up.

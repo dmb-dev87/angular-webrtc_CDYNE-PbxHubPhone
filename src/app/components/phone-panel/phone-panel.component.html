@@ -6,54 +6,59 @@
           <a href="javascript:void(0)"> Logo </a>
         </div>
         <div class=" col-6 caller-id">
-          <span>CallerID: {{this.phoneUser?.authName}}</span>
+          <span>CallerID: </span>
+          <span>{{callerId}}</span>
         </div>
         <div class=" col-4 user-name">
-          <span>Welcome {{this.phoneUser?.displayName}}</span>
+          <span>Welcome {{phoneUser?.displayName}}</span>
         </div>
       </div>
     </div>
     <div class="col-lg-3 col-md-3 col-sm-12 control-pad">
       <div class=" row">
-        <div class=" col-3 audio-panel">
+        <div class=" audio-panel">
           <span class=" mic-control"><i class="fas fa-microphone"></i></span>
           <span class=" receiver-control"><i class="fas fa-headset"></i></span>
         </div>
-        <div class=" col-5 line-panel">
-          <div class=" row">
+        <div class=" line-panel">
+          <div class=" ">
             <mat-radio-button>
               <span>Line 1:</span>
               <input type="text" placeholder="CallerID Info">
             </mat-radio-button>
           </div>
-          <div class=" row">
+          <div class=" ">
             <mat-radio-button>
               <span>Line 2:</span>
               <input type="text" placeholder="CallerID Info">
             </mat-radio-button>
           </div>
         </div>
-        <div class=" col-4 btns-panel">
-          <button class=" btn btn-fill btn-normal phone-control">Mute</button>
-          <button class=" btn btn-fill btn-normal phone-control">Hold</button>
+        <div class=" btns-panel">
+          <div>
+            <button class=" btn btn-fill btn-normal phone-control" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+          </div>
+          <div>
+            <button class=" btn btn-fill btn-normal phone-control" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+          </div>
         </div>
       </div>
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 phone-pad">
       <div class=" row">
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-danger" id="end-call" (click)="hangupCall()" disabled><i class="fas fa-phone-slash"></i></button>
+          <button class=" btn btn-fill btn-danger" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
         </div>
         <div class=" input-number">
-          <input type="text" id="call-number">
+          <input matInput type="text" id="call-number" (input)="searchContact()">
           <button id="number-toggle"><i class="fas fa-bars"></i></button>
         </div>
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-success" id="begin-call" (click)="clickCall()" disabled><i class="fas fa-phone-alt"></i></button>
+          <button class=" btn btn-fill btn-success" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
         </div>
       </div>
       <div class=" row number-pad" *ngIf="this.numberBtnToggle">
-        <div class=" col number-group">
+        <div class=" number-group">
           <div class=" row">
             <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
           </div>
@@ -68,10 +73,22 @@
           </div>
         </div>
       </div>
+      <div class=" row search-pad" *ngIf="this.searchResult.length > 0 && !this.numberBtnToggle">
+        <div class=" search-list">
+          <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
+            <div class=" col-8">
+              <p>{{item.firstName}} {{item.lastName}}</p>
+            </div>
+            <div class=" col-4">
+              <p>{{item.extension}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
       <div class=" row">
-        <div class=" col btns-panel">
+        <div class=" btns-panel">
           <button class=" btn btn-fill btn-normal phone-control">X-fer</button>
           <button class=" btn btn-fill btn-normal phone-control">Conf</button>
           <button class=" btn btn-fill btn-normal phone-control"><i class="fas fa-record-vinyl"></i></button>

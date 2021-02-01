@@ -1,9 +1,11 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { getButtons, addInputValue, getInputValue, getAudio, getVideo, getButton } from '../../utilities/ui-utils';
+import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton } from '../../utilities/ui-utils';
 import { WebUser, WebUserDelegate, WebUserOptions } from '../../utilities/webphone';
 import { PhoneUser } from '../../models/phoneuser';
+import { PhoneContact } from '../../models/phonecontact';
 import { PhoneUserService} from '../../services/phoneuser.service';
+import { PhonecontactsService } from '../../services/phonecontacts.service';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -16,13 +18,26 @@ const hostURL = environment.hostURL;
 })
 
 export class PhonePanelComponent implements OnInit, AfterViewInit {
+  callerId = null;
   numberBtnToggle = false;
-  private webUser = null;
-  private invitationState = null;
-  private _phoneUser: PhoneUser = undefined;
+  muteToggle = false;
+  holdToggle = false;
+  searchResult = [];
 
-  constructor(private phoneUserService: PhoneUserService) {
+  private webUser = null;
+  private callState = false;
+  private invitationState = false;
+  private _phoneUser: PhoneUser = undefined;
+  private _phoneContacts: Array<PhoneContact> = [];
+
+  private beginButton = null;
+  private endButton = null;
+  private muteButton = null;
+  private holdButton = null;
+
+  constructor(private phoneUserService: PhoneUserService, private phonecontactsService: PhonecontactsService) {
     this.phoneUserService.load();
+    this.phonecontactsService.load();
   }
 
   get phoneUser(): PhoneUser {
@@ -38,27 +53,33 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // const keypad = getButtons(`btn-number`);
-    // keypad.forEach((button) => {
-    //   button.addEventListener(`click`, () => {
-    //     const toneNum = button.textContent;
-    //     if (toneNum) {
-    //       addInputValue(`call-number`, toneNum);
-    //     }
-    //   });
-    // });
-
     const numberToggle = getButton(`number-toggle`);
     numberToggle.addEventListener(`click`, () => {
       this.numberBtnToggle = !this.numberBtnToggle;
-    })
+    });
 
     this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
       this._phoneUser = phoneuser.data;
       if (this._phoneUser) {
+        // set username to localstorage
+        localStorage.setItem(`user_name`, this._phoneUser.authName);
         this.connectToServer();
       }
     });
+
+    this.phonecontactsService.getPhoneContacts().subscribe(phonecontacts => {
+      this._phoneContacts = phonecontacts.data;
+    });
+
+    this.beginButton = getButton(`begin-call`);
+    this.endButton = getButton(`end-call`);
+    this.muteButton = getButton(`mute-btn`);
+    this.holdButton = getButton(`hold-btn`);
+
+    this.beginButton.disabled = true;
+    this.endButton.disabled = true;
+    this.muteButton.disabled = true;
+    this.holdButton.disabled = true;
   }
 
   connectToServer(): void {
@@ -84,14 +105,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         contactName: this.phoneUser.displayName,
       },
       aor: `sip:${this.phoneUser.extenNumber}@${hostURL}`
-    }
+    };
 
     this.webUser = new WebUser(webSocketServer, webUserOptions);
 
     // const delegate: SimpleUserDelegate = {
     const delegate: WebUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(this.webUser),
-      onCallReceived: this.makeCallReceivedCallback(this.webUser),
+      onCallReceived: (callerId: string): void => this.makeCallReceivedCallback(callerId),
       onCallHangup: this.makeCallHangupCallback(this.webUser),
       onRegistered: this.makeRegisteredCallback(this.webUser),
       onUnregistered: this.makeUnregisteredCallback(this.webUser),
@@ -124,16 +145,35 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   clickNumber(toneNum: string): void {
-    addInputValue(`call-number`, toneNum);
+    if (this.callState === false) {
+      addInputValue(`call-number`, toneNum);
+
+      this.beginButton.disabled = false;
+      this.endButton.disabled = true;
+      this.muteButton.disabled = true;
+      this.holdButton.disabled = true;
+    }
+    else {
+      setInputValue(`call-number`, ``);
+      this.webUser.sendDTMF(toneNum)
+        .then(() => {
+          addInputValue(`call-number`, toneNum);
+        });
+    }
   }
 
-  clickCall(): void {
-    const targetNum = getInputValue(`call-number`);
-
+  makeCall(): void {
     if (!this.webUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
       this.webUser.register(undefined);
     }
+
+    this.beginButton.disabled = true;
+    this.endButton.disabled = false;
+    this.muteButton.disabled = false;
+    this.holdButton.disabled = false;
+
+    this.callState = true;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -142,11 +182,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.webUser
         .answer(undefined)
         .catch( (err: Error) => {
+          this.callState = true;
           console.error(`[${this.webUser.id}] failed to answer call`);
           console.error(err);
           alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
         });
-    } else {
+    }
+    else {
+      const targetNum = getInputValue(`call-number`);
       const target = `sip:${targetNum}@${hostURL}`;
       this.webUser
         .call(target, undefined, {
@@ -158,10 +201,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
               message += `Perhaps "${targetNum}" is not connected or registered?\n`;
               message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
               alert(message);
+              this.callState = false;
             }
           }
         })
         .catch((err: Error) => {
+          this.callState = false;
           console.error(`Failed to place call`);
           console.error(err);
           alert(`Failed to place call.\n` + err);
@@ -170,6 +215,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   hangupCall(): void {
+    this.beginButton.disabled = true;
+    this.endButton.disabled = true;
+    this.muteButton.disabled = true;
+    this.holdButton.disabled = true;
+
+    setInputValue(`call-number`, ``);
+
+    this.callState = false;
+
     if (this.invitationState === true) {
       ringAudio.pause();
       ringAudio.currentTime = 0;
@@ -181,7 +235,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(err);
           alert(`[${this.webUser.id}] Failed to decline call.\n` + err);
         });
-    } else {
+    }
+    else {
       this.webUser.hangup().catch((err: Error) => {
         console.error(`Failed to hangup call`);
         console.error(err);
@@ -190,41 +245,80 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
+  onMute(): void {
+    this.muteToggle = !this.muteToggle;
+    if (this.muteToggle) {
+      this.webUser.mute();
+      if (this.webUser.isMuted() === false) {
+        this.muteToggle = false;
+        console.error(`[${this.webUser.id}] failed to mute call`);
+        alert(`Failed to mute call.\n`);
+      }
+    }
+    else {
+      this.webUser.unmute();
+      if (this.webUser.isMuted() === true) {
+        this.muteToggle = true;
+        console.error(`[${this.webUser.id}] failed to unmute call`);
+        alert(`Failed to unmute call.\n`);
+      }
+    }
+  }
+
+  onHold(): void {
+    this.holdToggle = !this.holdToggle;
+    if (this.holdToggle) {
+      this.webUser.hold().catch((error: Error) => {
+        this.holdToggle = false;
+        console.error(`[${this.webUser.id}] failed to hold call`);
+        console.error(error);
+        alert(`Failed to hold call.\n` + error);
+      });
+    }
+    else {
+      this.webUser.unhold().catch((error: Error) => {
+        this.holdToggle = true;
+        console.error(`[${this.webUser.id}] failed to unhold call`);
+        console.error(error);
+        alert(`Failed to unhold call.\n` + error);
+      });
+    }
+  }
+
   makeCallCreatedCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call created`);
 
-      const beginButton = getButton(`begin-call`);
-      const endButton = getButton(`end-call`);
-
-      beginButton.disabled = true;
-      endButton.disabled = false;
+      this.beginButton.disabled = true;
+      this.endButton.disabled = false;
+      this.muteButton.disabled = false;
+      this.holdButton.disabled = false;
     };
   }
 
-  makeCallReceivedCallback(user: WebUser): () => void {
-    return () => {
-      const beginButton = getButton(`begin-call`);
-      const endButton = getButton(`end-call`);
+  makeCallReceivedCallback(callerId: string): void {
+    this.callerId = callerId;
 
-      beginButton.disabled = false;
-      endButton.disabled = false;
+    this.beginButton.disabled = false;
+    this.endButton.disabled = false;
+    this.muteButton.disabled = false;
+    this.holdButton.disabled = false;
 
-      this.invitationState = true;
+    this.invitationState = true;
 
-      ringAudio.loop = true;
-      ringAudio.autoplay = true;
-      ringAudio.play();
-    };
+    ringAudio.loop = true;
+    ringAudio.autoplay = true;
+    ringAudio.play();
   }
 
   makeCallHangupCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] call hangup`);
-      const beginButton = getButton(`begin-call`);
-      const endButton = getButton(`end-call`);
-      beginButton.disabled = !user.isConnected();
-      endButton.disabled = false;
+
+      this.beginButton.disabled = !user.isConnected();
+      this.endButton.disabled = false;
+      this.muteButton.disabled = false;
+      this.holdButton.disabled = false;
     };
   }
 
@@ -243,19 +337,49 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeServerConnectCallback(user: WebUser): () => void {
     return () => {
       console.log(`[${user.id}] connected`);
-      const beginButton = getButton(`begin-call`);
-      beginButton.disabled = false;
     };
   }
 
   makeServerDisconnectCallback(user: WebUser): () => void {
     return (err?: Error) => {
       console.log(`[${user.id}] disconnected`);
-      const beginButton = getButton(`begin-call`);
-      beginButton.disabled = true;
       if (err) {
         alert(`[${user.id}] Server disconnected.\n` + err.message);
       }
     };
+  }
+
+  searchContact(): void {
+    const searchWord = getInputValue(`call-number`);
+    if (searchWord) {
+      this.searchResult = this._phoneContacts.filter((ele, i, array) => {
+        const eleStr = ele.extension + ele.firstName + ele.lastName;
+        const arrayelement = eleStr.toLowerCase();
+        return arrayelement.includes(searchWord);
+      });
+    }
+    else {
+      this.searchResult = [];
+    }
+  }
+
+  clickSearchList(extension): void {
+    if (extension) {
+      setInputValue(`call-number`, extension);
+
+      this.beginButton.disabled = false;
+      this.endButton.disabled = true;
+      this.muteButton.disabled = true;
+      this.holdButton.disabled = true;
+    }
+    else {
+      setInputValue(`call-number`, ``);
+
+      this.beginButton.disabled = true;
+      this.endButton.disabled = true;
+      this.muteButton.disabled = true;
+      this.holdButton.disabled = true;
+    }
+    this.searchResult = [];
   }
 }
