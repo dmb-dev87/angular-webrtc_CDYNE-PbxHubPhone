@@ -1122,14 +1122,17 @@ export class WebUser {
       });
 
     const target = UserAgent.makeURI(destination);
+    console.log(`++++++++++++++++++++++++++++++++`, target);
+
     if (!target) {
       return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
     }
 
     // Use our configured constraints as InviterOptions if none provided
-    this.sessionTwo = new Inviter(this.userAgent, target);
+    // this.sessionTwo = new Inviter(this.userAgent, target);
 
-    return this.session.refer(this.sessionTwo).then(() => {
+    // return this.session.refer(this.sessionTwo).then(() => {
+    return this.session.refer(target).then(() => {
       return;
     });
   }
