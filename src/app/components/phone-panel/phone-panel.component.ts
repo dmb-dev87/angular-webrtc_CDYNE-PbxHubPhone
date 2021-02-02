@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText } from '../../utilities/ui-utils';
+import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText, getButtonText } from '../../utilities/ui-utils';
 import { WebUser, WebUserDelegate, WebUserOptions } from '../../utilities/webphone';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
@@ -25,7 +25,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   searchResult = [];
   selectLine = `1`;
   lineChanged = false;
-  transfered = false;
+  transferState = false;
 
   private webUser = null;
   private callState = false;
@@ -196,19 +196,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
         });
     }
-    // else if (this.referralState === true) {
-    //   ringAudio.pause();
-    //   ringAudio.currentTime = 0;
-    //   this.referralState = false;
-    //   this.webUser
-    //     .acceptRefer()
-    //     .catch((err: Error) => {
-    //       this.callState = true;
-    //       console.error(`[${this.webUser.id}] failed to answer call`);
-    //       console.error(err);
-    //       alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
-    //     });
-    // }
     else {
       const targetNum = getInputValue(`call-number`);
       const target = `sip:${targetNum}@${hostURL}`;
@@ -227,8 +214,21 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       setInputValue(`call-number`, ``);
 
-      if (this.transfered === true) {
-        this.webUser.transfer(target)
+      if (this.transferState === true) {
+        this.webUser
+          .makeTransfer(target, undefined, {
+            requestDelegate: {
+              onReject: (response) => {
+                console.warn(`[${this.webUser.id}] INVITE rejected`);
+                let message = `Session invitation to "${targetNum}" rejected.\n`;
+                message += `Reason: ${response.message.reasonPhrase}\n`;
+                message += `Perhaps "${targetNum}" is not connected or registered?\n`;
+                message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
+                alert(message);
+                this.transferState = false;
+              }
+            }
+          })
           .catch((error: Error) => {
             console.error(`[${this.webUser.id}] failed to transfer call`);
             console.error(error);
@@ -449,18 +449,29 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.searchResult = [];
   }
 
-  transfer(): void {
-    const btnText = this.transfered ? `X-Ref` : `Complete X-Ref`;
+  makeTransfer(): void {
+    const btnText = getButtonText('transfer-call');
+    this.lineChanged = false;
 
-    setButtonText(`transfer-call`, btnText);
-
-    this.selectLine = this.selectLine === `1` ? `2` : `1`;
-
-    if (this.transfered === true) {
+    if (btnText === 'X-fer' && this.transferState === false) {
+      setButtonText(`transfer-call`, `Complete X-fer`);
+      this.selectLine = `2`;
+      this.transferState = true;
+      return;
+    } else if (btnText === 'Complete X-fer' && this.transferState === true) {
+      setButtonText(`transfer-call`, 'X-fer');
+      this.transferState = false;
       this.webUser.completeTransfer()
+        .catch((error: Error) => {
+          console.error(`[${this.webUser.id}] failed to complete transfer call`);
+          console.error(error);
+          alert(`Failed to complete transfer call.\n` + error);
+          this.selectLine = `1`;
+          this.webUser.changeLine(false);
+        });
     }
 
-    this.transfered = !this.transfered;
+    return;
   }
 
   async changeLine(): Promise<void> {

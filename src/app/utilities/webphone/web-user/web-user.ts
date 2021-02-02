@@ -21,7 +21,7 @@ import {
   UserAgentOptions,
   UserAgentState
 } from 'sip.js';
-import {Logger} from 'sip.js/lib/core';
+import {Logger, OutgoingReferRequest} from 'sip.js/lib/core';
 import {holdModifier} from '../modifiers';
 // import { SessionDescriptionHandler } from '../session-description-handler';
 import {SessionDescriptionHandler} from 'sip.js/lib/platform/web/session-description-handler';
@@ -1141,7 +1141,7 @@ export class WebUser {
     }
   }
 
-  public transfer(
+  public makeTransfer(
     destination: string,
     inviterOptions?: InviterOptions,
     inviterInviteOptions?: InviterInviteOptions
@@ -1163,7 +1163,6 @@ export class WebUser {
     this.oldSession = this.session;
 
     const target = UserAgent.makeURI(destination);
-    console.log(`++++++++++++++++++++++++++++++++`, target);
 
     if (!target) {
       return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
@@ -1179,171 +1178,28 @@ export class WebUser {
       inviterOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
     }
 
-    // Use our configured constraints as InviterOptions if none provided
-    const replacementSession = new Inviter(this.userAgent, target, inviterOptions);
+    const transferInviter = new Inviter(this.userAgent, target, inviterOptions);
 
-    this.initReplacementSession(replacementSession, inviterOptions);
-
-    // Send the INVITE
-    return replacementSession.invite(inviterInviteOptions).then(() => {
-      this.logger.log(`[${this.id}] sent INVITE`);
+    return this.sendInvite(transferInviter, inviterOptions, inviterInviteOptions).then(() => {
+      return;
     });
   }
 
-  public completeTransfer(): Promise<void> {
+  public completeTransfer(): Promise<OutgoingReferRequest> {
     this.logger.log(`[${this.id}] Completing Transfer...`);
 
     if (!this.session) {
+      // this.logger.error(`Session does not exists.`);
       return Promise.reject(new Error(`Session does not exists.`));
     }
 
-    if (!this.session) {
-      return Promise.reject(new Error(`Session does not exists.`));
+    if (!this.oldSession) {
+      // this.logger.error(`Old Session does not exists.`);
+      return Promise.reject(new Error(`Old Session does not exists.`));
     }
 
-    this.terminate();
-
-    this.session = this.oldSession;
-
-    return this.setHold(false);
+    return this.oldSession.refer(this.session);
   }
-
-  private initReplacementSession(session: Session, referralInviterOptions?: InviterOptions): void {
-    // Set session
-    this.session = session;
-
-    // Call session created callback
-    if (this.delegate && this.delegate.onCallCreated) {
-      this.delegate.onCallCreated();
-    }
-
-    // Setup session state change handler
-    this.session.stateChange.addListener((state: SessionState) => {
-      if (this.session !== session) {
-        return; // if our session has changed, just return
-      }
-      this.logger.log(`[${this.id}] session state changed to ${state}`);
-      switch (state) {
-        case SessionState.Initial:
-          break;
-        case SessionState.Establishing:
-          break;
-        case SessionState.Established:
-          this.setupLocalMedia();
-          this.setupRemoteMedia();
-          if (this.oldSession) {
-            console.log(`+++++++++++++++++++++++++++++ Established`);
-            this.oldSession.refer(this.session);
-          }
-          if (this.delegate && this.delegate.onCallAnswered) {
-            this.delegate.onCallAnswered();
-          }
-          break;
-        case SessionState.Terminating:
-        // fall through
-        case SessionState.Terminated:
-          this.session = undefined;
-          this.cleanupMedia();
-          if (this.delegate && this.delegate.onCallHangup) {
-            this.delegate.onCallHangup();
-          }
-          break;
-        default:
-          throw new Error(`Unknown session state.`);
-      }
-    });
-
-    // Setup delegate
-    this.session.delegate = {
-      onInfo: (info: Info): void => {
-        // As RFC 6086 states, sending DTMF via INFO is not standardized...
-        //
-        // Companies have been using INFO messages in order to transport
-        // Dual-Tone Multi-Frequency (DTMF) tones.  All mechanisms are
-        // proprietary and have not been standardized.
-        // https://tools.ietf.org/html/rfc6086#section-2
-        //
-        // It is however widely supported based on this draft:
-        // https://tools.ietf.org/html/draft-kaplan-dispatch-info-dtmf-package-00
-
-        // FIXME: TODO: We should reject correctly...
-        //
-        // If a UA receives an INFO request associated with an Info Package that
-        // the UA has not indicated willingness to receive, the UA MUST send a
-        // 469 (Bad Info Package) response (see Section 11.6), which contains a
-        // Recv-Info header field with Info Packages for which the UA is willing
-        // to receive INFO requests.
-        // https://tools.ietf.org/html/rfc6086#section-4.2.2
-
-        // No delegate
-        if (this.delegate?.onCallDTMFReceived === undefined) {
-          info.reject();
-          return;
-        }
-
-        // Invalid content type
-        const contentType = info.request.getHeader(`content-type`);
-        if (!contentType || !/^application\/dtmf-relay/i.exec(contentType)) {
-          info.reject();
-          return;
-        }
-
-        // Invalid body
-        const body = info.request.body.split(`\r\n`, 2);
-        if (body.length !== 2) {
-          info.reject();
-          return;
-        }
-
-        // Invalid tone
-        let tone: string | undefined;
-        const toneRegExp = /^(Signal\s*?=\s*?)([0-9A-D#*]{1})(\s)?.*/;
-        if (toneRegExp.test(body[0])) {
-          tone = body[0].replace(toneRegExp, `$2`);
-        }
-        if (!tone) {
-          info.reject();
-          return;
-        }
-
-        // Invalid duration
-        let duration: number | undefined;
-        const durationRegExp = /^(Duration\s?=\s?)([0-9]{1,4})(\s)?.*/;
-        if (durationRegExp.test(body[1])) {
-          duration = parseInt(body[1].replace(durationRegExp, `$2`), 10);
-        }
-        if (!duration) {
-          info.reject();
-          return;
-        }
-
-        info
-          .accept()
-          .then(() => {
-            if (this.delegate && this.delegate.onCallDTMFReceived) {
-              if (!tone || !duration) {
-                throw new Error(`Tone or duration undefined.`);
-              }
-              this.delegate.onCallDTMFReceived(tone, duration);
-            }
-          })
-          .catch((error: Error) => {
-            this.logger.error(error.message);
-          });
-      },
-      onRefer: (referral: Referral): void => {
-        console.log(`+++++++++++++++++++++++++++++ incoming refer`);
-        referral
-          .accept()
-          .then(() => this.sendInvite(referral.makeInviter(referralInviterOptions), referralInviterOptions))
-          .catch((error: Error) => {
-            this.logger.error(error.message);
-          });
-      }
-    };
-  }
-
-
 
   // public acceptRefer(invitationAcceptOptions?: InvitationAcceptOptions): Promise<void> {
   //   this.logger.log(`[${this.id}] Accepting Refer...`);
