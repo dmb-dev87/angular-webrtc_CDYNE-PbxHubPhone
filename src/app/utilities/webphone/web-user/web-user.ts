@@ -52,6 +52,7 @@ export class WebUser {
   private session: Session | undefined = undefined;
   private oldSession: Session | undefined = undefined;
   private userAgent: UserAgent;
+  private transferTarget = undefined;
 
   /**
    * Constructs a new instance of the `WebUser` class.
@@ -1162,9 +1163,9 @@ export class WebUser {
 
     this.oldSession = this.session;
 
-    const target = UserAgent.makeURI(destination);
+    this.transferTarget = UserAgent.makeURI(destination);
 
-    if (!target) {
+    if (!this.transferTarget) {
       return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
     }
 
@@ -1178,7 +1179,7 @@ export class WebUser {
       inviterOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
     }
 
-    const transferInviter = new Inviter(this.userAgent, target, inviterOptions);
+    const transferInviter = new Inviter(this.userAgent, this.transferTarget, inviterOptions);
 
     return this.sendInvite(transferInviter, inviterOptions, inviterInviteOptions).then(() => {
       return;
@@ -1198,6 +1199,8 @@ export class WebUser {
       return Promise.reject(new Error(`Old Session does not exists.`));
     }
 
-    return this.oldSession.refer(this.session);
+    console.log(`+++++++++++++++++++++++++++`, this.transferTarget);
+
+    return this.oldSession.refer(this.transferTarget);
   }
 }
