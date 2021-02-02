@@ -476,8 +476,16 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   async changeLine(): Promise<void> {
     console.log(`+++++++++++++++++++++++++++++++++++++++`, this.selectLine);
-    this.lineChanged = true;
-    await this.webUser.changeLine(false);
+    if (this.transferState === true)
+    {
+      await this.webUser.changeLine(false);
+      this.transferState = false;
+      this.lineChanged = false;
+    }
+    else {
+      this.lineChanged = true;
+      await this.webUser.changeLine(false);
+    }
   }
 
 }

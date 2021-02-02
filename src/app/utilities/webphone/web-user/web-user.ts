@@ -1200,29 +1200,4 @@ export class WebUser {
 
     return this.oldSession.refer(this.session);
   }
-
-  // public acceptRefer(invitationAcceptOptions?: InvitationAcceptOptions): Promise<void> {
-  //   this.logger.log(`[${this.id}] Accepting Refer...`);
-  //
-  //   if (!this.session) {
-  //     return Promise.reject(new Error(`Session does not exist.`));
-  //   }
-  //
-  //   if (!(this.session instanceof Invitation)) {
-  //     return Promise.reject(new Error(`Session not instance of Invitation.`));
-  //   }
-  //
-  //   // Use our configured constraints as InvitationAcceptOptions if none provided
-  //   if (!invitationAcceptOptions) {
-  //     invitationAcceptOptions = {};
-  //   }
-  //   if (!invitationAcceptOptions.sessionDescriptionHandlerOptions) {
-  //     invitationAcceptOptions.sessionDescriptionHandlerOptions = {};
-  //   }
-  //   if (!invitationAcceptOptions.sessionDescriptionHandlerOptions.constraints) {
-  //     invitationAcceptOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
-  //   }
-  //
-  //   return this.session.accept(invitationAcceptOptions);
-  // }
 }
