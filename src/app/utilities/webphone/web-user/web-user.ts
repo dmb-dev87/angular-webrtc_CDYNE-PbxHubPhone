@@ -21,13 +21,13 @@ import {
   UserAgentOptions,
   UserAgentState
 } from 'sip.js';
-import { Logger } from 'sip.js/lib/core';
-import { holdModifier } from '../modifiers';
+import {Logger} from 'sip.js/lib/core';
+import {holdModifier} from '../modifiers';
 // import { SessionDescriptionHandler } from '../session-description-handler';
-import { SessionDescriptionHandler } from 'sip.js/lib/platform/web/session-description-handler';
-import { Transport } from '../transport';
-import { WebUserDelegate } from './web-user-delegate';
-import { WebUserOptions } from './web-user-options';
+import {SessionDescriptionHandler} from 'sip.js/lib/platform/web/session-description-handler';
+import {Transport} from '../transport';
+import {WebUserDelegate} from './web-user-delegate';
+import {WebUserOptions} from './web-user-options';
 
 /**
  * A simple SIP user class.
@@ -50,7 +50,7 @@ export class WebUser {
   private registerer: Registerer | undefined = undefined;
   private registerRequested = false;
   private session: Session | undefined = undefined;
-  private sessionTwo: Session | undefined = undefined;
+  private oldSession: Session | undefined = undefined;
   private userAgent: UserAgent;
 
   /**
@@ -614,7 +614,7 @@ export class WebUser {
     // https://tools.ietf.org/html/draft-kaplan-dispatch-info-dtmf-package-00#section-5.3
     this.logger.log(`[${this.id}] Sending DTMF tone: ${tone}`);
     const dtmf = tone;
-    const duration = 2000;
+    const duration = 1000;
     const body = {
       contentDisposition: `render`,
       contentType: `application/dtmf-relay`,
@@ -1106,7 +1106,46 @@ export class WebUser {
     return Promise.resolve();
   }
 
-  public transfer(destination: string): Promise<void> {
+  async changeLine(newCall: boolean): Promise<void> {
+    this.logger.log(`[${this.id}] Changing Lines...`);
+
+    if (!this.session) {
+      this.logger.error(`Session does not exists.`);
+      return;
+    }
+
+    if (this.session.state !== SessionState.Established) {
+      this.logger.warn(`[${this.id}] An established session is required to enable/disable media tracks`);
+      return;
+    }
+
+    if (this.oldSession === undefined && newCall === false) {
+      this.logger.log(`[${this.id}] Old session does not exists.`);
+      return;
+    }
+
+    await this.setHold(true);
+
+    const currentSession = this.session;
+
+    this.session = this.oldSession;
+    this.oldSession = currentSession;
+
+    if (this.session === undefined) {
+      this.logger.warn(`[${this.id}] Old Session does not exists.`);
+      return;
+    }
+
+    if (this.session.state === SessionState.Established) {
+      await this.setHold(false);
+    }
+  }
+
+  public transfer(
+    destination: string,
+    inviterOptions?: InviterOptions,
+    inviterInviteOptions?: InviterInviteOptions
+  ): Promise<void> {
     this.logger.log(`[${this.id}] Beginning Session...`);
 
     if (!this.session) {
@@ -1121,6 +1160,8 @@ export class WebUser {
         return Promise.reject(new Error(`Failed to hold line one.`));
       });
 
+    this.oldSession = this.session;
+
     const target = UserAgent.makeURI(destination);
     console.log(`++++++++++++++++++++++++++++++++`, target);
 
@@ -1128,14 +1169,172 @@ export class WebUser {
       return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
     }
 
-    // Use our configured constraints as InviterOptions if none provided
-    // this.sessionTwo = new Inviter(this.userAgent, target);
+    if (!inviterOptions) {
+      inviterOptions = {};
+    }
+    if (!inviterOptions.sessionDescriptionHandlerOptions) {
+      inviterOptions.sessionDescriptionHandlerOptions = {};
+    }
+    if (!inviterOptions.sessionDescriptionHandlerOptions.constraints) {
+      inviterOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
+    }
 
-    // return this.session.refer(this.sessionTwo).then(() => {
-    return this.session.refer(target).then(() => {
-      return;
+    // Use our configured constraints as InviterOptions if none provided
+    const replacementSession = new Inviter(this.userAgent, target, inviterOptions);
+
+    this.initReplacementSession(replacementSession, inviterOptions);
+
+    // Send the INVITE
+    return replacementSession.invite(inviterInviteOptions).then(() => {
+      this.logger.log(`[${this.id}] sent INVITE`);
     });
+
+    // return this.sendInvite(replacementSession, inviterOptions, inviterInviteOptions).then(() => {
+    //   this.logger.log(`[${this.id}] send replace invite`);
+    // });
+
+    // return this.oldSession.refer(replacementSession).then(() => {
+    // // // return this.session.refer(target).then(() => {
+    //   return;
+    // });
   }
+
+  private initReplacementSession(session: Session, referralInviterOptions?: InviterOptions): void {
+    // Set session
+    this.session = session;
+
+    // Call session created callback
+    if (this.delegate && this.delegate.onCallCreated) {
+      this.delegate.onCallCreated();
+    }
+
+    // Setup session state change handler
+    this.session.stateChange.addListener((state: SessionState) => {
+      if (this.session !== session) {
+        return; // if our session has changed, just return
+      }
+      this.logger.log(`[${this.id}] session state changed to ${state}`);
+      switch (state) {
+        case SessionState.Initial:
+          break;
+        case SessionState.Establishing:
+          break;
+        case SessionState.Established:
+          this.setupLocalMedia();
+          this.setupRemoteMedia();
+          if (this.oldSession) {
+            console.log(`+++++++++++++++++++++++++++++ Established`);
+            this.oldSession.refer(this.session);
+          }
+          if (this.delegate && this.delegate.onCallAnswered) {
+            this.delegate.onCallAnswered();
+          }
+          break;
+        case SessionState.Terminating:
+        // fall through
+        case SessionState.Terminated:
+          this.session = undefined;
+          this.cleanupMedia();
+          if (this.delegate && this.delegate.onCallHangup) {
+            this.delegate.onCallHangup();
+          }
+          break;
+        default:
+          throw new Error(`Unknown session state.`);
+      }
+    });
+
+    // Setup delegate
+    this.session.delegate = {
+      onInfo: (info: Info): void => {
+        // As RFC 6086 states, sending DTMF via INFO is not standardized...
+        //
+        // Companies have been using INFO messages in order to transport
+        // Dual-Tone Multi-Frequency (DTMF) tones.  All mechanisms are
+        // proprietary and have not been standardized.
+        // https://tools.ietf.org/html/rfc6086#section-2
+        //
+        // It is however widely supported based on this draft:
+        // https://tools.ietf.org/html/draft-kaplan-dispatch-info-dtmf-package-00
+
+        // FIXME: TODO: We should reject correctly...
+        //
+        // If a UA receives an INFO request associated with an Info Package that
+        // the UA has not indicated willingness to receive, the UA MUST send a
+        // 469 (Bad Info Package) response (see Section 11.6), which contains a
+        // Recv-Info header field with Info Packages for which the UA is willing
+        // to receive INFO requests.
+        // https://tools.ietf.org/html/rfc6086#section-4.2.2
+
+        // No delegate
+        if (this.delegate?.onCallDTMFReceived === undefined) {
+          info.reject();
+          return;
+        }
+
+        // Invalid content type
+        const contentType = info.request.getHeader(`content-type`);
+        if (!contentType || !/^application\/dtmf-relay/i.exec(contentType)) {
+          info.reject();
+          return;
+        }
+
+        // Invalid body
+        const body = info.request.body.split(`\r\n`, 2);
+        if (body.length !== 2) {
+          info.reject();
+          return;
+        }
+
+        // Invalid tone
+        let tone: string | undefined;
+        const toneRegExp = /^(Signal\s*?=\s*?)([0-9A-D#*]{1})(\s)?.*/;
+        if (toneRegExp.test(body[0])) {
+          tone = body[0].replace(toneRegExp, `$2`);
+        }
+        if (!tone) {
+          info.reject();
+          return;
+        }
+
+        // Invalid duration
+        let duration: number | undefined;
+        const durationRegExp = /^(Duration\s?=\s?)([0-9]{1,4})(\s)?.*/;
+        if (durationRegExp.test(body[1])) {
+          duration = parseInt(body[1].replace(durationRegExp, `$2`), 10);
+        }
+        if (!duration) {
+          info.reject();
+          return;
+        }
+
+        info
+          .accept()
+          .then(() => {
+            if (this.delegate && this.delegate.onCallDTMFReceived) {
+              if (!tone || !duration) {
+                throw new Error(`Tone or duration undefined.`);
+              }
+              this.delegate.onCallDTMFReceived(tone, duration);
+            }
+          })
+          .catch((error: Error) => {
+            this.logger.error(error.message);
+          });
+      },
+      onRefer: (referral: Referral): void => {
+        console.log(`+++++++++++++++++++++++++++++ incoming refer`);
+        referral
+          .accept()
+          .then(() => this.sendInvite(referral.makeInviter(referralInviterOptions), referralInviterOptions))
+          .catch((error: Error) => {
+            this.logger.error(error.message);
+          });
+      }
+    };
+  }
+
+
 
   // public acceptRefer(invitationAcceptOptions?: InvitationAcceptOptions): Promise<void> {
   //   this.logger.log(`[${this.id}] Accepting Refer...`);

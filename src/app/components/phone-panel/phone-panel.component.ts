@@ -24,6 +24,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   holdToggle = false;
   searchResult = [];
   selectLine = `1`;
+  lineChanged = false;
 
   private webUser = null;
   private callState = false;
@@ -58,6 +59,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     const numberToggle = getButton(`number-toggle`);
     numberToggle.addEventListener(`click`, () => {
       this.numberBtnToggle = !this.numberBtnToggle;
+      if (this.numberBtnToggle === false) {
+        setInputValue(`call-number`, ``);
+      }
     });
 
     this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
@@ -157,7 +161,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.holdButton.disabled = true;
     }
     else {
-      setInputValue(`call-number`, ``);
+      this.beginButton.disabled = false;
+      this.endButton.disabled = true;
+      this.muteButton.disabled = true;
+      this.holdButton.disabled = true;
+
       this.webUser.sendDTMF(toneNum)
         .then(() => {
           addInputValue(`call-number`, toneNum);
@@ -165,7 +173,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
-  makeCall(): void {
+  async makeCall(): Promise<void> {
     if (!this.webUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
       this.webUser.register(undefined);
@@ -207,6 +215,21 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     else {
       const targetNum = getInputValue(`call-number`);
       const target = `sip:${targetNum}@${hostURL}`;
+
+      if (this.selectLine === `1`) {
+        setInputValue(`callerid_line1`, targetNum);
+      }
+      else {
+        setInputValue(`callerid_line2`, targetNum);
+      }
+
+      if (this.lineChanged) {
+        await this.webUser.changeLine(true);
+        this.lineChanged = false;
+      }
+
+      setInputValue(`call-number`, ``);
+
       this.webUser
         .call(target, undefined, {
           requestDelegate: {
@@ -239,6 +262,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     setInputValue(`call-number`, ``);
 
     this.callState = false;
+    this.lineChanged = false;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -382,6 +406,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   searchContact(): void {
     const searchWord = getInputValue(`call-number`);
+    this.beginButton.disabled = false;
+    this.endButton.disabled = true;
+    this.muteButton.disabled = true;
+    this.holdButton.disabled = true;
     if (searchWord) {
       this.searchResult = this._phoneContacts.filter((ele, i, array) => {
         const eleStr = ele.extension + ele.firstName + ele.lastName;
@@ -432,7 +460,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           alert(`Failed to transfer call.\n` + error);
         });
     }
+  }
 
+  async changeLine(): Promise<void> {
+    console.log(`+++++++++++++++++++++++++++++++++++++++`, this.selectLine);
+    this.lineChanged = true;
+    await this.webUser.changeLine(false);
   }
 
 }
