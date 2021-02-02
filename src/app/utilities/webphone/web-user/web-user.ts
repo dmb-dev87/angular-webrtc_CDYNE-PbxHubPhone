@@ -1146,7 +1146,7 @@ export class WebUser {
     inviterOptions?: InviterOptions,
     inviterInviteOptions?: InviterInviteOptions
   ): Promise<void> {
-    this.logger.log(`[${this.id}] Beginning Session...`);
+    this.logger.log(`[${this.id}] Beginning Transfer...`);
 
     if (!this.session) {
       return Promise.reject(new Error(`Session does not exists.`));
@@ -1188,15 +1188,24 @@ export class WebUser {
     return replacementSession.invite(inviterInviteOptions).then(() => {
       this.logger.log(`[${this.id}] sent INVITE`);
     });
+  }
 
-    // return this.sendInvite(replacementSession, inviterOptions, inviterInviteOptions).then(() => {
-    //   this.logger.log(`[${this.id}] send replace invite`);
-    // });
+  public completeTransfer(): Promise<void> {
+    this.logger.log(`[${this.id}] Completing Transfer...`);
 
-    // return this.oldSession.refer(replacementSession).then(() => {
-    // // // return this.session.refer(target).then(() => {
-    //   return;
-    // });
+    if (!this.session) {
+      return Promise.reject(new Error(`Session does not exists.`));
+    }
+
+    if (!this.session) {
+      return Promise.reject(new Error(`Session does not exists.`));
+    }
+
+    this.terminate();
+
+    this.session = this.oldSession;
+
+    return this.setHold(false);
   }
 
   private initReplacementSession(session: Session, referralInviterOptions?: InviterOptions): void {

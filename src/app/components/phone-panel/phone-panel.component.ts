@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton } from '../../utilities/ui-utils';
+import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText } from '../../utilities/ui-utils';
 import { WebUser, WebUserDelegate, WebUserOptions } from '../../utilities/webphone';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
@@ -25,11 +25,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   searchResult = [];
   selectLine = `1`;
   lineChanged = false;
+  transfered = false;
 
   private webUser = null;
   private callState = false;
   private invitationState = false;
-  private referralState = false;
   private _phoneUser: PhoneUser = undefined;
   private _phoneContacts: Array<PhoneContact> = [];
 
@@ -59,9 +59,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     const numberToggle = getButton(`number-toggle`);
     numberToggle.addEventListener(`click`, () => {
       this.numberBtnToggle = !this.numberBtnToggle;
-      if (this.numberBtnToggle === false) {
-        setInputValue(`call-number`, ``);
-      }
     });
 
     this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
@@ -230,26 +227,36 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       setInputValue(`call-number`, ``);
 
-      this.webUser
-        .call(target, undefined, {
-          requestDelegate: {
-            onReject: (response) => {
-              console.warn(`[${this.webUser.id}] INVITE rejected`);
-              let message = `Session invitation to "${targetNum}" rejected.\n`;
-              message += `Reason: ${response.message.reasonPhrase}\n`;
-              message += `Perhaps "${targetNum}" is not connected or registered?\n`;
-              message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
-              alert(message);
-              this.callState = false;
+      if (this.transfered === true) {
+        this.webUser.transfer(target)
+          .catch((error: Error) => {
+            console.error(`[${this.webUser.id}] failed to transfer call`);
+            console.error(error);
+            alert(`Failed to transfer call.\n` + error);
+          });
+      }
+      else {
+        this.webUser
+          .call(target, undefined, {
+            requestDelegate: {
+              onReject: (response) => {
+                console.warn(`[${this.webUser.id}] INVITE rejected`);
+                let message = `Session invitation to "${targetNum}" rejected.\n`;
+                message += `Reason: ${response.message.reasonPhrase}\n`;
+                message += `Perhaps "${targetNum}" is not connected or registered?\n`;
+                message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
+                alert(message);
+                this.callState = false;
+              }
             }
-          }
-        })
-        .catch((err: Error) => {
-          this.callState = false;
-          console.error(`Failed to place call`);
-          console.error(err);
-          alert(`Failed to place call.\n` + err);
-        });
+          })
+          .catch((err: Error) => {
+            this.callState = false;
+            console.error(`Failed to place call`);
+            console.error(err);
+            alert(`Failed to place call.\n` + err);
+          });
+      }
     }
   }
 
@@ -443,23 +450,17 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   transfer(): void {
-    console.log(`++++++++++++++++++++++++++++++`, this.selectLine);
-    if (this.selectLine === '2') {
-      const transferCaller = getInputValue(`callerid_line2`);
+    const btnText = this.transfered ? `X-Ref` : `Complete X-Ref`;
 
-      if (transferCaller === undefined) {
-        return;
-      }
+    setButtonText(`transfer-call`, btnText);
 
-      const target = `sip:${transferCaller}@${hostURL}`;
+    this.selectLine = this.selectLine === `1` ? `2` : `1`;
 
-      this.webUser.transfer(target)
-        .catch((error: Error) => {
-          console.error(`[${this.webUser.id}] failed to transfer call`);
-          console.error(error);
-          alert(`Failed to transfer call.\n` + error);
-        });
+    if (this.transfered === true) {
+      this.webUser.completeTransfer()
     }
+
+    this.transfered = !this.transfered;
   }
 
   async changeLine(): Promise<void> {

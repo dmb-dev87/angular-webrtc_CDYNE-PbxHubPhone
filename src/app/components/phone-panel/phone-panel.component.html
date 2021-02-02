@@ -38,10 +38,10 @@
         </div>
         <div class=" btns-panel">
           <div>
-            <button class=" btn btn-fill btn-normal phone-control" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+            <button class=" btn btn-fill btn-normal" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
           </div>
           <div>
-            <button class=" btn btn-fill btn-normal phone-control" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+            <button class=" btn btn-fill btn-normal" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
           </div>
         </div>
       </div>
@@ -90,10 +90,16 @@
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
       <div class=" row">
-        <div class=" btns-panel">
-          <button class=" btn btn-fill btn-normal phone-control">X-fer</button>
-          <button class=" btn btn-fill btn-normal phone-control">Conf</button>
-          <button class=" btn btn-fill btn-normal phone-control"><i class="fas fa-record-vinyl"></i></button>
+        <div class=" col-4 btns-panel">
+          <div>
+            <button class=" btn btn-fill btn-normal phone-control" id="transfer-call" (click)="transfer()">X-fer</button>
+          </div>
+          <div>
+            <button class=" btn btn-fill btn-normal phone-control">Conf</button>
+          </div>
+        </div>
+        <div class=" col-8 btns-panel">
+          <button class=" btn btn-fill btn-normal btn-number"><i class="fas fa-record-vinyl"></i></button>
           <input type="text">
         </div>
       </div>
