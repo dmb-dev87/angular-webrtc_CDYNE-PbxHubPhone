@@ -23,7 +23,7 @@ import {
   UserAgentState
 } from 'sip.js';
 import {Logger, OutgoingReferRequest} from 'sip.js/lib/core';
-// import { SessionDescriptionHandler, SessionDescriptionHandlerOptions } from '../session-description-handler';
+// import {SessionDescriptionHandler, SessionDescriptionHandlerOptions} from '../session-description-handler';
 import {SessionDescriptionHandler, SessionDescriptionHandlerOptions} from 'sip.js/lib/platform/web/session-description-handler';
 import {Transport} from '../transport';
 import {EndUserDelegate} from './end-user-delegate';
@@ -221,7 +221,7 @@ export class EndUser {
 
   /** The local media stream. Undefined if call not answered. */
   get localMediaStream(): MediaStream | undefined {
-    const sdh = this.session?.sessionDescriptionHandler;
+    const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
     }
@@ -233,7 +233,7 @@ export class EndUser {
 
   /** The remote media stream. Undefined if call not answered. */
   get remoteMediaStream(): MediaStream | undefined {
-    const sdh = this.session?.sessionDescriptionHandler;
+    const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
     }
