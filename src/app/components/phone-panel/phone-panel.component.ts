@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText, getButtonText } from '../../utilities/ui-utils';
-import { WebUser, WebUserDelegate, WebUserOptions } from '../../utilities/webphone';
+import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
 import { PhoneUserService} from '../../services/phoneuser.service';
@@ -10,6 +10,7 @@ import { PhonecontactsService } from '../../services/phonecontacts.service';
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
+const userAgent = environment.userAgent;
 
 @Component({
   selector: 'app-phone-panel',
@@ -27,7 +28,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   lineChanged = false;
   transferState = false;
 
-  private webUser = null;
+  private endUser = null;
   private callState = false;
   private invitationState = false;
   private _phoneUser: PhoneUser = undefined;
@@ -88,7 +89,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   connectToServer(): void {
     const audioElement = getAudio(`remoteAudio`);
     const videoElement = getVideo(`localVideo`);
-    const webUserOptions: WebUserOptions = {
+    const endUserOptions: EndUserOptions = {
       media: {
         constraints: {
           audio: true,
@@ -106,27 +107,28 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         authorizationUsername: this.phoneUser.authName,
         forceRport: true,
         contactName: this.phoneUser.displayName,
+        userAgentString: userAgent,
       },
       aor: `sip:${this.phoneUser.extenNumber}@${hostURL}`
     };
 
-    this.webUser = new WebUser(webSocketServer, webUserOptions);
+    this.endUser = new EndUser(webSocketServer, endUserOptions);
 
     // const delegate: SimpleUserDelegate = {
-    const delegate: WebUserDelegate = {
-      onCallCreated: this.makeCallCreatedCallback(this.webUser),
+    const delegate: EndUserDelegate = {
+      onCallCreated: this.makeCallCreatedCallback(this.endUser),
       onCallReceived: (callerId: string): void => this.makeCallReceivedCallback(callerId),
-      onCallHangup: this.makeCallHangupCallback(this.webUser),
-      onRegistered: this.makeRegisteredCallback(this.webUser),
-      onUnregistered: this.makeUnregisteredCallback(this.webUser),
-      onServerConnect: this.makeServerConnectCallback(this.webUser),
-      onServerDisconnect: this.makeServerDisconnectCallback(this.webUser),
-      // onReferralReceived: this.makeReferralReceivedCallback(this.webUser),
+      onCallHangup: this.makeCallHangupCallback(this.endUser),
+      onRegistered: this.makeRegisteredCallback(this.endUser),
+      onUnregistered: this.makeUnregisteredCallback(this.endUser),
+      onServerConnect: this.makeServerConnectCallback(this.endUser),
+      onServerDisconnect: this.makeServerDisconnectCallback(this.endUser),
+      // onReferralReceived: this.makeReferralReceivedCallback(this.endUser),
     };
 
-    this.webUser.delegate = delegate;
+    this.endUser.delegate = delegate;
 
-    this.webUser
+    this.endUser
       .connect()
       .then(() => {
         this.register();
@@ -139,12 +141,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   register(): void {
-    this.webUser
+    this.endUser
       .register(undefined)
       .catch((error: Error) => {
-        console.error(`[${this.webUser.id}] failed to register`);
+        console.error(`[${this.endUser.id}] failed to register`);
         console.error(error);
-        alert(`[${this.webUser.id}] Failed to register.\n` + error);
+        alert(`[${this.endUser.id}] Failed to register.\n` + error);
       });
   }
 
@@ -163,7 +165,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.muteButton.disabled = true;
       this.holdButton.disabled = true;
 
-      this.webUser.sendDTMF(toneNum)
+      this.endUser.sendDTMF(toneNum)
         .then(() => {
           addInputValue(`call-number`, toneNum);
         });
@@ -171,9 +173,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   async makeCall(): Promise<void> {
-    if (!this.webUser.registerer.registered) {
+    if (!this.endUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
-      this.webUser.register(undefined);
+      this.endUser.register(undefined);
     }
 
     this.beginButton.disabled = true;
@@ -187,13 +189,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       ringAudio.pause();
       ringAudio.currentTime = 0;
       this.invitationState = false;
-      this.webUser
+      this.endUser
         .answer(undefined)
         .catch( (err: Error) => {
           this.callState = true;
-          console.error(`[${this.webUser.id}] failed to answer call`);
+          console.error(`[${this.endUser.id}] failed to answer call`);
           console.error(err);
-          alert(`[${this.webUser.id}] Failed to answer call.\n` + err);
+          alert(`[${this.endUser.id}] Failed to answer call.\n` + err);
         });
     }
     else {
@@ -208,18 +210,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
 
       if (this.lineChanged) {
-        await this.webUser.changeLine(true);
+        await this.endUser.changeLine(true);
         this.lineChanged = false;
       }
 
       setInputValue(`call-number`, ``);
 
       if (this.transferState === true) {
-        this.webUser
+        this.endUser
           .makeTransfer(target, undefined, {
             requestDelegate: {
               onReject: (response) => {
-                console.warn(`[${this.webUser.id}] INVITE rejected`);
+                console.warn(`[${this.endUser.id}] INVITE rejected`);
                 let message = `Session invitation to "${targetNum}" rejected.\n`;
                 message += `Reason: ${response.message.reasonPhrase}\n`;
                 message += `Perhaps "${targetNum}" is not connected or registered?\n`;
@@ -230,17 +232,17 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             }
           })
           .catch((error: Error) => {
-            console.error(`[${this.webUser.id}] failed to transfer call`);
+            console.error(`[${this.endUser.id}] failed to transfer call`);
             console.error(error);
             alert(`Failed to transfer call.\n` + error);
           });
       }
       else {
-        this.webUser
+        this.endUser
           .call(target, undefined, {
             requestDelegate: {
               onReject: (response) => {
-                console.warn(`[${this.webUser.id}] INVITE rejected`);
+                console.warn(`[${this.endUser.id}] INVITE rejected`);
                 let message = `Session invitation to "${targetNum}" rejected.\n`;
                 message += `Reason: ${response.message.reasonPhrase}\n`;
                 message += `Perhaps "${targetNum}" is not connected or registered?\n`;
@@ -275,16 +277,16 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       ringAudio.pause();
       ringAudio.currentTime = 0;
       this.invitationState = false;
-      this.webUser
+      this.endUser
         .decline()
         .catch((err: Error) => {
-          console.error(`[${this.webUser.id}] failed to decline call`);
+          console.error(`[${this.endUser.id}] failed to decline call`);
           console.error(err);
-          alert(`[${this.webUser.id}] Failed to decline call.\n` + err);
+          alert(`[${this.endUser.id}] Failed to decline call.\n` + err);
         });
     }
     else {
-      this.webUser.hangup().catch((err: Error) => {
+      this.endUser.hangup().catch((err: Error) => {
         console.error(`Failed to hangup call`);
         console.error(err);
         alert(`Failed to hangup call.\n` + err);
@@ -295,18 +297,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   onMute(): void {
     this.muteToggle = !this.muteToggle;
     if (this.muteToggle) {
-      this.webUser.mute();
-      if (this.webUser.isMuted() === false) {
+      this.endUser.mute();
+      if (this.endUser.isMuted() === false) {
         this.muteToggle = false;
-        console.error(`[${this.webUser.id}] failed to mute call`);
+        console.error(`[${this.endUser.id}] failed to mute call`);
         alert(`Failed to mute call.\n`);
       }
     }
     else {
-      this.webUser.unmute();
-      if (this.webUser.isMuted() === true) {
+      this.endUser.unmute();
+      if (this.endUser.isMuted() === true) {
         this.muteToggle = true;
-        console.error(`[${this.webUser.id}] failed to unmute call`);
+        console.error(`[${this.endUser.id}] failed to unmute call`);
         alert(`Failed to unmute call.\n`);
       }
     }
@@ -315,24 +317,24 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   onHold(): void {
     this.holdToggle = !this.holdToggle;
     if (this.holdToggle) {
-      this.webUser.hold().catch((error: Error) => {
+      this.endUser.hold().catch((error: Error) => {
         this.holdToggle = false;
-        console.error(`[${this.webUser.id}] failed to hold call`);
+        console.error(`[${this.endUser.id}] failed to hold call`);
         console.error(error);
         alert(`Failed to hold call.\n` + error);
       });
     }
     else {
-      this.webUser.unhold().catch((error: Error) => {
+      this.endUser.unhold().catch((error: Error) => {
         this.holdToggle = true;
-        console.error(`[${this.webUser.id}] failed to unhold call`);
+        console.error(`[${this.endUser.id}] failed to unhold call`);
         console.error(error);
         alert(`Failed to unhold call.\n` + error);
       });
     }
   }
 
-  makeCallCreatedCallback(user: WebUser): () => void {
+  makeCallCreatedCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call created`);
 
@@ -358,7 +360,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     ringAudio.play();
   }
 
-  makeCallHangupCallback(user: WebUser): () => void {
+  makeCallHangupCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call hangup`);
 
@@ -369,25 +371,25 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  makeRegisteredCallback(user: WebUser): () => void {
+  makeRegisteredCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] registered`);
     };
   }
 
-  makeUnregisteredCallback(user: WebUser): () => void {
+  makeUnregisteredCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] unregistered`);
     };
   }
 
-  makeServerConnectCallback(user: WebUser): () => void {
+  makeServerConnectCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] connected`);
     };
   }
 
-  makeServerDisconnectCallback(user: WebUser): () => void {
+  makeServerDisconnectCallback(user: EndUser): () => void {
     return (err?: Error) => {
       console.log(`[${user.id}] disconnected`);
       if (err) {
@@ -396,7 +398,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  // makeReferralReceivedCallback(user: WebUser): () => void {
+  // makeReferralReceivedCallback(user: EndUser): () => void {
   //   return () => {
   //     this.beginButton.disabled = false;
   //     this.endButton.disabled = false;
@@ -461,30 +463,33 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     } else if (btnText === 'Complete X-fer' && this.transferState === true) {
       setButtonText(`transfer-call`, 'X-fer');
       this.transferState = false;
-      this.webUser.completeTransfer()
+      this.endUser.completeTransfer()
         .catch((error: Error) => {
-          console.error(`[${this.webUser.id}] failed to complete transfer call`);
+          console.error(`[${this.endUser.id}] failed to complete transfer call`);
           console.error(error);
           alert(`Failed to complete transfer call.\n` + error);
           this.selectLine = `1`;
-          this.webUser.changeLine(false);
+          this.endUser.changeLine(false);
         });
     }
 
     return;
   }
 
-  async changeLine(): Promise<void> {
-    if (this.transferState === true)
-    {
-      await this.webUser.changeLine(false);
-      this.transferState = false;
-      this.lineChanged = false;
-    }
-    else {
-      this.lineChanged = true;
-      await this.webUser.changeLine(false);
-    }
+  changeLine(): void {
+    this.lineChanged = true;
   }
 
+  // async changeLine(): Promise<void> {
+  //   if (this.transferState === true)
+  //   {
+  //     await this.endUser.changeLine(false);
+  //     this.transferState = false;
+  //     this.lineChanged = false;
+  //   }
+  //   else {
+  //     this.lineChanged = true;
+  //     await this.endUser.changeLine(false);
+  //   }
+  // }
 }
