@@ -1174,19 +1174,11 @@ export class EndUser {
 
     this.session = this.getCurLineSession();
 
-    if (!this.session) {
-      return Promise.reject(new Error(`Session does not exists.`));
-    }
+    // if (!this.session) {
+    //   return Promise.reject(new Error(`Session does not exists.`));
+    // }
 
-    this.setHold(true)
-      .catch((error: Error) => {
-        console.error(`[${this.id}] failed to hold call`);
-        console.error(error);
-        alert(`Failed to hold call.\n` + error);
-        return Promise.reject(new Error(`Failed to hold line one.`));
-      });
-
-    this._curLineNumber = this._curLineNumber === 0 ? 1 : 0;
+    // this._curLineNumber = this._curLineNumber === 0 ? 1 : 0;
 
     this.transferTarget = UserAgent.makeURI(destination);
 

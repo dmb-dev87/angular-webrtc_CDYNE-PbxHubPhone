@@ -185,6 +185,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     this.callState = true;
 
+    this.numberBtnToggle = false;
+
     if (this.invitationState === true) {
       ringAudio.pause();
       ringAudio.currentTime = 0;
