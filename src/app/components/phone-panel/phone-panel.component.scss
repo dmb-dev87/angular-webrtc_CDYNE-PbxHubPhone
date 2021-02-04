@@ -1,9 +1,3 @@
-.main-panel {
-  background: #ffffff;
-  border: none;
-  font-size: 1rem;
-}
-
 .container-fluid {
   padding: 3px;
 }
@@ -47,14 +41,18 @@
     }
   }
 
-  .caller-id {
-    color: #ffffff;
-    padding: 24px 10px;
-  }
+  .info {
+    padding: 10px 30px;
 
-  .user-name {
-    color: #69ad4b;
-    padding: 24px 0px;
+    .caller-id {
+      color: #ffffff;
+      margin-bottom: 5px;
+    }
+  
+    .user-name {
+      margin-top: 5px;
+      color: #69ad4b;
+    }
   }
 }
 
@@ -85,6 +83,7 @@
     margin-top: 10px;
     margin-left: 20px;
     font-size: 0.75rem;
+    width: 200px;
 
     span {
       color: #ffffff;
@@ -98,16 +97,32 @@
   }
 
   .btns-panel {
-    padding: 3px 0px;
+    padding: 5px 0px;
+    
+    #mute-btn {
+      width: 80px;
+    }
+
+    #hold-btn {
+      width: 80px;
+    }
 
     .btn {
-      padding: 5px 20px;
-    }
+      font-size: 0.75rem;
+    }    
 
     .phone-control {
-      padding: 5px 20px;
-      width: 145px;
+      width: 120px;      
     }
+
+    input {
+      width: 120px;
+    }
+  }
+
+  .input-panel {
+    display: flex;
+    align-items: center;
   }
 }
 

@@ -114,7 +114,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     this.endUser = new EndUser(webSocketServer, endUserOptions);
 
-    // const delegate: SimpleUserDelegate = {
     const delegate: EndUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(this.endUser),
       onCallReceived: (callerId: string): void => this.makeCallReceivedCallback(callerId),
@@ -123,7 +122,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       onUnregistered: this.makeUnregisteredCallback(this.endUser),
       onServerConnect: this.makeServerConnectCallback(this.endUser),
       onServerDisconnect: this.makeServerDisconnectCallback(this.endUser),
-      // onReferralReceived: this.makeReferralReceivedCallback(this.endUser),
     };
 
     this.endUser.delegate = delegate;
@@ -396,21 +394,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  // makeReferralReceivedCallback(user: EndUser): () => void {
-  //   return () => {
-  //     this.beginButton.disabled = false;
-  //     this.endButton.disabled = false;
-  //     this.muteButton.disabled = false;
-  //     this.holdButton.disabled = false;
-  //
-  //     this.referralState = true;
-  //
-  //     ringAudio.loop = true;
-  //     ringAudio.autoplay = true;
-  //     ringAudio.play();
-  //   };
-  // }
-
   searchContact(): void {
     const searchWord = getInputValue(`call-number`);
     this.beginButton.disabled = false;
@@ -461,6 +444,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     } else if (btnText === 'Complete X-fer' && this.transferState === true) {
       setButtonText(`transfer-call`, 'X-fer');
       this.transferState = false;
+      this.selectLine = `1`;
       this.endUser.completeTransfer()
         .catch((error: Error) => {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);

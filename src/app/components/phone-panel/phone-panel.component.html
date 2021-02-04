@@ -1,20 +1,26 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
-    <div class="col-lg-3 col-md-3 col-sm-12 info-pad">
+    <div class="col-lg-2 col-md-2 col-sm-12 info-pad">
       <div class=" row">
-        <div class=" col-2 logo">
+        <div class=" col-4 logo">
           <a href="javascript:void(0)"> Logo </a>
         </div>
-        <div class=" col-6 caller-id">
-          <span>CallerID: </span>
-          <span>{{callerId}}</span>
-        </div>
-        <div class=" col-4 user-name">
-          <span>Welcome {{phoneUser?.displayName}}</span>
+        <div class=" col-8 info">
+          <div class=" row">
+            <div class= " caller-id">
+              <span>CallerID: </span>
+              <span>{{callerId}}</span>
+            </div>
+          </div>
+          <div class=" row">
+            <div class= " user-name">
+              <span>Welcome {{phoneUser?.displayName}}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-lg-3 col-md-3 col-sm-12 control-pad">
+    <div class="col-lg-4 col-md-4 col-sm-12 control-pad">
       <div class=" row">
         <div class=" audio-panel">
           <span class=" mic-control"><i class="fas fa-microphone"></i></span>
@@ -90,7 +96,7 @@
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
       <div class=" row">
-        <div class=" col-4 btns-panel">
+        <div class=" btns-panel">
           <div>
             <button class=" btn btn-fill btn-normal phone-control" id="transfer-call" (click)="makeTransfer()">X-fer</button>
           </div>
@@ -98,9 +104,11 @@
             <button class=" btn btn-fill btn-normal phone-control">Conf</button>
           </div>
         </div>
-        <div class=" col-8 btns-panel">
-          <button class=" btn btn-fill btn-normal btn-number"><i class="fas fa-record-vinyl"></i></button>
-          <input type="text">
+        <div class=" input-panel">
+          <div>
+            <button class=" btn btn-fill btn-normal btn-number"><i class="fas fa-record-vinyl"></i></button>
+            <input type="text">
+          </div>          
         </div>
       </div>
     </div>
