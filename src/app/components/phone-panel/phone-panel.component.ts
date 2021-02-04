@@ -25,7 +25,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   holdToggle = false;
   searchResult = [];
   selectLine = `1`;
-  lineChanged = false;
   transferState = false;
 
   private endUser = null;
@@ -209,11 +208,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         setInputValue(`callerid_line2`, targetNum);
       }
 
-      if (this.lineChanged) {
-        await this.endUser.changeLine(true);
-        this.lineChanged = false;
-      }
-
       setInputValue(`call-number`, ``);
 
       if (this.transferState === true) {
@@ -271,7 +265,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     setInputValue(`call-number`, ``);
 
     this.callState = false;
-    this.lineChanged = false;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -453,7 +446,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   makeTransfer(): void {
     const btnText = getButtonText('transfer-call');
-    this.lineChanged = false;
 
     if (btnText === 'X-fer' && this.transferState === false) {
       setButtonText(`transfer-call`, `Complete X-fer`);
@@ -468,8 +460,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
           console.error(error);
           alert(`Failed to complete transfer call.\n` + error);
-          this.selectLine = `1`;
-          this.endUser.changeLine(false);
         });
     }
 
@@ -477,19 +467,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   changeLine(): void {
-    this.lineChanged = true;
+    const lineNumber = this.selectLine === '1' ? 0:1;
+    this.endUser.changeLine(lineNumber)
+      .catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to complete change line`);
+        console.error(error);
+        alert(`Failed to change line.\n` + error);
+      });
   }
-
-  // async changeLine(): Promise<void> {
-  //   if (this.transferState === true)
-  //   {
-  //     await this.endUser.changeLine(false);
-  //     this.transferState = false;
-  //     this.lineChanged = false;
-  //   }
-  //   else {
-  //     this.lineChanged = true;
-  //     await this.endUser.changeLine(false);
-  //   }
-  // }
 }
