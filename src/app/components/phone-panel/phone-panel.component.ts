@@ -26,6 +26,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   searchResult = [];
   selectLine = `1`;
   transferState = false;
+  lineChanged = false;
 
   private endUser = null;
   private callState = false;
@@ -150,7 +151,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   clickNumber(toneNum: string): void {
-    if (this.callState === false) {
+    if (this.callState === false || this.lineChanged === true || this.transferState === true) {
       addInputValue(`call-number`, toneNum);
 
       this.beginButton.disabled = false;
@@ -200,6 +201,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     else {
       const targetNum = getInputValue(`call-number`);
       const target = `sip:${targetNum}@${hostURL}`;
+
+      this.lineChanged = false;
 
       if (this.selectLine === `1`) {
         setInputValue(`callerid_line1`, targetNum);
@@ -450,6 +453,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     if (btnText === 'X-fer' && this.transferState === false) {
       setButtonText(`transfer-call`, `Complete X-fer`);
       this.selectLine = `2`;
+      this.endUser.changeLine(1);
       this.transferState = true;
       return;
     } else if (btnText === 'Complete X-fer' && this.transferState === true) {
@@ -468,11 +472,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   changeLine(): void {
     const lineNumber = this.selectLine === '1' ? 0:1;
+    this.lineChanged = true;
     this.endUser.changeLine(lineNumber)
-      .catch((error: Error) => {
-        console.error(`[${this.endUser.id}] failed to complete change line`);
-        console.error(error);
-        alert(`Failed to change line.\n` + error);
-      });
   }
 }
