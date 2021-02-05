@@ -111,8 +111,12 @@
       font-size: 0.75rem;
     }    
 
-    .phone-control {
+    .phone-ctrlbtn {
       width: 120px;      
+    }
+
+    .phone-ctrlbtn-small {
+      width: 80px;
     }
 
     input {
@@ -204,10 +208,6 @@
       color: #ffffff;
     }
   }
-}
-
-.phone-control {
-
 }
 
 .video {

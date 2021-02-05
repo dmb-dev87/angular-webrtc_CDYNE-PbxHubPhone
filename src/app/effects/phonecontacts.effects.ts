@@ -3,7 +3,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { PhonecontactsService } from '../services/phonecontacts.service';
+import { PbxControlService } from '../services/pbxcontrol.service';
 import * as PhoneContacsActions from '../actions/phonecontacts.actions';
 
 import * as xml2js from 'xml2js';
@@ -11,7 +11,7 @@ import * as xml2js from 'xml2js';
 @Injectable()
 
 export class PhoneContactsEffects {
-  constructor(private actions: Actions, private pbxSoapService: PhonecontactsService) {}
+  constructor(private actions: Actions, private pbxSoapService: PbxControlService) {}
 
   @Effect()
   userGetDirecotry = this.actions.pipe(

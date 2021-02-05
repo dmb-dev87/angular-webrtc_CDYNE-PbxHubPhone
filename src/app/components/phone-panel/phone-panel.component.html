@@ -43,11 +43,12 @@
           </mat-radio-group>
         </div>
         <div class=" btns-panel">
-          <div>
-            <button class=" btn btn-fill btn-normal" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+          <div class=" row">
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>            
           </div>
-          <div>
-            <button class=" btn btn-fill btn-normal" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+          <div class=" row">
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND Off":"DND On"}}</button>
           </div>
         </div>
       </div>
@@ -98,10 +99,10 @@
       <div class=" row">
         <div class=" btns-panel">
           <div>
-            <button class=" btn btn-fill btn-normal phone-control" id="transfer-call" (click)="makeTransfer()">X-fer</button>
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="makeTransfer()">X-fer</button>
           </div>
           <div>
-            <button class=" btn btn-fill btn-normal phone-control">Conf</button>
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn">Conf</button>
           </div>
         </div>
         <div class=" input-panel">

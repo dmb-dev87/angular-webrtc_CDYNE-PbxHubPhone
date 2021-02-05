@@ -5,7 +5,7 @@ import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platfo
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
 import { PhoneUserService} from '../../services/phoneuser.service';
-import { PhonecontactsService } from '../../services/phonecontacts.service';
+import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -23,6 +23,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   numberBtnToggle = false;
   muteToggle = false;
   holdToggle = false;
+  dndToggle = false;
   searchResult = [];
   selectLine = `1`;
   transferState = false;
@@ -39,9 +40,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private muteButton = null;
   private holdButton = null;
 
-  constructor(private phoneUserService: PhoneUserService, private phonecontactsService: PhonecontactsService) {
+  constructor(private phoneUserService: PhoneUserService, private pbxControlService: PbxControlService) {
     this.phoneUserService.load();
-    this.phonecontactsService.load();
+    this.pbxControlService.load();
   }
 
   get phoneUser(): PhoneUser {
@@ -71,7 +72,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
     });
 
-    this.phonecontactsService.getPhoneContacts().subscribe(phonecontacts => {
+    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
       this._phoneContacts = phonecontacts.data;
     });
 
@@ -330,6 +331,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
+  onDnd(): void {
+    this.pbxControlService.toggleDnd().subscribe(response => {
+      this.dndToggle = response === DndState.Enabled ? true : false;
+    });
+  }
+
   makeCallCreatedCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call created`);
@@ -369,6 +376,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
+      this.pbxControlService.toggleDnd().subscribe(response => {
+        this.dndToggle = response === DndState.Enabled ? true : false;
+      });
       console.log(`[${user.id}] registered`);
     };
   }
