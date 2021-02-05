@@ -58,7 +58,6 @@ export class EndUser {
   private registerRequested = false;
   private session: Session | undefined = undefined;
   private userAgent: UserAgent;
-  private oldSession: Session | undefined = undefined;
   private transferTarget: URI | undefined = undefined;
   private lineSessions: Array<LineSession> = [
     {session: undefined, held: false, muted: false}, 
