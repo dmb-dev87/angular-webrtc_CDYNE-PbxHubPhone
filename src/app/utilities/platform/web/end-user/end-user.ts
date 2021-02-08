@@ -966,6 +966,8 @@ export class EndUser {
    * @param mute - Mute on if true, off if false.
    */
   private setMute(mute: boolean): void {
+    this.session = this.getCurLineSession();
+    
     if (!this.session) {
       this.logger.warn(`[${this.id}] A session is required to enabled/disable media tracks`);
       return;
