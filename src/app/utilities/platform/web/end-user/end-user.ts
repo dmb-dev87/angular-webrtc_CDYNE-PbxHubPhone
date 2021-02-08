@@ -514,7 +514,8 @@ export class EndUser {
    */
   public hold(): Promise<void> {
     this.logger.log(`[${this.id}] holding session...`);
-    return this.setHold(true);
+    return this.setLineHold(true);
+    // return this.setHold(true);
   }
 
   /**
@@ -527,7 +528,8 @@ export class EndUser {
    */
   public unhold(): Promise<void> {
     this.logger.log(`[${this.id}] unholding session...`);
-    return this.setHold(false);
+    return this.setLineHold(false);
+    // return this.setHold(false);
   }
 
   /**
@@ -577,16 +579,6 @@ export class EndUser {
   public sendDTMF(tone: string): Promise<void> {
     this.logger.log(`[${this.id}] sending DTMF...`);
 
-    // As RFC 6086 states, sending DTMF via INFO is not standardized...
-    //
-    // Companies have been using INFO messages in order to transport
-    // Dual-Tone Multi-Frequency (DTMF) tones.  All mechanisms are
-    // proprietary and have not been standardized.
-    // https://tools.ietf.org/html/rfc6086#section-2
-    //
-    // It is however widely supported based on this draft:
-    // https://tools.ietf.org/html/draft-kaplan-dispatch-info-dtmf-package-00
-
     // Validate tone
     if (!/^[0-9A-D#*,]$/.exec(tone)) {
       return Promise.reject(new Error(`Invalid DTMF tone.`));
@@ -598,14 +590,6 @@ export class EndUser {
       return Promise.reject(new Error(`Session does not exist.`));
     }
 
-    // The UA MUST populate the "application/dtmf-relay" body, as defined
-    // earlier, with the button pressed and the duration it was pressed
-    // for.  Technically, this actually requires the INFO to be generated
-    // when the user *releases* the button, however if the user has still
-    // not released a button after 5 seconds, which is the maximum duration
-    // supported by this mechanism, the UA should generate the INFO at that
-    // time.
-    // https://tools.ietf.org/html/draft-kaplan-dispatch-info-dtmf-package-00#section-5.3
     this.logger.log(`[${this.id}] Sending DTMF tone: ${tone}`);
     const dtmf = tone;
     const duration = 2000;
@@ -830,25 +814,6 @@ export class EndUser {
     // Setup delegate
     this.session.delegate = {
       onInfo: (info: Info): void => {
-        // As RFC 6086 states, sending DTMF via INFO is not standardized...
-        //
-        // Companies have been using INFO messages in order to transport
-        // Dual-Tone Multi-Frequency (DTMF) tones.  All mechanisms are
-        // proprietary and have not been standardized.
-        // https://tools.ietf.org/html/rfc6086#section-2
-        //
-        // It is however widely supported based on this draft:
-        // https://tools.ietf.org/html/draft-kaplan-dispatch-info-dtmf-package-00
-
-        // FIXME: TODO: We should reject correctly...
-        //
-        // If a UA receives an INFO request associated with an Info Package that
-        // the UA has not indicated willingness to receive, the UA MUST send a
-        // 469 (Bad Info Package) response (see Section 11.6), which contains a
-        // Recv-Info header field with Info Packages for which the UA is willing
-        // to receive INFO requests.
-        // https://tools.ietf.org/html/rfc6086#section-4.2.2
-
         // No delegate
         if (this.delegate?.onCallDTMFReceived === undefined) {
           info.reject();
@@ -976,22 +941,6 @@ export class EndUser {
       }
     };
 
-    // Session properties used to pass options to the SessionDescriptionHandler:
-    //
-    // 1) Session.sessionDescriptionHandlerOptions
-    //    SDH options for the initial INVITE transaction.
-    //    - Used in all cases when handling the initial INVITE transaction as either UAC or UAS.
-    //    - May be set directly at anytime.
-    //    - May optionally be set via constructor option.
-    //    - May optionally be set via options passed to Inviter.invite() or Invitation.accept().
-    //
-    // 2) Session.sessionDescriptionHandlerOptionsReInvite
-    //    SDH options for re-INVITE transactions.
-    //    - Used in all cases when handling a re-INVITE transaction as either UAC or UAS.
-    //    - May be set directly at anytime.
-    //    - May optionally be set via constructor option.
-    //    - May optionally be set via options passed to Session.invite().
-
     const sessionDescriptionHandlerOptions = session.sessionDescriptionHandlerOptionsReInvite as SessionDescriptionHandlerOptions;
     sessionDescriptionHandlerOptions.hold = hold;
     session.sessionDescriptionHandlerOptionsReInvite = sessionDescriptionHandlerOptions;
@@ -1031,24 +980,6 @@ export class EndUser {
 
     this.enableSenderTracks(!this.held && !this.muted);
   }
-
-  // private setMute(mute: boolean): void {
-  //   this.session = this.getCurLineSession();
-
-  //   if (!this.session) {
-  //     this.logger.warn(`[${this.id}] A session is required to enabled/disable media tracks`);
-  //     return;
-  //   }
-
-  //   if (this.session.state !== SessionState.Established) {
-  //     this.logger.warn(`[${this.id}] An established session is required to enable/disable media tracks`);
-  //     return;
-  //   }
-
-  //   this.muted = mute;
-
-  //   this.enableSenderTracks(!this.held && !this.muted);
-  // }
 
   /** Helper function to attach local media to html elements. */
   private setupLocalMedia(): void {
@@ -1172,12 +1103,6 @@ export class EndUser {
     this.logger.log(`[${this.id}] Beginning Transfer...`);
 
     this.session = this.getCurLineSession();
-
-    // if (!this.session) {
-    //   return Promise.reject(new Error(`Session does not exists.`));
-    // }
-
-    // this._curLineNumber = this._curLineNumber === 0 ? 1 : 0;
 
     this.transferTarget = UserAgent.makeURI(destination);
 

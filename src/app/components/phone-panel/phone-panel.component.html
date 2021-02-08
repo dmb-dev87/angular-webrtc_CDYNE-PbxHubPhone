@@ -44,11 +44,20 @@
         </div>
         <div class=" btns-panel">
           <div class=" row">
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>            
+            <div class=" col">
+              <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+            </div>
+            <div class=" col">
+              <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>            
+            </div>
           </div>
           <div class=" row">
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND Off":"DND On"}}</button>
+            <div class=" col">
+              <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND OFF":"DND ON"}}</button>
+            </div>
+            <div class=" col">
+
+            </div>
           </div>
         </div>
       </div>

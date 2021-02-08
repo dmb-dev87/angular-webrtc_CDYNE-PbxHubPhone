@@ -6,6 +6,7 @@ import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
 import { PhoneUserService} from '../../services/phoneuser.service';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
+import { parseDnd } from '../../utilities/parse-utils';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -39,6 +40,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private endButton = null;
   private muteButton = null;
   private holdButton = null;
+  private xferButton = null;
 
   constructor(private phoneUserService: PhoneUserService, private pbxControlService: PbxControlService) {
     this.phoneUserService.load();
@@ -66,8 +68,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
       this._phoneUser = phoneuser.data;
       if (this._phoneUser) {
-        // set username to localstorage
+        // set user information to localstorage
         localStorage.setItem(`user_name`, this._phoneUser.authName);
+        localStorage.setItem(`user_id`, this._phoneUser.clientId);
         this.connectToServer();
       }
     });
@@ -80,11 +83,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endButton = getButton(`end-call`);
     this.muteButton = getButton(`mute-btn`);
     this.holdButton = getButton(`hold-btn`);
+    this.xferButton = getButton(`transfer-call`);
 
     this.beginButton.disabled = true;
     this.endButton.disabled = true;
     this.muteButton.disabled = true;
     this.holdButton.disabled = true;
+    this.xferButton.disabled = true;
   }
 
   connectToServer(): void {
@@ -171,7 +176,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async makeCall(): Promise<void> {
+  makeCall(): void {
     if (!this.endUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
       this.endUser.register(undefined);
@@ -181,6 +186,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endButton.disabled = false;
     this.muteButton.disabled = false;
     this.holdButton.disabled = false;
+    this.xferButton.disabled = false;
 
     this.callState = true;
 
@@ -265,6 +271,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endButton.disabled = true;
     this.muteButton.disabled = true;
     this.holdButton.disabled = true;
+    this.xferButton.disabled = true;
 
     setInputValue(`call-number`, ``);
 
@@ -333,7 +340,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onDnd(): void {
     this.pbxControlService.toggleDnd().subscribe(response => {
-      this.dndToggle = response === DndState.Enabled ? true : false;
+      const dndStatus = parseDnd(response);
+      console.log(`+++++++++++++++++++++++++`, dndStatus);
+      this.dndToggle = dndStatus === DndState.Enabled ? true : false;
     });
   }
 
@@ -345,6 +354,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.endButton.disabled = false;
       this.muteButton.disabled = false;
       this.holdButton.disabled = false;
+      this.xferButton.disabled = false;
     };
   }
 
@@ -353,8 +363,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     this.beginButton.disabled = false;
     this.endButton.disabled = false;
-    this.muteButton.disabled = false;
-    this.holdButton.disabled = false;
+    this.muteButton.disabled = true;
+    this.holdButton.disabled = true;
+    this.xferButton.disabled = true;
 
     this.invitationState = true;
 
@@ -368,16 +379,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`[${user.id}] call hangup`);
 
       this.beginButton.disabled = !user.isConnected();
-      this.endButton.disabled = false;
-      this.muteButton.disabled = false;
-      this.holdButton.disabled = false;
+      this.endButton.disabled = true;
+      this.muteButton.disabled = true;
+      this.holdButton.disabled = true;
+      this.xferButton.disabled = true;
     };
   }
 
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
       this.pbxControlService.toggleDnd().subscribe(response => {
-        this.dndToggle = response === DndState.Enabled ? true : false;
+        const dndStatus = parseDnd(response);        
+        this.dndToggle = dndStatus === DndState.Enabled ? true : false;
       });
       console.log(`[${user.id}] registered`);
     };
@@ -410,6 +423,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endButton.disabled = true;
     this.muteButton.disabled = true;
     this.holdButton.disabled = true;
+    this.xferButton.disabled = true;
+
     if (searchWord) {
       this.searchResult = this._phoneContacts.filter((ele, i, array) => {
         const eleStr = ele.extension + ele.firstName + ele.lastName;
@@ -430,6 +445,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.endButton.disabled = true;
       this.muteButton.disabled = true;
       this.holdButton.disabled = true;
+      this.xferButton.disabled = true;
     }
     else {
       setInputValue(`call-number`, ``);
@@ -438,6 +454,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.endButton.disabled = true;
       this.muteButton.disabled = true;
       this.holdButton.disabled = true;
+      this.xferButton.disabled = true;
     }
     this.searchResult = [];
   }
