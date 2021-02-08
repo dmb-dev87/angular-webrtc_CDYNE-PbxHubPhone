@@ -341,7 +341,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   onDnd(): void {
     this.pbxControlService.toggleDnd().subscribe(response => {
       const dndStatus = parseDnd(response);
-      console.log(`+++++++++++++++++++++++++`, dndStatus);
       this.dndToggle = dndStatus === DndState.Enabled ? true : false;
     });
   }
@@ -389,9 +388,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
       this.pbxControlService.toggleDnd().subscribe(response => {
-        const dndStatus = parseDnd(response);        
-        this.dndToggle = dndStatus === DndState.Enabled ? true : false;
+        //call twice because status get toggled when call api
+        this.pbxControlService.toggleDnd().subscribe(response => {
+          const dndStatus = parseDnd(response);        
+          this.dndToggle = dndStatus === DndState.Enabled ? true : false;
+        });
       });
+      
+      
       console.log(`[${user.id}] registered`);
     };
   }
