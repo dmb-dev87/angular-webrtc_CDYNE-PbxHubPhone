@@ -394,8 +394,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           this.dndToggle = dndStatus === DndState.Enabled ? true : false;
         });
       });
-      
-      
       console.log(`[${user.id}] registered`);
     };
   }
