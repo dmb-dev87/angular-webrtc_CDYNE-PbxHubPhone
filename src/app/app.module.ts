@@ -11,7 +11,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { reducers, metaReducers } from './reducers';
 import { effects } from './effects';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
+import { FormsModule } from '@angular/forms';
 import { MaterialModule } from './material.module';
 
 @NgModule({
@@ -26,6 +26,7 @@ import { MaterialModule } from './material.module';
     StoreModule.forRoot(reducers, { metaReducers }),
     EffectsModule.forRoot(effects),
     BrowserAnimationsModule,
+    FormsModule,
     MaterialModule,
   ],
   providers: [],

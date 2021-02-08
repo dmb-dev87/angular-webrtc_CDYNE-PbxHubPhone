@@ -17,7 +17,7 @@ export function getButtons(id: string): Array<HTMLButtonElement> {
 export function setInputValue(id: string, val: string): void {
   const el = document.getElementById(id);
   if (!(el instanceof HTMLInputElement)) {
-    throw new Error(`Element "${id} not a input element.`);
+    throw new Error(`Element "${id}" not a input element.`);
   }
   el.value = val;
 }
@@ -37,6 +37,24 @@ export function getInputValue(id: string): string {
     throw new Error(`Element "${id}" not a input element`);
   }
   return el.value;
+}
+
+export function setButtonText(id: string, val: string): void {
+  const el = document.getElementById(id);
+  if (!(el instanceof HTMLButtonElement)) {
+    throw new Error(`Element "${id}" not a button element.`);
+  }
+
+  el.innerHTML = val;
+}
+
+export function getButtonText(id: string): string {
+  const el = document.getElementById(id);
+  if (!(el instanceof HTMLButtonElement)) {
+    throw new Error(`Element "${id}" not a button element.`);
+  }
+
+  return el.innerHTML;
 }
 
 export function getAudio(id: string): HTMLAudioElement {

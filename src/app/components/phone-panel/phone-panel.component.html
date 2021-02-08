@@ -1,45 +1,54 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
-    <div class="col-lg-3 col-md-3 col-sm-12 info-pad">
+    <div class="col-lg-2 col-md-2 col-sm-12 info-pad">
       <div class=" row">
-        <div class=" col-2 logo">
+        <div class=" col-4 logo">
           <a href="javascript:void(0)"> Logo </a>
         </div>
-        <div class=" col-6 caller-id">
-          <span>CallerID: </span>
-          <span>{{callerId}}</span>
-        </div>
-        <div class=" col-4 user-name">
-          <span>Welcome {{phoneUser?.displayName}}</span>
+        <div class=" col-8 info">
+          <div class=" row">
+            <div class= " caller-id">
+              <span>CallerID: </span>
+              <span>{{callerId}}</span>
+            </div>
+          </div>
+          <div class=" row">
+            <div class= " user-name">
+              <span>Welcome {{phoneUser?.displayName}}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-lg-3 col-md-3 col-sm-12 control-pad">
+    <div class="col-lg-4 col-md-4 col-sm-12 control-pad">
       <div class=" row">
         <div class=" audio-panel">
           <span class=" mic-control"><i class="fas fa-microphone"></i></span>
           <span class=" receiver-control"><i class="fas fa-headset"></i></span>
         </div>
         <div class=" line-panel">
-          <div class=" ">
-            <mat-radio-button>
-              <span>Line 1:</span>
-              <input type="text" placeholder="CallerID Info">
-            </mat-radio-button>
-          </div>
-          <div class=" ">
-            <mat-radio-button>
-              <span>Line 2:</span>
-              <input type="text" placeholder="CallerID Info">
-            </mat-radio-button>
-          </div>
+          <mat-radio-group [(ngModel)]="selectLine" (ngModelChange)="changeLine()">
+            <div class=" ">
+              <mat-radio-button value="1">
+                <span>Line 1:</span>
+                <input type="text" placeholder="CallerID Info" id="callerid_line1">
+              </mat-radio-button>
+            </div>
+            <div class=" ">
+              <mat-radio-button value="2">
+                <span>Line 2:</span>
+                <input type="text" placeholder="CallerID Info" id="callerid_line2">
+              </mat-radio-button>
+            </div>
+          </mat-radio-group>
         </div>
         <div class=" btns-panel">
-          <div>
-            <button class=" btn btn-fill btn-normal phone-control" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+          <div class=" row">
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>            
           </div>
-          <div>
-            <button class=" btn btn-fill btn-normal phone-control" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+          <div class=" row">
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND Off":"DND On"}}</button>
           </div>
         </div>
       </div>
@@ -89,10 +98,18 @@
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
       <div class=" row">
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-normal phone-control">X-fer</button>
-          <button class=" btn btn-fill btn-normal phone-control">Conf</button>
-          <button class=" btn btn-fill btn-normal phone-control"><i class="fas fa-record-vinyl"></i></button>
-          <input type="text">
+          <div>
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="makeTransfer()">X-fer</button>
+          </div>
+          <div>
+            <button class=" btn btn-fill btn-normal phone-ctrlbtn">Conf</button>
+          </div>
+        </div>
+        <div class=" input-panel">
+          <div>
+            <button class=" btn btn-fill btn-normal btn-number"><i class="fas fa-record-vinyl"></i></button>
+            <input type="text">
+          </div>          
         </div>
       </div>
     </div>

@@ -1,0 +1,13 @@
+diff --git a/node_modules/sip.js/lib/core/user-agent-core/user-agent-core.js b/node_modules/sip.js/lib/core/user-agent-core/user-agent-core.js
+index 18b4257..1f143b1 100644
+--- a/node_modules/sip.js/lib/core/user-agent-core/user-agent-core.js
++++ b/node_modules/sip.js/lib/core/user-agent-core/user-agent-core.js
+@@ -272,6 +272,8 @@ export class UserAgentCore {
+                     // We are not currently supporting this case.
+                     // NOTE: Not backwards compatible with RFC 2543 (no support for strict-routing).
+                     this.logger.warn(`Discarding out of dialog ACK after 2xx response sent on transaction ${transactionId}.`);
++                    // this.receiveInsideDialogRequest(message);
++                    this.receiveRequest(message);
+                     return;
+                 }
+             }
