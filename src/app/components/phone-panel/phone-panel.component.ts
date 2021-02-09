@@ -93,7 +93,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   connectToServer(): void {
-    const remoteVideo = getVideo(`remoteVideo`);
+    // const remoteVideo = getVideo(`remoteVideo`);
+    const remoteAudio = getAudio(`remoteAudio`);
     const localVideo = getVideo(`localVideo`);
     const endUserOptions: EndUserOptions = {
       media: {
@@ -105,7 +106,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           video: localVideo
         },
         remote: {
-          video: remoteVideo
+          audio: remoteAudio
         }
       },
       userAgentOptions: {
