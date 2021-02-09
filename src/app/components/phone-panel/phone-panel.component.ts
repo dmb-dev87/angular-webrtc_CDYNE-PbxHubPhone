@@ -24,7 +24,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   numberBtnToggle = false;
   muteToggle = false;
   holdToggle = false;
-  dndToggle = false;
+  dndToggle = true;
   searchResult = [];
   selectLine = `1`;
   transferState = false;
@@ -93,8 +93,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   connectToServer(): void {
-    const audioElement = getAudio(`remoteAudio`);
-    const videoElement = getVideo(`localVideo`);
+    const remoteVideo = getVideo(`remoteVideo`);
+    const localVideo = getVideo(`localVideo`);
     const endUserOptions: EndUserOptions = {
       media: {
         constraints: {
@@ -102,10 +102,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           video: false
         },
         local: {
-          video: videoElement
+          video: localVideo
         },
         remote: {
-          audio: audioElement
+          video: remoteVideo
         }
       },
       userAgentOptions: {

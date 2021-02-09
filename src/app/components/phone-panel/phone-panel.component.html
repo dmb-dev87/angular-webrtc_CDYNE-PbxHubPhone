@@ -45,10 +45,10 @@
         <div class=" btns-panel">
           <div class=" row">
             <div class=" col">
-              <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+              <button class=" btn btn-fill phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
             </div>
             <div class=" col">
-              <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>            
+              <button class=" btn btn-fill phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>            
             </div>
           </div>
           <div class=" row">
@@ -125,9 +125,15 @@
   </div>
 </div>
 
-<audio id="remoteAudio" controls hidden>
+<!-- <audio id="remoteAudio" controls hidden>
   <p>Your browser doesn't support HTML5 audio.</p>
-</audio>
+</audio> -->
+
+<div class="video" hidden>
+  <video id="remoteVideo" width="100%">
+    <p>Your browser doesn't support HTML5 video.</p>
+  </video>
+</div>
 
 <div class="video" hidden>
   <video id="localVideo" width="100%">
