@@ -24,7 +24,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   numberBtnToggle = false;
   muteToggle = false;
   holdToggle = false;
-  dndToggle = true;
+  dndToggle = false;
   searchResult = [];
   selectLine = `1`;
   transferState = false;

@@ -805,6 +805,7 @@ export class EndUser {
           if (this.delegate && this.delegate.onCallHangup) {
             this.delegate.onCallHangup();
           }
+          this.setCurLineSession(undefined, false, false);
           break;
         default:
           throw new Error(`Unknown session state.`);
@@ -1090,8 +1091,6 @@ export class EndUser {
       default:
         throw new Error(`Unknown state`);
     }
-
-    this.setCurLineSession(undefined, false, false);
 
     this.logger.log(`[${this.id}] Terminating in state ${this.session.state}, no action taken`);
     return Promise.resolve();
