@@ -62,8 +62,8 @@
         <div class=" row">
           <button class=" btn btn-fill btn-danger call-btn" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
           <div class=" input-number">
-            <input matInput type="text" id="call-number" (input)="searchContact()">
             <button id="search-toggle"><i class="fas fa-search"></i></button>
+            <input type="text" id="call-number" (input)="searchContact()">            
           </div>
           <button class=" btn btn-fill btn-success call-btn" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
         </div>

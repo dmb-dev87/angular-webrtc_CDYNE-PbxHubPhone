@@ -14,7 +14,7 @@
           </div>
           <div class=" row">
             <div class= " user-name">
-              <span>Welcome {{phoneUser?.displayName}}</span>
+              <span>{{phoneUser? "Welcome " + phoneUser.displayName : "Unregistered"}}</span>
             </div>
           </div>
         </div>
@@ -63,19 +63,28 @@
       </div>
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 phone-pad">
+      <div class=" row login-pad">
+        <div class=" mail-panel">
+          <input type="text" placeholder="Email" id="email">
+        </div>
+        <div class=" btns-panel">
+          <button class=" btn btn-fill login-btn" id="register-btn" (click)="onRegister()">Register</button>
+        </div>
+      </div>
       <div class=" row">
         <div class=" btns-panel">
           <button class=" btn btn-fill btn-danger" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
         </div>
         <div class=" input-number">
-          <input matInput type="text" id="call-number" (input)="searchContact()">
+          <button id="search-toggle"><i class="fas fa-search"></i></button>
+          <input type="text" id="call-number" (input)="searchContact()">
           <button id="number-toggle"><i class="fas fa-bars"></i></button>
         </div>
         <div class=" btns-panel">
           <button class=" btn btn-fill btn-success" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
         </div>
-      </div>
-      <div class=" row number-pad" *ngIf="this.numberBtnToggle">
+      </div>      
+      <div class=" row number-pad" *ngIf="this.numberBtnToggle && !this.searchBtnToggle">
         <div class=" number-group">
           <div class=" row">
             <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
@@ -91,7 +100,7 @@
           </div>
         </div>
       </div>
-      <div class=" row search-pad" *ngIf="this.searchResult.length > 0 && !this.numberBtnToggle">
+      <div class=" row search-pad" *ngIf="(this.searchResult.length > 0 || this.searchBtnToggle) && !this.numberBtnToggle">
         <div class=" search-list">
           <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
             <div class=" col-8">

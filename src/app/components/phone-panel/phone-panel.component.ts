@@ -4,9 +4,8 @@ import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getBut
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
-import { PhoneUserService} from '../../services/phoneuser.service';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
-import { parseDnd } from '../../utilities/parse-utils';
+import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -21,17 +20,19 @@ const userAgent = environment.userAgent;
 
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   callerId = null;
+  searchBtnToggle = false;
   numberBtnToggle = false;
   muteToggle = false;
   holdToggle = false;
   dndToggle = false;
+
   searchResult = [];
-  selectLine = `1`;
-  transferState = false;
-  lineChanged = false;
+  selectLine = `1`;  
 
   private endUser = null;
   private callState = false;
+  private transferState = false;
+  private lineChanged = false;
   private invitationState = false;
   private _phoneUser: PhoneUser = undefined;
   private _phoneContacts: Array<PhoneContact> = [];
@@ -41,10 +42,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private muteButton = null;
   private holdButton = null;
   private xferButton = null;
+  private dndButton = null;
 
-  constructor(private phoneUserService: PhoneUserService, private pbxControlService: PbxControlService) {
-    this.phoneUserService.load();
-    this.pbxControlService.load();
+  constructor(private pbxControlService: PbxControlService) {
+
   }
 
   get phoneUser(): PhoneUser {
@@ -63,20 +64,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     const numberToggle = getButton(`number-toggle`);
     numberToggle.addEventListener(`click`, () => {
       this.numberBtnToggle = !this.numberBtnToggle;
+      this.searchBtnToggle = false;
     });
 
-    this.phoneUserService.getPhoneUser().subscribe(phoneuser => {
-      this._phoneUser = phoneuser.data;
-      if (this._phoneUser) {
-        // set user information to localstorage
-        localStorage.setItem(`user_name`, this._phoneUser.authName);
-        localStorage.setItem(`user_id`, this._phoneUser.clientId);
-        this.connectToServer();
-      }
-    });
-
-    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-      this._phoneContacts = phonecontacts.data;
+    const searchBtn = getButton(`search-toggle`);
+    searchBtn.addEventListener(`click`, () => {      
+      this.searchBtnToggle = !this.searchBtnToggle;
+      this.numberBtnToggle = false;
+      this.searchResult = this.searchBtnToggle? this._phoneContacts : [];
     });
 
     this.beginButton = getButton(`begin-call`);
@@ -84,16 +79,54 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.muteButton = getButton(`mute-btn`);
     this.holdButton = getButton(`hold-btn`);
     this.xferButton = getButton(`transfer-call`);
+    this.dndButton = getButton(`dnd-btn`);
 
     this.beginButton.disabled = true;
     this.endButton.disabled = true;
     this.muteButton.disabled = true;
     this.holdButton.disabled = true;
     this.xferButton.disabled = true;
+    this.dndButton.disabled = true;
   }
 
-  connectToServer(): void {
-    // const remoteVideo = getVideo(`remoteVideo`);
+  onRegister(): void {
+    const email = getInputValue(`email`);
+
+    if (email === undefined) {
+      console.log(`Input the email address`);
+      alert(`Input the email address`);
+      return
+    }
+
+    const btnText = getButtonText(`register-btn`);
+
+    if (btnText === `Register`) {
+      this.pbxControlService.webRtcDemo(email).subscribe(response => {
+        this.phoneUser = parseWebRtcDemo(response);
+        if (this.phoneUser) {
+          // set user information to localstorage
+          localStorage.setItem(`user_name`, this.phoneUser.authName);
+          localStorage.setItem(`user_id`, this.phoneUser.clientId);
+          this.connect();
+
+          this.pbxControlService.load();
+
+          this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+            this._phoneContacts = phonecontacts.data;
+          });
+        }
+      })
+    }
+    else if (btnText === `Unregister`) {
+      this.unregister();
+      this.phoneUser = undefined;
+      this._phoneContacts = [];
+      localStorage.removeItem(`user_name`);
+      localStorage.removeItem(`user_id`);
+    }
+  }
+
+  connect(): void {
     const remoteAudio = getAudio(`remoteAudio`);
     const localVideo = getVideo(`localVideo`);
     const endUserOptions: EndUserOptions = {
@@ -148,10 +181,28 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   register(): void {
     this.endUser
       .register(undefined)
+      .then(() => {
+        setButtonText(`register-btn`, `Unregister`);
+        this.dndButton.disabled = false;
+      })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to register`);
         console.error(error);
         alert(`[${this.endUser.id}] Failed to register.\n` + error);
+      });
+  }
+
+  unregister(): void {
+    this.endUser
+      .unregister()
+      .then(() => {
+        setButtonText(`register-btn`, `Register`);
+        this.dndButton.disabled = true;
+      })
+      .catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to unregister`);
+        console.error(error);
+        alert(`[${this.endUser.id}] Failed to unregister.\n` + error);
       });
   }
 

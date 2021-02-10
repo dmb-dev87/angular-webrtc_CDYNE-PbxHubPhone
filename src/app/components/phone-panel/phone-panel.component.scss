@@ -13,6 +13,7 @@
 
 .btn {
   padding: 5px 10px;
+  font-size: 0.75rem;
 }
 
 .btn-normal {
@@ -26,6 +27,22 @@
   transition: all 0.15s ease;
   box-shadow: none;
   color: #ffffff;
+}
+
+.btns-panel {
+  padding: 5px 0px;
+  
+  .phone-ctrlbtn {
+    width: 120px;      
+  }
+
+  .phone-ctrlbtn-small {
+    width: 70px;
+  }
+
+  .login-btn {
+    width: 100px;
+  }
 }
 
 .info-pad {
@@ -96,25 +113,7 @@
     }
   }
 
-  .btns-panel {
-    padding: 5px 0px;
-    
-    .btn {
-      font-size: 0.75rem;
-    }    
-
-    .phone-ctrlbtn {
-      width: 120px;      
-    }
-
-    .phone-ctrlbtn-small {
-      width: 70px;
-    }
-
-    input {
-      width: 120px;
-    }
-  }
+  
 
   .input-panel {
     display: flex;
@@ -130,13 +129,24 @@
     justify-content: center;
   }
 
+  .login-pad {
+    .mail-panel {
+      margin-right: 20px;
+      input {
+        margin-top: 4px;
+        font-size: 0.75rem;
+      }
+    }
+  }
+
   .input-number {
     margin: 0px 10px;
-    padding: 24px 0px;
+    padding: 4px 0px;
 
     input {
       border: none;
       background-color: #ffffff;
+      width: 160px;
     }
 
     button {
@@ -146,7 +156,7 @@
   }
 
   .btns-panel {
-    padding: 20px 0px;
+    padding: 0px 0px;
   }
 }
 
@@ -154,7 +164,7 @@
   margin: 0px 0px;
   position: absolute;
   z-index: 9999;
-  top: 78px;
+  top: 74px;
   width: 100%;
   background-color: transparent;
 
@@ -185,7 +195,7 @@
   position: absolute;
   z-index: 9999;
   width: 100%;
-  top: 78px;
+  top: 74px;
   background-color: transparent;
 
   .search-list {

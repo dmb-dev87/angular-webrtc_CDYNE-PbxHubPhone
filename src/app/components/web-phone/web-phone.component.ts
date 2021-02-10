@@ -23,10 +23,11 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
 
   callerId = null;
   searchBtnToggle = false;
-  searchResult = [];
   muteToggle = false;
   holdToggle = false;
   dndToggle = false;
+  
+  searchResult = [];
   selectLine = `1`;
   
 
