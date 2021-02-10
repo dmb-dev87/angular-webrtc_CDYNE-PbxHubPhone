@@ -219,6 +219,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.endUser.sendDTMF(toneNum)
         .then(() => {
           addInputValue(`call-number`, toneNum);
+        })
+        .catch((err) => {
+          console.error(`[${this.endUser.id}] failed to send DTMF`);
+          console.error(err);
+          alert(`[${this.endUser.id}] Failed to send DTMF.\n` + err);
+          addInputValue(`call-number`, toneNum);
         });
     }
   }
@@ -424,7 +430,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${user.id}] call hangup`);
 
-      this.beginButton.disabled = !user.isConnected();
+      this.callState = false;
+
+      this.beginButton.disabled = true;
       this.endButton.disabled = true;
       this.muteButton.disabled = true;
       this.holdButton.disabled = true;
