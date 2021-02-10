@@ -108,12 +108,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           localStorage.setItem(`user_name`, this.phoneUser.authName);
           localStorage.setItem(`user_id`, this.phoneUser.clientId);
           this.connect();
-
-          this.pbxControlService.load();
-
-          this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-            this._phoneContacts = phonecontacts.data;
-          });
         }
       })
     }
@@ -439,6 +433,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
+      this.pbxControlService.load();
+      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+        this._phoneContacts = phonecontacts.data;
+      });
+      
       this.pbxControlService.toggleDnd().subscribe(response => {
         //call twice because status get toggled when call api
         this.pbxControlService.toggleDnd().subscribe(response => {

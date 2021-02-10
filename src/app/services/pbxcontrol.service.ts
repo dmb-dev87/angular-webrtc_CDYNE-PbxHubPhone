@@ -22,11 +22,12 @@ export class PbxControlService {
   message: string;  
 
   constructor(private store: Store<AppState>, private http: HttpClient) {
-    this.user_id = localStorage.getItem(`user_id`);
-    this.user_name = localStorage.getItem(`user_name`);
+    
   }
 
   load(): void {
+    this.user_id = localStorage.getItem(`user_id`);
+    this.user_name = localStorage.getItem(`user_name`);
     this.store.dispatch(new PhoneContactsActions.LoadPhoneContactsBegin());
   }
 
