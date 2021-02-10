@@ -123,7 +123,7 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
 
   connect(): void {
     const remoteAudio = getAudio(`remoteAudio`);
-    const localVideo = getVideo(`localVideo`);
+    const localAudio = getVideo(`localAudio`);
     const endUserOptions: EndUserOptions = {
       media: {
         constraints: {
@@ -131,7 +131,7 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
           video: false
         },
         local: {
-          video: localVideo
+          audio: localAudio
         },
         remote: {
           audio: remoteAudio

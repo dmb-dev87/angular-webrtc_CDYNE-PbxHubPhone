@@ -122,7 +122,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   connect(): void {
     const remoteAudio = getAudio(`remoteAudio`);
-    const localVideo = getVideo(`localVideo`);
+    const localAudio = getAudio(`localAudio`);
+    // const localVideo = getVideo(`localVideo`);
     const endUserOptions: EndUserOptions = {
       media: {
         constraints: {
@@ -130,7 +131,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           video: false
         },
         local: {
-          video: localVideo
+          audio: localAudio
         },
         remote: {
           audio: remoteAudio

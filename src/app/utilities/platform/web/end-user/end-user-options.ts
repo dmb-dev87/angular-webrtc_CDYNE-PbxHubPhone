@@ -39,6 +39,8 @@ export interface EndUserMediaConstraints {
  * @public
  */
 export interface EndUserMediaLocal {
+  /** The local audio media stream is attached to this element. */
+  audio?: HTMLAudioElement;
   /** The local video media stream is attached to this element. */
   video?: HTMLVideoElement;
 }
