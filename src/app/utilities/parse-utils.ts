@@ -1,4 +1,5 @@
 import * as xml2js from 'xml2js';
+import { PhoneUser } from '../models/phoneuser';
 
 export function parseContact(data): any {
 	const arr = [];
@@ -39,4 +40,28 @@ export function parseDnd(data): any {
 	})
 
 	return dndResult[0];
+}
+
+export function parseWebRtcDemo(data): any {
+	let phoneUser: PhoneUser = new PhoneUser;
+
+  const parser = new xml2js.Parser({
+    trim: true,
+    explicitArray: true
+  });
+
+  parser.parseString(data, (err, result) => {
+    const envelope = result['s:Envelope'];
+    const body = envelope['s:Body'];
+    const response = body[0].WebRtcDemoResponse;
+    const res = response[0].WebRtcDemoResult;
+    const userData = res[0];
+    phoneUser.authName = userData['a:authName'][0];
+    phoneUser.authPassword = userData['a:authPassword'][0];
+    phoneUser.clientId = userData['a:clientId'][0];
+    phoneUser.displayName = userData['a:displayName'][0];
+    phoneUser.extenNumber = userData['a:extenNumber'][0];
+  })
+
+  return phoneUser;
 }
