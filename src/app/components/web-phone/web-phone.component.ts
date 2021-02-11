@@ -437,6 +437,8 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
       this.muteButton.disabled = true;
       this.holdButton.disabled = true;
       this.xferButton.disabled = true;
+
+      this.callerId = ``;
     };
   }
 

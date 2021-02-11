@@ -12,13 +12,14 @@
 }
 
 .btn {
-  padding: 5px 10px;
-  font-size: 0.75rem;
+  margin-left: 5px;
+  margin-right: 5px;
+  padding: 5px 0px;
+  font-size: 0.6rem;
+  border-radius: 3px;
 }
 
 .btn-normal {
-  margin-left: 5px;
-  margin-right: 5px;
   background: #4a4a4a;
   background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
   background-size: 210% 210%;
@@ -31,26 +32,35 @@
 
 .btns-panel {
   padding: 5px 0px;
-  
+
   .phone-ctrlbtn {
-    width: 120px;      
+    width: 80px;
   }
 
   .phone-ctrlbtn-small {
-    width: 70px;
+    width: 50px;
   }
 
   .login-btn {
-    width: 100px;
+    width: 80px;
+  }
+
+  .call-btn {
+    width: 30px;
+  }
+
+  input {
+    width: 120px;
   }
 }
 
 .info-pad {
-  justify-content: center;
+  font-size: 1rem;
+  position: relative;
 
   .logo {
     background-color: #ffffff;
-    padding: 24px 0px;
+    padding: 10px 0px;
     text-align: center;
 
     a {
@@ -58,18 +68,14 @@
     }
   }
 
-  .info {
-    padding: 10px 30px;
+  .caller-id {
+    padding: 10px 4px;
+    color: #ffffff;
+  }
 
-    .caller-id {
-      color: #ffffff;
-      margin-bottom: 5px;
-    }
-  
-    .user-name {
-      margin-top: 5px;
-      color: #69ad4b;
-    }
+  .user-name {
+    padding: 10px 4px;
+    color: #69ad4b;
   }
 }
 
@@ -79,74 +85,42 @@
   }
 
   .audio-panel {
-    font-size: 1.25rem;
-    padding: 24px 0px;
+    padding: 12px 0px;
     color: #ffffff;
 
     .mic-control {
-      border-top: 3px solid #f80101;
-      padding-top: 5px;
-      margin: 0px 10px;
+      border-top: 2px solid #f80101;
+      padding-top: 2px;
+      margin: 0px 5px;
     }
 
     .receiver-control {
-      border-top: 3px solid #6bb04c;
-      padding-top: 5px;
-      margin: 0px 10px;
+      border-top: 2px solid #6bb04c;
+      padding-top: 2px;
+      margin: 0px 5px;
     }
   }
 
   .line-panel {
-    margin-top: 10px;
-    margin-left: 20px;
-    font-size: 0.75rem;
-    width: 200px;
+    margin: 0px 20px;
+    font-size: 0.6rem;
 
     span {
       color: #ffffff;
       margin-left: 5px;
       margin-right: 10px;
     }
-
-    input {
-      width: 50%;
-    }
-  }
-
-  
-
-  .input-panel {
-    display: flex;
-    align-items: center;
-  }
-}
-
-.phone-pad {
-  margin: auto;
-  position: relative;
-
-  div.row {
-    justify-content: center;
-  }
-
-  .login-pad {
-    .mail-panel {
-      margin-right: 20px;
-      input {
-        margin-top: 4px;
-        font-size: 0.75rem;
-      }
-    }
   }
 
   .input-number {
     margin: 0px 10px;
-    padding: 4px 0px;
+    padding: 10px 0px;
+    position: relative;
 
     input {
       border: none;
       background-color: #ffffff;
-      width: 160px;
+      width: 100px;
     }
 
     button {
@@ -154,9 +128,24 @@
       background-color: #ffffff;
     }
   }
+}
 
-  .btns-panel {
-    padding: 0px 0px;
+.login-pad {
+  margin: 0px 0px;
+  position: absolute;
+  z-index: 9999;
+  top: 45px;
+  left: -3px;
+  width: 100%;
+  background-color: transparent;
+  font-size: 0.75rem;
+
+  .login-panel {
+    padding: 5px 5px;
+    align-items: center;
+    background-color: #1d1d1d;
+    border: 2px solid #c5c5c5;
+    border-top: none;
   }
 }
 
@@ -164,12 +153,13 @@
   margin: 0px 0px;
   position: absolute;
   z-index: 9999;
-  top: 74px;
+  top: 37px;
+  left: 0px;
   width: 100%;
   background-color: transparent;
 
   .number-group {
-    padding: 8px 20px;
+    padding: 5px 10px;
     align-items: center;
     background-color: #1d1d1d;
     border: 2px solid #c5c5c5;
@@ -195,7 +185,8 @@
   position: absolute;
   z-index: 9999;
   width: 100%;
-  top: 74px;
+  top: 37px;
+  left: 0px;
   background-color: transparent;
 
   .search-list {
@@ -203,32 +194,11 @@
     background-color: #1d1d1d;
     border: 2px solid #c5c5c5;
     border-top: none;
-    width: 250px;
+    width: 150px;
 
     p {
       text-align: left;
       color: #ffffff;
     }
   }
-}
-
-.video {
-  display: flex;
-  background: black;
-  position: relative;
-  border: 1px solid lightgrey;
-  height: 200px;
-  width: 200px;
-  margin: 10px 0;
-}
-
-.video-local {
-  display: flex;
-  background: black;
-  position: absolute;
-  border: 1px solid lightgrey;
-  height: 40px;
-  width: 40px;
-  top: 150px;
-  left: 10px;
 }

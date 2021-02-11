@@ -1,17 +1,35 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+label {
+  margin-bottom: 0px;
+}
+
 .main-panel {
   background: #ffffff;
   border: none;
-  font-size: 1rem;
+  font-size: 0.75rem;
 }
 
 .mat-radio-outer-circle {
   border-color: rgba(255, 255, 255, 0.54);
+  height: 12px !important;
+  top: 4px !important;
+  width: 12px !important;
 }
 
+.mat-radio-inner-circle {
+  height: 12px !important;
+  top: 4px !important;
+  width: 12px !important;
+}
+
+.mat-radio-label-content {
+  padding-left: 0px !important;
+}

@@ -1,212 +1,190 @@
 .container-fluid {
-    padding: 3px;
+  padding: 3px;
+}
+
+.btn {
+  padding: 5px 10px;
+  font-size: 0.75rem;
+}
+
+.btn-normal {
+  margin-left: 5px;
+  margin-right: 5px;
+  background: #4a4a4a;
+  background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
+  background-size: 210% 210%;
+  background-position: top right;
+  background-color: #4a4a4a;
+  transition: all 0.15s ease;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+.btns-panel {
+  padding: 5px 0px;
+
+  .row {
+    margin-top: 10px;
   }
 
-  .btn {
-    padding: 5px 10px;
-    font-size: 0.75rem;
-  }
-  
-  .btn-normal {
-    margin-left: 5px;
-    margin-right: 5px;
-    background: #4a4a4a;
-    background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
-    background-size: 210% 210%;
-    background-position: top right;
-    background-color: #4a4a4a;
-    transition: all 0.15s ease;
-    box-shadow: none;
-    color: #ffffff;
+  .phone-ctrlbtn {
+    width: 120px;
   }
 
-  .btns-panel {
-    padding: 5px 0px;
+  .phone-ctrlbtn-small {
+    margin: 0px 10px;
+    width: 80px;
+  }
+
+  .login-btn {
+    width: 100px;
+  }
+}
+
+.phone {
+  align-items: center;
+  background-color: #1d1d1d;
+  border: 2px solid #c5c5c5;
+  border-bottom: 1px solid #1d1d1d;
+  margin: 0;
+  font-size: 0.75rem;
+
+  div.row {
+    justify-content: center;
+  }
+}
+
+.info-pad {
+  .logo {
+    background-color: #ffffff;
+    padding: 20px 0px;
+    text-align: center;
+    width: 100px;
+
+    a {
+      color: #000000;
+    }
+  }
+
+  .info {
+    padding: 10px 30px;
 
     .row {
-      margin-top: 10px;
+      justify-content: left;
     }
 
-    .phone-ctrlbtn {
-      width: 120px;
-    }
-
-    .phone-ctrlbtn-small {
-      margin: 0px 10px;
-      width: 80px;
-    }
-
-    .login-btn {
-      width: 100px;
-    }
-  }
-  
-  .phone {
-    align-items: center;
-    background-color: #1d1d1d;
-    border: 2px solid #c5c5c5;
-    border-bottom: 1px solid #1d1d1d;
-    margin: 0;
-    font-size: 0.75rem;
-
-    div.row {
-      justify-content: center;
-    }
-  }
-
-  .info-pad {
-    .logo {
-      background-color: #ffffff;
-      padding: 20px 0px;
-      text-align: center;
-      width: 100px;
-  
-      a {
-        color: #000000;
-      }
-    }
-  
-    .info {
-      padding: 10px 30px;
-
-      .row {
-        justify-content: left;
-      }
-  
-      .caller-id {
-        color: #ffffff;
-        margin-bottom: 5px;
-      }
-    
-      .user-name {
-        margin-top: 5px;
-        color: #69ad4b;
-      }
-    }
-  }
-
-  .login-pad {
-    .mail-panel {
-      margin-right: 20px;
-      input {
-        margin-top: 10px;
-      }
-    }
-  }
-
-  .control-pad {
-    .line-panel {
-      margin-top: 10px;
-      margin-left: 20px;
-  
-      span {
-        color: #ffffff;
-        margin-left: 5px;
-        margin-right: 10px;
-      }
-    }
-  }
-
-  .phone-pad {
-    margin: auto;
-    position: relative;
-  
-    .input-number {
-      margin: 4px 5px;
-      padding: 0px 0px;
-      font-size: 1rem;
-  
-      input {        
-        border: none;
-        background-color: #ffffff;
-        width: 160px;
-      }
-
-      button {
-        border: none;
-      }
-    }
-
-    .number-pad {
-      margin: 0px 0px;
-      background-color: transparent;
-    
-      .number-group {
-        padding: 8px 20px;
-        align-items: center;
-        background-color: #1d1d1d;
-      }
-    
-      .number-btn {
-        background: #4a4a4a;
-        background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
-        background-size: 210% 210%;
-        background-position: top right;
-        background-color: #4a4a4a;
-        transition: all 0.15s ease;
-        box-shadow: none;
-        color: #ffffff;
-        padding: 5px 14px;
-        margin: 5px 10px;
-      }
-    }
-
-    .audio-panel {
-      font-size: 1rem;
-      padding: 24px 0px;
+    .caller-id {
       color: #ffffff;
+      margin-bottom: 5px;
+    }
   
-      .mic-control {
-        border-top: 3px solid #f80101;
-        padding-top: 5px;
-        margin: 0px 10px;
-      }
-  
-      .receiver-control {
-        border-top: 3px solid #6bb04c;
-        padding-top: 5px;
-        margin: 0px 10px;
-      }
+    .user-name {
+      margin-top: 5px;
+      color: #69ad4b;
+    }
+  }
+}
+
+.login-pad {
+  .mail-panel {
+    margin-right: 20px;
+    input {
+      margin-top: 10px;
+    }
+  }
+}
+
+.control-pad {
+  .line-panel {
+    margin-top: 10px;
+    margin-left: 20px;
+
+    span {
+      color: #ffffff;
+      margin-left: 5px;
+      margin-right: 10px;
+    }
+  }
+}
+
+.phone-pad {
+  margin: auto;
+  position: relative;
+
+  .input-number {
+    margin: 4px 5px;
+    padding: 0px 0px;
+    font-size: 1rem;
+
+    input {        
+      border: none;
+      background-color: #ffffff;
+      width: 160px;
     }
 
-    .search-pad {
-      margin: 0px 0px;
-      position: absolute;
-      z-index: 9999;
-      width: 100%;
-      top: 32px;
-      background-color: transparent;
-    
-      .search-list {
-        padding: 8px 20px;
-        background-color: #1d1d1d;        
-    
-        p {
-          text-align: left;
-          color: #ffffff;
-        }
+    button {
+      border: none;
+    }
+  }
+
+  .number-pad {
+    margin: 0px 0px;
+    background-color: transparent;
+  
+    .number-group {
+      padding: 8px 20px;
+      align-items: center;
+      background-color: #1d1d1d;
+    }
+  
+    .number-btn {
+      background: #4a4a4a;
+      background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
+      background-size: 210% 210%;
+      background-position: top right;
+      background-color: #4a4a4a;
+      transition: all 0.15s ease;
+      box-shadow: none;
+      color: #ffffff;
+      padding: 5px 14px;
+      margin: 5px 10px;
+    }
+  }
+
+  .audio-panel {
+    font-size: 1rem;
+    padding: 24px 0px;
+    color: #ffffff;
+
+    .mic-control {
+      border-top: 3px solid #f80101;
+      padding-top: 5px;
+      margin: 0px 10px;
+    }
+
+    .receiver-control {
+      border-top: 3px solid #6bb04c;
+      padding-top: 5px;
+      margin: 0px 10px;
+    }
+  }
+
+  .search-pad {
+    margin: 0px 0px;
+    position: absolute;
+    z-index: 9999;
+    width: 100%;
+    top: 32px;
+    background-color: transparent;
+  
+    .search-list {
+      padding: 8px 20px;
+      background-color: #1d1d1d;        
+  
+      p {
+        text-align: left;
+        color: #ffffff;
       }
     }
   }
-  
-  .video {
-    display: flex;
-    background: black;
-    position: relative;
-    border: 1px solid lightgrey;
-    height: 200px;
-    width: 200px;
-    margin: 10px 0;
-  }
-  
-  .video-local {
-    display: flex;
-    background: black;
-    position: absolute;
-    border: 1px solid lightgrey;
-    height: 40px;
-    width: 40px;
-    top: 150px;
-    left: 10px;
-  }
-  
+}
