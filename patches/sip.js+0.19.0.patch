@@ -12,10 +12,10 @@ index 18b4257..1f143b1 100644
                  }
              }
 diff --git a/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js b/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js
-index 2ab1320..bfab30f 100644
+index 2ab1320..2a6da65 100644
 --- a/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js
 +++ b/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js
-@@ -7,7 +7,7 @@ export function defaultPeerConnectionConfiguration() {
+@@ -7,10 +7,10 @@ export function defaultPeerConnectionConfiguration() {
          bundlePolicy: "balanced",
          certificates: undefined,
          iceCandidatePoolSize: 0,
@@ -23,4 +23,8 @@ index 2ab1320..bfab30f 100644
 +        iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun.voiparound.com:3478" }],
          iceTransportPolicy: "all",
          peerIdentity: undefined,
-         rtcpMuxPolicy: "require"
+-        rtcpMuxPolicy: "require"
++        rtcpMuxPolicy: "negotiate"
+     };
+     return configuration;
+ }

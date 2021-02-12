@@ -202,6 +202,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   clickNumber(toneNum: string): void {
+    if (this.endUser === null) {
+      return;
+    }
+    
     if (this.callState === false || this.lineChanged === true || this.transferState === true) {
       addInputValue(`call-number`, toneNum);
 
@@ -482,14 +486,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   searchContact(): void {
-    const searchWord = getInputValue(`call-number`);
-    this.beginButton.disabled = false;
+    const searchWord = getInputValue(`call-number`);    
+
     this.endButton.disabled = true;
     this.muteButton.disabled = true;
     this.holdButton.disabled = true;
     this.xferButton.disabled = true;
 
     if (searchWord) {
+      this.beginButton.disabled = false;
       this.searchResult = this._phoneContacts.filter((ele, i, array) => {
         const eleStr = ele.extension + ele.firstName + ele.lastName;
         const arrayelement = eleStr.toLowerCase();
@@ -497,35 +502,30 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
     }
     else {
+      this.beginButton.disabled = true;
       this.searchResult = [];
     }
   }
 
-  clickSearchList(extension): void {
+  clickSearchList(extension: string): void {
+    this.endButton.disabled = true;
+    this.muteButton.disabled = true;
+    this.holdButton.disabled = true;
+    this.xferButton.disabled = true;
+
     if (extension) {
       setInputValue(`call-number`, extension);
-
       this.beginButton.disabled = false;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
-      this.xferButton.disabled = true;
     }
     else {
       setInputValue(`call-number`, ``);
-
       this.beginButton.disabled = true;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
-      this.xferButton.disabled = true;
     }
     this.searchResult = [];
   }
 
   makeTransfer(): void {
     const btnText = getButtonText('transfer-call');
-
     if (btnText === 'X-fer' && this.transferState === false) {
       setButtonText(`transfer-call`, `Complete X-fer`);
       this.selectLine = `2`;
@@ -543,13 +543,21 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           alert(`Failed to complete transfer call.\n` + error);
         });
     }
-
     return;
   }
 
   changeLine(): void {
     const lineNumber = this.selectLine === '1' ? 0:1;
     this.lineChanged = true;
-    this.endUser.changeLine(lineNumber)
+    if (this.endUser === null) {
+      return;
+    }
+    this.endUser
+      .changeLine(lineNumber)
+      .catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to change line`);
+        console.error(error);
+        alert(`Failed to change line.\n` + error);
+      })
   }
 }
