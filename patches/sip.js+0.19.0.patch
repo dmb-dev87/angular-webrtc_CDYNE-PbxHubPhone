@@ -28,3 +28,16 @@ index 2ab1320..2a6da65 100644
      };
      return configuration;
  }
+diff --git a/node_modules/sip.js/lib/platform/web/session-description-handler/session-description-handler-factory-default.js b/node_modules/sip.js/lib/platform/web/session-description-handler/session-description-handler-factory-default.js
+index cf2bd48..316200e 100644
+--- a/node_modules/sip.js/lib/platform/web/session-description-handler/session-description-handler-factory-default.js
++++ b/node_modules/sip.js/lib/platform/web/session-description-handler/session-description-handler-factory-default.js
+@@ -16,7 +16,7 @@ export function defaultSessionDescriptionHandlerFactory(mediaStreamFactory) {
+             mediaStreamFactory = defaultMediaStreamFactory();
+         }
+         // make sure we allow `0` to be passed in so timeout can be disabled
+-        const iceGatheringTimeout = (options === null || options === void 0 ? void 0 : options.iceGatheringTimeout) !== undefined ? options === null || options === void 0 ? void 0 : options.iceGatheringTimeout : 5000;
++        const iceGatheringTimeout = (options === null || options === void 0 ? void 0 : options.iceGatheringTimeout) !== undefined ? options === null || options === void 0 ? void 0 : options.iceGatheringTimeout : 500;
+         // merge passed factory options into default session description configuration
+         const sessionDescriptionHandlerConfiguration = {
+             iceGatheringTimeout,
