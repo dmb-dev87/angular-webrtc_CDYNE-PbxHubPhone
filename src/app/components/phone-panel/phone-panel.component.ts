@@ -86,6 +86,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.micCtrlToggle = !this.micCtrlToggle;
       this.receiverCtrlToggle = false;
       const localAudio = getAudio(`localAudio`);
+      if (this.endUser && this.endUser.localAudioTrack !== undefined) {
+        const audioTrack = this.endUser.localAudioTrack;
+        const settings = audioTrack.getSettings();
+        const volume = settings.map(setting => setting.volume);
+        localAudio.volume = volume;
+      }
       this.micVolum = localAudio.volume * 100;
     })
 
@@ -94,7 +100,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.receiverCtrlToggle = !this.receiverCtrlToggle;
       this.micCtrlToggle = false;
       const remoteAudio = getAudio(`remoteAudio`);
-      this.receiverVolum = remoteAudio.volume * 100;
+      if (this.endUser && this.endUser.remoteAudioTrack !== undefined) {
+        const audioTrack = this.endUser.remoteAudioTrack;
+        const settings = audioTrack.getSettings();
+        const volume = settings.map(setting => setting.volume);
+        remoteAudio.volume = volume;
+      }
+      this.receiverVolum = remoteAudio.volume * 100;     
     })
 
     this.beginButton = getButton(`begin-call`);
