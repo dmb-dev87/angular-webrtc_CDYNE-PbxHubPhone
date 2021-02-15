@@ -85,6 +85,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     micCtrlSpan.addEventListener(`click`, () => {
       this.micCtrlToggle = !this.micCtrlToggle;
       this.receiverCtrlToggle = false;
+      const localAudio = getAudio(`localAudio`);
+      this.micVolum = localAudio.volume * 100;
     })
 
     const receiverSpan = getSpan(`receiver-control`);
@@ -589,6 +591,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   changeMicVolum(): void {
-    
+    const localAudio = getAudio(`localAudio`);
+    const volum = Math.round(this.micVolum) / 100;
+    localAudio.volume = parseFloat(volum.toFixed(2));
   }
 }
