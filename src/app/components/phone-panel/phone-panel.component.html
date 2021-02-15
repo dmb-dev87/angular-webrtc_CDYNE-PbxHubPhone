@@ -1,72 +1,99 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
-    <div class="col-lg-2 col-md-2 col-sm-12 info-pad">
+    <div class=" col-lg-3 col-md-3 col-sm-12 info-pad">
       <div class=" row">
-        <div class=" col-4 logo">
+        <div class=" col-2 logo">
           <a href="javascript:void(0)"> Logo </a>
         </div>
-        <div class=" col-8 info">
-          <div class=" row">
-            <div class= " caller-id">
-              <span>CallerID: </span>
-              <span>{{callerId}}</span>
-            </div>
-          </div>
-          <div class=" row">
-            <div class= " user-name">
-              <span>Welcome {{phoneUser?.displayName}}</span>
-            </div>
-          </div>
+        <div class=" col-6 caller-id">
+          <span>CallerID: </span>
+          <span>{{callerId}}</span>
+        </div>
+        <div class=" col-4 user-name">
+          <span>{{phoneUser? "Welcome " + phoneUser.displayName : "Unregistered"}}</span>
         </div>
       </div>
+      <div class=" row login-pad">
+        <div class=" login-panel btns-panel">
+          <input type="text" placeholder="Email" id="email">
+          <button class=" btn btn-fill login-btn" id="register-btn" (click)="onRegister()">Register</button>
+        </div>        
+      </div>      
     </div>
-    <div class="col-lg-4 col-md-4 col-sm-12 control-pad">
+    <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
       <div class=" row">
         <div class=" audio-panel">
-          <span class=" mic-control"><i class="fas fa-microphone"></i></span>
-          <span class=" receiver-control"><i class="fas fa-headset"></i></span>
+          <span class=" mic-control" id="mic-control"><i class="fas fa-microphone"></i></span>
+          <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
+          <div class=" row mic-slider-pad" *ngIf="this.micCtrlToggle">
+            <div class=" slider-group">
+              <div class=" row">
+                <mat-slider
+                  thumbLabel
+                  class=" mic-ctrl"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="micVolum"
+                  (change)="changeMicVolum()"
+                  vertical>
+                </mat-slider>
+              </div>
+            </div>
+          </div>
+          <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
+            <div class=" slider-group">
+              <div class=" row">
+                <mat-slider
+                  thumbLabel
+                  class=" receiver-ctrl"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="receiverVolum"
+                  (change) = "changeReceiverVolum()"
+                  vertical>
+                </mat-slider>
+              </div>
+            </div>
+          </div>
         </div>
         <div class=" line-panel">
           <mat-radio-group [(ngModel)]="selectLine" (ngModelChange)="changeLine()">
-            <div class=" ">
+            <div>
               <mat-radio-button value="1">
-                <span>Line 1:</span>
-                <input type="text" placeholder="CallerID Info" id="callerid_line1">
+                <span>Line 1:</span>                
               </mat-radio-button>
+              <input type="text" placeholder="CallerID Info" id="callerid_line1" disabled>
             </div>
-            <div class=" ">
+            <div>
               <mat-radio-button value="2">
-                <span>Line 2:</span>
-                <input type="text" placeholder="CallerID Info" id="callerid_line2">
+                <span>Line 2:</span>                
               </mat-radio-button>
+              <input type="text" placeholder="CallerID Info" id="callerid_line2" disabled>
             </div>
           </mat-radio-group>
         </div>
         <div class=" btns-panel">
-          <div class=" row">
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>            
-          </div>
-          <div class=" row">
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn-small" id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND Off":"DND On"}}</button>
-          </div>
+          <button class=" btn btn-fill phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+          <button class=" btn btn-fill phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+          <button class=" btn btn-fill phone-ctrlbtn-small" [ngClass]="dndToggle ? 'btn-danger' : 'btn-success'"  id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND ON":"DND OFF"}}</button>
         </div>
-      </div>
+      </div>      
     </div>
-    <div class=" col-lg-3 col-md-3 col-sm-12 phone-pad">
+    <div class=" col-lg-2 col-md-2 col-sm-12 control-pad">
       <div class=" row">
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-danger" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
+          <button class=" btn btn-fill btn-danger call-btn" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
         </div>
         <div class=" input-number">
-          <input matInput type="text" id="call-number" (input)="searchContact()">
+          <button id="search-toggle"><i class="fas fa-search"></i></button>
+          <input type="text" id="call-number" (input)="searchContact()">
           <button id="number-toggle"><i class="fas fa-bars"></i></button>
         </div>
         <div class=" btns-panel">
-          <button class=" btn btn-fill btn-success" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
+          <button class=" btn btn-fill btn-success call-btn" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
         </div>
       </div>
-      <div class=" row number-pad" *ngIf="this.numberBtnToggle">
+      <div class=" row number-pad" *ngIf="this.numberBtnToggle && !this.searchBtnToggle">
         <div class=" number-group">
           <div class=" row">
             <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
@@ -82,7 +109,7 @@
           </div>
         </div>
       </div>
-      <div class=" row search-pad" *ngIf="this.searchResult.length > 0 && !this.numberBtnToggle">
+      <div class=" row search-pad" *ngIf="(this.searchResult.length > 0 || this.searchBtnToggle) && !this.numberBtnToggle">
         <div class=" search-list">
           <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
             <div class=" col-8">
@@ -98,18 +125,10 @@
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
       <div class=" row">
         <div class=" btns-panel">
-          <div>
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="makeTransfer()">X-fer</button>
-          </div>
-          <div>
-            <button class=" btn btn-fill btn-normal phone-ctrlbtn">Conf</button>
-          </div>
-        </div>
-        <div class=" input-panel">
-          <div>
-            <button class=" btn btn-fill btn-normal btn-number"><i class="fas fa-record-vinyl"></i></button>
-            <input type="text">
-          </div>          
+          <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="makeTransfer()">X-fer</button>
+          <button class=" btn btn-fill btn-normal phone-ctrlbtn">Conf</button>
+          <button class=" btn btn-fill btn-normal call-btn"><i class="fas fa-record-vinyl"></i></button>
+          <input type="text">
         </div>
       </div>
     </div>
@@ -120,11 +139,21 @@
   <p>Your browser doesn't support HTML5 audio.</p>
 </audio>
 
-<div class="video" hidden>
+<audio id="localAudio" controls hidden>
+  <p>Your browser doesn't support HTML5 audio.</p>
+</audio>
+
+<!-- <div class="video" hidden>
+  <video id="remoteVideo" width="100%">
+    <p>Your browser doesn't support HTML5 video.</p>
+  </video>
+</div> -->
+
+<!-- <div class="video" hidden>
   <video id="localVideo" width="100%">
     <p>Your browser doesn't support HTML5 video.</p>
   </video>
-</div>
+</div> -->
 
 <ng-template #content let-modal>
   <div class=" modal-header">

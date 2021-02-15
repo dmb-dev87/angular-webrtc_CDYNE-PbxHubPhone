@@ -11,29 +11,49 @@ export enum DndState {
   NotAllowed = `DND Not Allowed`
 }
 
+const baseURL = `https://orfpbx3.cdyne.net/pbxcontrol.svc/REST`;
+
 @Injectable({
   providedIn: 'root'
 })
 export class PbxControlService {
-  userKey: string;
-  message: string;
-  baseURL = `http://orfpbx3.cdyne.com/pbxcontrol.svc/REST`;
+  user_id: string;
+  user_name: string;
+  message: string;  
 
   constructor(private store: Store<AppState>, private http: HttpClient) {
-    this.userKey = localStorage.getItem(`user_name`);
+    
   }
 
   load(): void {
+    this.user_id = localStorage.getItem(`user_id`);
+    this.user_name = localStorage.getItem(`user_name`);
     this.store.dispatch(new PhoneContactsActions.LoadPhoneContactsBegin());
+  }
+
+  webRtcDemo(email: string): any {
+    const soapAction = `"http://tempuri.org/IPBXControl/WebRtcDemo"`;
+
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><WebRtcDemo xmlns="http://tempuri.org/"><Email>${email}</Email></WebRtcDemo></s:Body></s:Envelope>`
+
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    });
   }
 
   userGetDirecotry(): any {
     const soapAction = `"http://tempuri.org/IPBXControl/User_GetDirectory"`;
 
-    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetDirectory xmlns="http://tempuri.org/"><UserKey>${this.userKey}</UserKey></User_GetDirectory></s:Body></s:Envelope>`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetDirectory xmlns="http://tempuri.org/"><UserKey>${this.user_name}</UserKey></User_GetDirectory></s:Body></s:Envelope>`;
 
-    return this.http.post(this.baseURL, body,
-    {
+    return this.http.post(baseURL, body, {
       headers: new HttpHeaders()
         .set('Content-Type', 'text/xml; charset=utf-8')
         .append('Accept', '*/*')
@@ -52,9 +72,9 @@ export class PbxControlService {
   toggleDnd(): any {
     const soapAction = `"http://tempuri.org/IPBXControl/ToggleDnd"`;
 
-    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><ToggleDnd xmlns="http://tempuri.org/"><ClientID>${this.userKey}</ClientID><UserID>47d0d969-010e-41fe-bcdc-d97fe7e53f6d</UserID></ToggleDnd></s:Body></s:Envelope> `;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><ToggleDnd xmlns="http://tempuri.org/"><ClientID>${this.user_id}</ClientID><UserID>${this.user_name}</UserID></ToggleDnd></s:Body></s:Envelope> `;
 
-    return this.http.post(this.baseURL, body, {
+    return this.http.post(baseURL, body, {
       headers: new HttpHeaders()
         .set('Content-Type', 'text/xml; charset=utf-8')
         .append('Accept', '*/*')

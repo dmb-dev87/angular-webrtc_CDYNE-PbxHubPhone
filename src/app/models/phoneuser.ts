@@ -1,5 +1,5 @@
 export class PhoneUser {
-  id: number;
+  clientId: string;
   authName: string;
   authPassword: string;
   displayName: string;

@@ -1,3 +1,11 @@
+export function getSpan(className: string): HTMLSpanElement {
+  const el = document.getElementById(className);
+  if (!(el instanceof HTMLSpanElement)) {
+    throw new Error(`Element "${className}" not a span element.`);
+  }
+  return el;
+}
+
 export function getButtons(id: string): Array<HTMLButtonElement> {
   const els = document.getElementsByClassName(id);
   if (!els.length) {

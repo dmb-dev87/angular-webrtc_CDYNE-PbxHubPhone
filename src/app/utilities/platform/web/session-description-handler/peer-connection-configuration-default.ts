@@ -10,7 +10,7 @@ export function defaultPeerConnectionConfiguration(): RTCConfiguration {
     iceServers: [{ urls: `stun:stun.l.google.com:19302` }, { urls:  `stun.voiparound.com:3478` }], // TURN URL example: "turn:88.88.88.0:3478", "test", "test"
     iceTransportPolicy: `all`,
     peerIdentity: undefined,
-    rtcpMuxPolicy: `require`
+    rtcpMuxPolicy: `negotiate`
   };
   return configuration;
 }

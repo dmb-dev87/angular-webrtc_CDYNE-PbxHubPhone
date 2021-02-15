@@ -4,6 +4,7 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { PhonePanelComponent } from './components/phone-panel/phone-panel.component';
+import { WebPhoneComponent } from './components/web-phone/web-phone.component';
 import { StoreModule } from '@ngrx/store';
 
 import { HttpClientModule } from '@angular/common/http';
@@ -17,7 +18,8 @@ import { MaterialModule } from './material.module';
 @NgModule({
   declarations: [
     AppComponent,
-    PhonePanelComponent
+    PhonePanelComponent,
+    WebPhoneComponent
   ],
   imports: [
     BrowserModule,
