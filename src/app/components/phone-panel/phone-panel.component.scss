@@ -88,9 +88,10 @@
     padding: 10px 0px 2px 0px;
     color: #ffffff;
     font-size: 1.25rem;
+    position: relative;
 
     .mic-control {
-      border-top: 2px solid #f80101;
+      border-top: 2px solid #ff4081;
       padding-top: 2px;
       margin: 0px 5px;
     }
@@ -200,6 +201,60 @@
     p {
       text-align: left;
       color: #ffffff;
+    }
+  }
+}
+
+.mic-slider-pad {
+  margin: 0px 0px;
+  position: absolute;
+  z-index: 9999;
+  top: 43px;
+  left: -4px;
+  background-color: transparent;
+}
+
+.receiver-slider-pad {
+  margin: 0px 0px;
+  position: absolute;
+  z-index: 9999;
+  top: 43px;
+  left: 20px;
+  background-color: transparent;
+}
+
+:host ::ng-deep .slider-group {
+  padding: 5px 5px;
+  align-items: center;
+  background-color: #1d1d1d;
+  border: 2px solid #c5c5c5;
+  border-top: none;
+
+  .mat-slider-track-background {
+    background-color: #ffffff;
+  }
+
+  .mic-ctrl  {
+    .mat-slider-thumb {
+      background-color: #ff4081;
+    }
+    .mat-slider-thumb-label {
+      background-color: #ff4081;
+    }
+    .mat-slider-track-fill {
+      background-color: #ff4081;
+    }
+  }
+
+  .receiver-ctrl  {
+    .mat-slider-thumb {
+      background-color: #6bb04c;
+    }
+    .mat-slider-thumb-label {
+      background-color: #6bb04c;
+    }
+    .mat-slider-track-fill {
+      background-color: #6bb04c;
     }
   }
 }

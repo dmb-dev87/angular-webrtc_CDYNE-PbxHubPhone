@@ -23,8 +23,38 @@
     <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
       <div class=" row">
         <div class=" audio-panel">
-          <span class=" mic-control"><i class="fas fa-microphone"></i></span>
-          <span class=" receiver-control"><i class="fas fa-headset"></i></span>
+          <span class=" mic-control" id="mic-control"><i class="fas fa-microphone"></i></span>
+          <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
+          <div class=" row mic-slider-pad" *ngIf="this.micCtrlToggle">
+            <div class=" slider-group">
+              <div class=" row">
+                <mat-slider
+                  thumbLabel
+                  class=" mic-ctrl"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="micVolum"
+                  (change)="changeMicVolum()"
+                  vertical>
+                </mat-slider>
+              </div>
+            </div>
+          </div>
+          <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
+            <div class=" slider-group">
+              <div class=" row">
+                <mat-slider
+                  thumbLabel
+                  class=" receiver-ctrl"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="receiverVolum"
+                  (change) = "changeReceiverVolum()"
+                  vertical>
+                </mat-slider>
+              </div>
+            </div>
+          </div>
         </div>
         <div class=" line-panel">
           <mat-radio-group [(ngModel)]="selectLine" (ngModelChange)="changeLine()">
@@ -47,7 +77,7 @@
           <button class=" btn btn-fill phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
           <button class=" btn btn-fill phone-ctrlbtn-small" [ngClass]="dndToggle ? 'btn-danger' : 'btn-success'"  id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND ON":"DND OFF"}}</button>
         </div>
-      </div>
+      </div>      
     </div>
     <div class=" col-lg-2 col-md-2 col-sm-12 control-pad">
       <div class=" row">

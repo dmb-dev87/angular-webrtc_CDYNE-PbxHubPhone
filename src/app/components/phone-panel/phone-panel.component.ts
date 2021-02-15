@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText, getButtonText } from '../../utilities/ui-utils';
+import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText, getButtonText, getSpan } from '../../utilities/ui-utils';
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
@@ -25,6 +25,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   muteToggle = false;
   holdToggle = false;
   dndToggle = false;
+  micCtrlToggle = false;
+  receiverCtrlToggle = false;
+  receiverVolum = 0.0;
+  micVolum = 0.0;
 
   searchResult = [];
   selectLine = `1`;  
@@ -58,6 +62,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.numberBtnToggle = false;
+    this.searchBtnToggle = false;
+    this.micCtrlToggle = false;
+    this.receiverCtrlToggle = false;
   }
 
   ngAfterViewInit(): void {
@@ -73,6 +80,20 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.numberBtnToggle = false;
       this.searchResult = this.searchBtnToggle? this._phoneContacts : [];
     });
+
+    const micCtrlSpan = getSpan(`mic-control`);
+    micCtrlSpan.addEventListener(`click`, () => {
+      this.micCtrlToggle = !this.micCtrlToggle;
+      this.receiverCtrlToggle = false;
+    })
+
+    const receiverSpan = getSpan(`receiver-control`);
+    receiverSpan.addEventListener(`click`, () => {
+      this.receiverCtrlToggle = !this.receiverCtrlToggle;
+      this.micCtrlToggle = false;
+      const remoteAudio = getAudio(`remoteAudio`);
+      this.receiverVolum = remoteAudio.volume * 100;
+    })
 
     this.beginButton = getButton(`begin-call`);
     this.endButton = getButton(`end-call`);
@@ -559,5 +580,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         console.error(error);
         alert(`Failed to change line.\n` + error);
       })
+  }
+
+  changeReceiverVolum(): void {
+    const remoteAudio = getAudio(`remoteAudio`);    
+    const volum = Math.round(this.receiverVolum) / 100;
+    remoteAudio.volume = parseFloat(volum.toFixed(2));
+  }
+
+  changeMicVolum(): void {
+    
   }
 }
