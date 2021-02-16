@@ -23,35 +23,47 @@
     <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
       <div class=" row">
         <div class=" audio-panel">
-          <span class=" mic-control" id="mic-control"><i class="fas fa-microphone"></i></span>
-          <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
-          <div class=" row mic-slider-pad" *ngIf="this.micCtrlToggle">
-            <div class=" slider-group">
-              <div class=" row">
-                <mat-slider
-                  thumbLabel
-                  class=" mic-ctrl"
-                  min="0"
-                  max="100"
-                  [(ngModel)]="micVolum"
-                  (change)="changeMicVolum()"
-                  vertical>
-                </mat-slider>
+          <div class=" row">
+            <div class=" col mic-panel">
+              <div class=" mic-meter">
+                <meter value="0.6"></meter>
+              </div>
+              <span class=" mic-control" id="mic-control"><i class="fas fa-microphone"></i></span>
+              <div class=" row mic-slider-pad" *ngIf="this.micCtrlToggle">
+                <div class=" slider-group">
+                  <div class=" row">
+                    <mat-slider
+                      thumbLabel
+                      class=" mic-ctrl"
+                      min="0"
+                      max="100"
+                      [(ngModel)]="micVolum"
+                      (change)="changeMicVolum()"
+                      vertical>
+                    </mat-slider>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
-            <div class=" slider-group">
-              <div class=" row">
-                <mat-slider
-                  thumbLabel
-                  class=" receiver-ctrl"
-                  min="0"
-                  max="100"
-                  [(ngModel)]="receiverVolum"
-                  (change) = "changeReceiverVolum()"
-                  vertical>
-                </mat-slider>
+            <div class=" col receiver-panel">
+              <div class=" receiver-meter">
+                <meter value="0.6"></meter>
+              </div>
+              <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
+              <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
+                <div class=" slider-group">
+                  <div class=" row">
+                    <mat-slider
+                      thumbLabel
+                      class=" receiver-ctrl"
+                      min="0"
+                      max="100"
+                      [(ngModel)]="receiverVolum"
+                      (change) = "changeReceiverVolum()"
+                      vertical>
+                    </mat-slider>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

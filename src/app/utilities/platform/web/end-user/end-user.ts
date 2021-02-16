@@ -189,9 +189,28 @@ export class EndUser {
         const uri = this.session.remoteIdentity.uri;
         const displayName = this.session.remoteIdentity.displayName;
 
+        console.log(`+++++++++++++++++++++++++++++++`, this.session);
+
+        console.log(`+++++++++++++++++`, invitation.request);
+        
+        let autoAnswer = false;
+
+        const request = invitation.request;
+        const headers = request.headers;
+
+        if (headers['Call-Info'] !== undefined) {
+          const callInfo = headers['Call-Info'];
+          console.log(`++++++++++++++++++++++++`, callInfo);
+          const callInfoData = callInfo[0].raw;
+          console.log(`+++++++++++++++++++++++++`, callInfoData);
+          if (callInfoData.indexOf(`answer-after=0`) > -1) {
+            autoAnswer = true
+          }
+        }
+
         // Delegate
         if (this.delegate && this.delegate.onCallReceived) {
-          this.delegate.onCallReceived(`${displayName} ${uri.user}`);
+          this.delegate.onCallReceived(`${displayName} ${uri.user}`, autoAnswer);
         } else {
           this.logger.warn(`[${this.id}] No handler available, rejecting INVITE...`);
           invitation

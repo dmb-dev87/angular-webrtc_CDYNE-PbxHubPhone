@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText, getButtonText, getSpan } from '../../utilities/ui-utils';
+import { addInputValue, getInputValue, setInputValue, getAudio, getButton, setButtonText, getButtonText, getSpan } from '../../utilities/ui-utils';
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
@@ -186,7 +186,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     const delegate: EndUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(this.endUser),
-      onCallReceived: (callerId: string): void => this.makeCallReceivedCallback(callerId),
+      onCallReceived: (callerId: string, autoAnswer: boolean): void => this.makeCallReceivedCallback(callerId, autoAnswer),
       onCallHangup: this.makeCallHangupCallback(this.endUser),
       onRegistered: this.makeRegisteredCallback(this.endUser),
       onUnregistered: this.makeUnregisteredCallback(this.endUser),
@@ -449,7 +449,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  makeCallReceivedCallback(callerId: string): void {
+  makeCallReceivedCallback(callerId: string, autoAnswer: boolean): void {
     this.callerId = callerId;
 
     this.beginButton.disabled = false;
@@ -460,9 +460,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     this.invitationState = true;
 
-    ringAudio.loop = true;
-    ringAudio.autoplay = true;
-    ringAudio.play();
+    if (autoAnswer == true) {
+      this.makeCall();
+    } else {
+      ringAudio.loop = true;
+      ringAudio.autoplay = true;
+      ringAudio.play();
+    }
   }
 
   makeCallHangupCallback(user: EndUser): () => void {
