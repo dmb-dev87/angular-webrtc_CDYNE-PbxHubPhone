@@ -189,15 +189,9 @@ export class EndUser {
         const uri = this.session.remoteIdentity.uri;
         const displayName = this.session.remoteIdentity.displayName;
 
-        console.log(`+++++++++++++++++++++++++++++++`, this.session);
-
-        console.log(`+++++++++++++++++`, invitation.request);
-        
         let autoAnswer = false;
-
-        const request = invitation.request;
-        const headers = request.headers;
-
+        const headers = invitation.request.headers;
+        console.log(`++++++++++++++++++++`, headers);
         if (headers['Call-Info'] !== undefined) {
           const callInfo = headers['Call-Info'];
           console.log(`++++++++++++++++++++++++`, callInfo);
