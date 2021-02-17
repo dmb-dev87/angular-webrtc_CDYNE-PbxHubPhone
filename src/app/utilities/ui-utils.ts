@@ -39,6 +39,16 @@ export function addInputValue(id: string, val: string): void {
   el.value = curVal + val;
 }
 
+export function delInputValue(id: string): void {
+  const el = document.getElementById(id);
+  if (!(el instanceof HTMLInputElement)) {
+    throw new Error(`Element "${id}" not a input element.`);
+  }
+
+  const curVal = el.value;
+  el.value = curVal.substr(0, curVal.length-1);
+}
+
 export function getInputValue(id: string): string {
   const el = document.getElementById(id);
   if (!(el instanceof HTMLInputElement)) {

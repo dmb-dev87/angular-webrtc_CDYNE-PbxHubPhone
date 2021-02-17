@@ -26,42 +26,19 @@
           <div class=" row">
             <div class=" col mic-panel">
               <div class=" mic-meter">
-                <meter value="0.6"></meter>
+                <mat-progress-bar [value]="micLiveMeter"></mat-progress-bar>
               </div>
               <span class=" mic-control" id="mic-control"><i class="fas fa-microphone"></i></span>
-              <div class=" row mic-slider-pad" *ngIf="this.micCtrlToggle">
-                <div class=" slider-group">
-                  <div class=" row">
-                    <mat-slider
-                      thumbLabel
-                      class=" mic-ctrl"
-                      min="0"
-                      max="100"
-                      [(ngModel)]="micVolum"
-                      (change)="changeMicVolum()"
-                      vertical>
-                    </mat-slider>
-                  </div>
-                </div>
-              </div>
             </div>
             <div class=" col receiver-panel">
               <div class=" receiver-meter">
-                <meter value="0.6"></meter>
+                <mat-progress-bar value="100" [value]="receiverLiveMeter"></mat-progress-bar>
               </div>
               <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
               <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
                 <div class=" slider-group">
                   <div class=" row">
-                    <mat-slider
-                      thumbLabel
-                      class=" receiver-ctrl"
-                      min="0"
-                      max="100"
-                      [(ngModel)]="receiverVolum"
-                      (change) = "changeReceiverVolum()"
-                      vertical>
-                    </mat-slider>
+                    <mat-slider thumbLabel class=" receiver-ctrl" min="0" max="100" [(ngModel)]="receiverVolume" (change) = "changeReceiverVolume()" vertical></mat-slider>
                   </div>
                 </div>
               </div>
@@ -119,6 +96,9 @@
           <div class=" row">
             <button *ngFor="let n of ['#', '0', '*'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
           </div>
+          <div class=" row">
+            <button class=" btn btn-fill btn-number" (click)="clickNumber('clear')">Clear</button>
+          </div>
         </div>
       </div>
       <div class=" row search-pad" *ngIf="(this.searchResult.length > 0 || this.searchBtnToggle) && !this.numberBtnToggle">
@@ -154,37 +134,3 @@
 <audio id="localAudio" controls hidden>
   <p>Your browser doesn't support HTML5 audio.</p>
 </audio>
-
-<!-- <div class="video" hidden>
-  <video id="remoteVideo" width="100%">
-    <p>Your browser doesn't support HTML5 video.</p>
-  </video>
-</div> -->
-
-<!-- <div class="video" hidden>
-  <video id="localVideo" width="100%">
-    <p>Your browser doesn't support HTML5 video.</p>
-  </video>
-</div> -->
-
-<ng-template #content let-modal>
-  <div class=" modal-header">
-    <input
-      class=" form-control"
-      id="inlineFormInputGroup"
-      placeholder="SEARCH"
-      type="text"
-    />
-
-    <button
-      aria-label="Close"
-      class=" close"
-      data-dismiss="modal"
-      type="button"
-      (click)="modal.dismiss('Cross click')"
-    >
-      <i class=" tim-icons icon-simple-remove"> </i>
-    </button>
-  </div>
-
-</ng-template>

@@ -191,12 +191,9 @@ export class EndUser {
 
         let autoAnswer = false;
         const headers = invitation.request.headers;
-        console.log(`++++++++++++++++++++`, headers);
         if (headers['Call-Info'] !== undefined) {
           const callInfo = headers['Call-Info'];
-          console.log(`++++++++++++++++++++++++`, callInfo);
           const callInfoData = callInfo[0].raw;
-          console.log(`+++++++++++++++++++++++++`, callInfoData);
           if (callInfoData.indexOf(`answer-after=0`) > -1) {
             autoAnswer = true
           }

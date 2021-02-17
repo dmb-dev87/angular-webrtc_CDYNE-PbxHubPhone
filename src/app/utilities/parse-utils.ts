@@ -1,7 +1,7 @@
 import * as xml2js from 'xml2js';
 import { PhoneUser } from '../models/phoneuser';
 
-export function parseContact(data): any {
+export function parseContact(data: any): any {
 	const arr = [];
 	const parser = new xml2js.Parser({
 		trim: true,
@@ -25,8 +25,8 @@ export function parseContact(data): any {
 	return arr;
 }
 
-export function parseDnd(data): any {
-	let dndResult;
+export function parseDnd(data: any): any {
+	let dndResult: any;
 	const parser = new xml2js.Parser({
 		trim: true,
 		explicitArray: true
@@ -42,7 +42,7 @@ export function parseDnd(data): any {
 	return dndResult[0];
 }
 
-export function parseWebRtcDemo(data): any {
+export function parseWebRtcDemo(data: any): any {
 	let phoneUser: PhoneUser = new PhoneUser;
 
   const parser = new xml2js.Parser({
