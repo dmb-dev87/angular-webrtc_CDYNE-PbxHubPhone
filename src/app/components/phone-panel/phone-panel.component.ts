@@ -89,7 +89,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     const searchBtn = getButton(`search-toggle`);
     searchBtn.addEventListener(`click`, () => {
-      this.searchResult = this.searchBtnToggle? this._phoneContacts : [];
+      this.searchResult = this._phoneContacts;
       this.searchBtnToggle = !this.searchBtnToggle;
       this.numberBtnToggle = false;      
     });
@@ -118,14 +118,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onRegister(): void {
     const email = getInputValue(`email`);
-
     if (email === ``) {
-      alert(`Input the email address`);
       return
     }
-
     const btnText = getButtonText(`register-btn`);
-
     if (btnText === `Register`) {
       this.pbxControlService.webRtcDemo(email).subscribe(response => {
         this.phoneUser = parseWebRtcDemo(response);
@@ -581,6 +577,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       {id: `transfer-call`, disabled: true}]);
 
     if (searchWord) {
+      this.searchBtnToggle = true;
+      this.numberBtnToggle = false;
       setButtonsDisabled([{id: `begin-call`, disabled: false}]); 
       this.searchResult = this._phoneContacts.filter((ele, i, array) => {
         const eleStr = ele.extension + ele.firstName + ele.lastName;
@@ -588,7 +586,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         return arrayelement.includes(searchWord);
       });
     }
-    else {
+    else {      
       setButtonsDisabled([{id: `begin-call`, disabled: true}]);
       this.searchResult = [];
     }

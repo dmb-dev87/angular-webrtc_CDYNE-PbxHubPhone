@@ -101,7 +101,7 @@
           </div>
         </div>
       </div>
-      <div class=" row search-pad" *ngIf="(this.searchResult.length > 0 || this.searchBtnToggle) && !this.numberBtnToggle">
+      <div class=" row search-pad" *ngIf="(this.searchResult.length > 0 && this.searchBtnToggle) && !this.numberBtnToggle">
         <div class=" search-list">
           <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
             <div class=" col-8">
