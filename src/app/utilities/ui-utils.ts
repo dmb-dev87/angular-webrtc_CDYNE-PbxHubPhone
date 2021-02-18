@@ -1,3 +1,8 @@
+interface DisabledButton {
+  id: string;
+  disabled: boolean;
+}
+
 export function getSpan(className: string): HTMLSpanElement {
   const el = document.getElementById(className);
   if (!(el instanceof HTMLSpanElement)) {
@@ -37,6 +42,16 @@ export function addInputValue(id: string, val: string): void {
   }
   const curVal = el.value;
   el.value = curVal + val;
+}
+
+export function delInputValue(id: string): void {
+  const el = document.getElementById(id);
+  if (!(el instanceof HTMLInputElement)) {
+    throw new Error(`Element "${id}" not a input element.`);
+  }
+
+  const curVal = el.value;
+  el.value = curVal.substr(0, curVal.length-1);
 }
 
 export function getInputValue(id: string): string {
@@ -87,4 +102,14 @@ export function getButton(id: string): HTMLButtonElement {
     throw new Error(`Element "${id}" not found or not a button element`);
   }
   return el;
+}
+
+export function setButtonsDisabled(btns: Array<DisabledButton>): void {
+  for (let i = 0; i < btns.length; i++) {
+    const el = document.getElementById(btns[i].id);
+    if (!(el instanceof HTMLButtonElement)) {
+      throw new Error(`Element "${btns[i].id}" not found or not a button element`);
+    }
+    el.disabled = btns[i].disabled;
+  }
 }

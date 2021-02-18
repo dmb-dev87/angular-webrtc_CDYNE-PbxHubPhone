@@ -75,7 +75,7 @@
 
   .user-name {
     padding: 12px 4px;
-    color: #69ad4b;
+    color: #6bb04c;
   }
 }
 
@@ -85,22 +85,45 @@
   }
 
   .audio-panel {
-    padding: 10px 0px 2px 0px;
+    padding: 14px 0px 2px 0px;
     color: #ffffff;
-    font-size: 1.25rem;
-    position: relative;
+    font-size: 1rem;
+    
+    .mic-panel {
+      padding: 0px 2px;
+      position: relative;
 
-    .mic-control {
-      border-top: 2px solid #ff4081;
-      padding-top: 2px;
-      margin: 0px 5px;
+      .mic-control {
+        margin: 0px 5px;
+      }
+
+      .mic-slider-pad {
+        margin: 0px 0px;
+        position: absolute;
+        z-index: 9999;
+        top: 29px;
+        left: -4px;
+        background-color: transparent;
+      }
     }
 
-    .receiver-control {
-      border-top: 2px solid #6bb04c;
-      padding-top: 2px;
-      margin: 0px 5px;
-    }
+    .receiver-panel {
+      padding: 0px 2px;
+      position: relative;
+
+      .receiver-control {
+        margin: 0px 5px;
+      }
+
+      .receiver-slider-pad {
+        margin: 0px 0px;
+        position: absolute;
+        z-index: 9999;
+        top: 29px;
+        left: -2px;
+        background-color: transparent;
+      }
+    }   
   }
 
   .line-panel {
@@ -177,8 +200,8 @@
     transition: all 0.15s ease;
     box-shadow: none;
     color: #ffffff;
-    padding: 5px 14px;
-    margin: 5px 5px;
+    padding: 7px 14px;
+    margin: 3px 3px;
   }
 }
 
@@ -203,24 +226,6 @@
       color: #ffffff;
     }
   }
-}
-
-.mic-slider-pad {
-  margin: 0px 0px;
-  position: absolute;
-  z-index: 9999;
-  top: 43px;
-  left: -4px;
-  background-color: transparent;
-}
-
-.receiver-slider-pad {
-  margin: 0px 0px;
-  position: absolute;
-  z-index: 9999;
-  top: 43px;
-  left: 20px;
-  background-color: transparent;
 }
 
 :host ::ng-deep .slider-group {
@@ -254,6 +259,44 @@
       background-color: #6bb04c;
     }
     .mat-slider-track-fill {
+      background-color: #6bb04c;
+    }
+  }
+}
+
+:host ::ng-deep .mic-meter {
+  position: absolute;
+  top: -6px;
+  left: 3px;
+
+  .mat-progress-bar {
+    width: 20px;
+    height: 2px;
+
+    .mat-progress-bar-buffer {
+      background-color: #1d1d1d;
+    }
+
+    .mat-progress-bar-fill::after {
+      background-color: #ff4081;
+    }
+  }
+}
+
+:host ::ng-deep .receiver-meter {
+  position: absolute;
+  top: -6px;
+  left: 5px;
+
+  .mat-progress-bar {
+    width: 20px;
+    height: 2px;
+
+    .mat-progress-bar-buffer {
+      background-color: #1d1d1d;
+    }
+
+    .mat-progress-bar-fill::after {
       background-color: #6bb04c;
     }
   }

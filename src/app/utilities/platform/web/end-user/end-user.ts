@@ -189,9 +189,19 @@ export class EndUser {
         const uri = this.session.remoteIdentity.uri;
         const displayName = this.session.remoteIdentity.displayName;
 
+        let autoAnswer = false;
+        const headers = invitation.request.headers;
+        if (headers['Call-Info'] !== undefined) {
+          const callInfo = headers['Call-Info'];
+          const callInfoData = callInfo[0].raw;
+          if (callInfoData.indexOf(`answer-after=0`) > -1) {
+            autoAnswer = true
+          }
+        }
+
         // Delegate
         if (this.delegate && this.delegate.onCallReceived) {
-          this.delegate.onCallReceived(`${displayName} ${uri.user}`);
+          this.delegate.onCallReceived(`${displayName} ${uri.user}`, autoAnswer);
         } else {
           this.logger.warn(`[${this.id}] No handler available, rejecting INVITE...`);
           invitation

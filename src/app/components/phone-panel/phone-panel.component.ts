@@ -1,16 +1,31 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { addInputValue, getInputValue, setInputValue, getAudio, getVideo, getButton, setButtonText, getButtonText, getSpan } from '../../utilities/ui-utils';
+import {
+  addInputValue, 
+  delInputValue, 
+  getInputValue, 
+  setInputValue, 
+  getAudio, 
+  getButton, 
+  setButtonText, 
+  getButtonText, 
+  getSpan, 
+  setButtonsDisabled } from '../../utilities/ui-utils';
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
+import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
 const userAgent = environment.userAgent;
+const constraints = {
+  audio: true,
+  video: false
+};
 
 @Component({
   selector: 'app-phone-panel',
@@ -25,13 +40,16 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   muteToggle = false;
   holdToggle = false;
   dndToggle = false;
-  micCtrlToggle = false;
-  receiverCtrlToggle = false;
-  receiverVolum = 0.0;
-  micVolum = 0.0;
+  receiverCtrlToggle = false;  
+  receiverVolume = 0.0;
+  micLiveMeter = 0;
+  receiverLiveMeter = 0;
 
   searchResult = [];
-  selectLine = `1`;  
+  selectLine = `1`;
+
+  private micMeterRefresh = null;
+  private receiverMeterRefresh = null;
 
   private endUser = null;
   private callState = false;
@@ -40,13 +58,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private invitationState = false;
   private _phoneUser: PhoneUser = undefined;
   private _phoneContacts: Array<PhoneContact> = [];
-
-  private beginButton = null;
-  private endButton = null;
-  private muteButton = null;
-  private holdButton = null;
-  private xferButton = null;
-  private dndButton = null;
+  
+  private localSoundMeter: LocalSoundMeter = undefined;
+  private remoteSoundMeter: RemoteSoundMeter = undefined;
+  private audioContext = undefined;
 
   constructor(private pbxControlService: PbxControlService) {
 
@@ -61,10 +76,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.numberBtnToggle = false;
-    this.searchBtnToggle = false;
-    this.micCtrlToggle = false;
-    this.receiverCtrlToggle = false;
+    
   }
 
   ngAfterViewInit(): void {
@@ -75,30 +87,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     });
 
     const searchBtn = getButton(`search-toggle`);
-    searchBtn.addEventListener(`click`, () => {      
-      this.searchBtnToggle = !this.searchBtnToggle;
-      this.numberBtnToggle = false;
+    searchBtn.addEventListener(`click`, () => {
       this.searchResult = this.searchBtnToggle? this._phoneContacts : [];
+      this.searchBtnToggle = !this.searchBtnToggle;
+      this.numberBtnToggle = false;      
     });
-
-    const micCtrlSpan = getSpan(`mic-control`);
-    micCtrlSpan.addEventListener(`click`, () => {
-      this.micCtrlToggle = !this.micCtrlToggle;
-      this.receiverCtrlToggle = false;
-      const localAudio = getAudio(`localAudio`);
-      if (this.endUser && this.endUser.localAudioTrack !== undefined) {
-        const audioTrack = this.endUser.localAudioTrack;
-        const settings = audioTrack.getSettings();
-        const volume = settings.map(setting => setting.volume);
-        localAudio.volume = volume;
-      }
-      this.micVolum = localAudio.volume * 100;
-    })
 
     const receiverSpan = getSpan(`receiver-control`);
     receiverSpan.addEventListener(`click`, () => {
       this.receiverCtrlToggle = !this.receiverCtrlToggle;
-      this.micCtrlToggle = false;
       const remoteAudio = getAudio(`remoteAudio`);
       if (this.endUser && this.endUser.remoteAudioTrack !== undefined) {
         const audioTrack = this.endUser.remoteAudioTrack;
@@ -106,22 +103,16 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         const volume = settings.map(setting => setting.volume);
         remoteAudio.volume = volume;
       }
-      this.receiverVolum = remoteAudio.volume * 100;     
+      this.receiverVolume = remoteAudio.volume * 100;     
     })
 
-    this.beginButton = getButton(`begin-call`);
-    this.endButton = getButton(`end-call`);
-    this.muteButton = getButton(`mute-btn`);
-    this.holdButton = getButton(`hold-btn`);
-    this.xferButton = getButton(`transfer-call`);
-    this.dndButton = getButton(`dnd-btn`);
-
-    this.beginButton.disabled = true;
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
-    this.dndButton.disabled = true;
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: true}, 
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}, 
+      {id: `dnd-btn`, disabled: true}]);
   }
 
   onRegister(): void {
@@ -158,13 +149,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   connect(): void {
     const remoteAudio = getAudio(`remoteAudio`);
     const localAudio = getAudio(`localAudio`);
-    // const localVideo = getVideo(`localVideo`);
     const endUserOptions: EndUserOptions = {
       media: {
-        constraints: {
-          audio: true,
-          video: false
-        },
+        constraints: constraints,
         local: {
           audio: localAudio
         },
@@ -186,7 +173,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     const delegate: EndUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(this.endUser),
-      onCallReceived: (callerId: string): void => this.makeCallReceivedCallback(callerId),
+      onCallAnswered: this.makeCallAnsweredCallback(this.endUser),
+      onCallReceived: (callerId: string, autoAnswer: boolean): void => this.makeCallReceivedCallback(callerId, autoAnswer),
       onCallHangup: this.makeCallHangupCallback(this.endUser),
       onRegistered: this.makeRegisteredCallback(this.endUser),
       onUnregistered: this.makeUnregisteredCallback(this.endUser),
@@ -213,7 +201,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .register(undefined)
       .then(() => {
         setButtonText(`register-btn`, `Unregister`);
-        this.dndButton.disabled = false;
+        setButtonsDisabled([
+          {id: `dnd-btn`, disabled: true}]);
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to register`);
@@ -227,7 +216,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .unregister()
       .then(() => {
         setButtonText(`register-btn`, `Register`);
-        this.dndButton.disabled = true;
+        setButtonsDisabled([
+          {id: `dnd-btn`, disabled: true}]);
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to unregister`);
@@ -240,26 +230,33 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     if (this.endUser === null) {
       return;
     }
+
+    if (toneNum === "clear") {
+      delInputValue(`call-number`);
+      return;
+    }
     
     if (this.callState === false || this.lineChanged === true || this.transferState === true) {
       addInputValue(`call-number`, toneNum);
 
-      this.beginButton.disabled = false;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: false}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}]);
     }
     else {
-      this.beginButton.disabled = false;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: false}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}]);
 
       this.endUser.sendDTMF(toneNum)
         .then(() => {
           addInputValue(`call-number`, toneNum);
         })
-        .catch((err) => {
+        .catch((err: Error) => {
           console.error(`[${this.endUser.id}] failed to send DTMF`);
           console.error(err);
           alert(`[${this.endUser.id}] Failed to send DTMF.\n` + err);
@@ -268,21 +265,55 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
+  handleMeterLocal(stream: any): void {
+    this.localSoundMeter = new LocalSoundMeter(this.audioContext);
+    this.localSoundMeter.connectToSource(stream, (e: Error) => {
+      this.micMeterRefresh = setInterval(() => {
+        this.micLiveMeter = this.localSoundMeter.inputInstant;
+      }, 1000/15);
+    })
+  }
+
+  handleMeterRemote(stream: any): void {
+    this.remoteSoundMeter = new RemoteSoundMeter(this.audioContext);
+    this.remoteSoundMeter.connectToSource(stream, (e: Error) => {
+      this.receiverMeterRefresh = setInterval(() => {
+        this.receiverLiveMeter = this.remoteSoundMeter.calculateAudioLevels();
+      }, 1000/15);
+    })
+  }
+
+  handleMeterStop(): void {
+    if (this.remoteSoundMeter !== undefined) {
+      this.remoteSoundMeter.stop();
+    }
+
+    if (this.localSoundMeter !== undefined) {
+      this.localSoundMeter.stop();
+    }
+
+    clearInterval(this.micMeterRefresh);
+    clearInterval(this.receiverMeterRefresh);
+    this.micLiveMeter = 0;
+    this.receiverLiveMeter = 0;
+  }
+
   makeCall(): void {
     if (!this.endUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
-      this.endUser.register(undefined);
+      return;
     }
 
-    this.beginButton.disabled = true;
-    this.endButton.disabled = false;
-    this.muteButton.disabled = false;
-    this.holdButton.disabled = false;
-    this.xferButton.disabled = false;
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: true}, 
+      {id: `end-call`, disabled: false}, 
+      {id: `mute-btn`, disabled: false}, 
+      {id: `hold-btn`, disabled: false}, 
+      {id: `transfer-call`, disabled: false}]);
 
     this.callState = true;
-
     this.numberBtnToggle = false;
+    this.searchBtnToggle = false;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -295,6 +326,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(`[${this.endUser.id}] failed to answer call`);
           console.error(err);
           alert(`[${this.endUser.id}] Failed to answer call.\n` + err);
+          return;
         });
     }
     else {
@@ -331,6 +363,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             console.error(`[${this.endUser.id}] failed to transfer call`);
             console.error(error);
             alert(`Failed to transfer call.\n` + error);
+            return;
           });
       }
       else {
@@ -353,17 +386,19 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             console.error(`Failed to place call`);
             console.error(err);
             alert(`Failed to place call.\n` + err);
+            return;
           });
       }
     }
   }
 
   hangupCall(): void {
-    this.beginButton.disabled = true;
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: true}, 
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     setInputValue(`call-number`, ``);
 
@@ -441,43 +476,65 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${user.id}] call created`);
 
-      this.beginButton.disabled = true;
-      this.endButton.disabled = false;
-      this.muteButton.disabled = false;
-      this.holdButton.disabled = false;
-      this.xferButton.disabled = false;
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: true}, 
+        {id: `end-call`, disabled: false}, 
+        {id: `mute-btn`, disabled: false}, 
+        {id: `hold-btn`, disabled: false}, 
+        {id: `transfer-call`, disabled: false}]);
     };
   }
 
-  makeCallReceivedCallback(callerId: string): void {
+  makeCallAnsweredCallback(user: EndUser): () => void {
+    return () => {
+      console.log(`[${user.id}] call answered`);
+
+      var AudioContext = window.AudioContext;
+      this.audioContext = new AudioContext();
+
+      if (user.localMediaStream !== undefined) {
+        this.handleMeterLocal(user.localMediaStream);
+      }
+
+      if (user.remoteMediaStream !== undefined) {
+        this.handleMeterRemote(user.remoteMediaStream);
+      }
+    }
+  }
+
+  makeCallReceivedCallback(callerId: string, autoAnswer: boolean): void {
     this.callerId = callerId;
 
-    this.beginButton.disabled = false;
-    this.endButton.disabled = false;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: false}, 
+      {id: `end-call`, disabled: false}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     this.invitationState = true;
 
-    ringAudio.loop = true;
-    ringAudio.autoplay = true;
-    ringAudio.play();
+    if (autoAnswer == true) {
+      this.makeCall();
+    } else {
+      ringAudio.loop = true;
+      ringAudio.autoplay = true;
+      ringAudio.play();
+    }
   }
 
   makeCallHangupCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call hangup`);
-
       this.callState = false;
-
-      this.beginButton.disabled = true;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
-      this.xferButton.disabled = true;
-
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: true}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}, 
+        {id: `transfer-call`, disabled: true}]);
       this.callerId = ``;
+      this.handleMeterStop();
     };
   }
 
@@ -521,15 +578,16 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   searchContact(): void {
-    const searchWord = getInputValue(`call-number`);    
+    const searchWord = getInputValue(`call-number`);
 
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     if (searchWord) {
-      this.beginButton.disabled = false;
+      setButtonsDisabled([{id: `begin-call`, disabled: false}]); 
       this.searchResult = this._phoneContacts.filter((ele, i, array) => {
         const eleStr = ele.extension + ele.firstName + ele.lastName;
         const arrayelement = eleStr.toLowerCase();
@@ -537,24 +595,25 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
     }
     else {
-      this.beginButton.disabled = true;
+      setButtonsDisabled([{id: `begin-call`, disabled: true}]);
       this.searchResult = [];
     }
   }
 
   clickSearchList(extension: string): void {
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     if (extension) {
       setInputValue(`call-number`, extension);
-      this.beginButton.disabled = false;
+      setButtonsDisabled([{id: `begin-call`, disabled: false}]);
     }
     else {
       setInputValue(`call-number`, ``);
-      this.beginButton.disabled = true;
+      setButtonsDisabled([{id: `begin-call`, disabled: true}]);
     }
     this.searchResult = [];
   }
@@ -596,15 +655,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       })
   }
 
-  changeReceiverVolum(): void {
+  changeReceiverVolume(): void {
     const remoteAudio = getAudio(`remoteAudio`);    
-    const volum = Math.round(this.receiverVolum) / 100;
-    remoteAudio.volume = parseFloat(volum.toFixed(2));
-  }
-
-  changeMicVolum(): void {
-    const localAudio = getAudio(`localAudio`);
-    const volum = Math.round(this.micVolum) / 100;
-    localAudio.volume = parseFloat(volum.toFixed(2));
+    const volume = Math.round(this.receiverVolume) / 100;
+    remoteAudio.volume = parseFloat(volume.toFixed(2));
   }
 }
