@@ -304,7 +304,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    setButtonsDisabled([{id: `begin-call`, disabled: true}, {id: `end-call`, disabled: false}, {id: `mute-btn`, disabled: false}, {id: `hold-btn`, disabled: false}, {id: `transfer-call`, disabled: false}]);
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: true}, 
+      {id: `end-call`, disabled: false}, 
+      {id: `mute-btn`, disabled: false}, 
+      {id: `hold-btn`, disabled: false}, 
+      {id: `transfer-call`, disabled: false}]);
 
     this.callState = true;
     this.numberBtnToggle = false;
