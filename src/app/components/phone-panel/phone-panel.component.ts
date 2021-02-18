@@ -35,30 +35,31 @@ const constraints = {
 
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   callerId = null;
+  phoneState = `Unregistered`;
+  selectLine = `1`;
+  receiverVolume = 0.0;
+  micLiveMeter = 100;
+  receiverLiveMeter = 100;
+
   searchBtnToggle = false;
+  searchResult = [];
   numberBtnToggle = false;
   muteToggle = false;
   holdToggle = false;
   dndToggle = false;
   receiverCtrlToggle = false;  
-  receiverVolume = 0.0;
-  micLiveMeter = 0;
-  receiverLiveMeter = 0;
-
-  searchResult = [];
-  selectLine = `1`;
-
-  private micMeterRefresh = null;
-  private receiverMeterRefresh = null;
 
   private endUser = null;
   private callState = false;
   private transferState = false;
   private lineChanged = false;
   private invitationState = false;
+
   private _phoneUser: PhoneUser = undefined;
   private _phoneContacts: Array<PhoneContact> = [];
-  
+
+  private micMeterRefresh = null;
+  private receiverMeterRefresh = null;
   private localSoundMeter: LocalSoundMeter = undefined;
   private remoteSoundMeter: RemoteSoundMeter = undefined;
   private audioContext = undefined;
@@ -118,8 +119,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   onRegister(): void {
     const email = getInputValue(`email`);
 
-    if (email === undefined) {
-      console.log(`Input the email address`);
+    if (email === ``) {
       alert(`Input the email address`);
       return
     }
@@ -192,7 +192,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .catch((error: Error) => {
         console.error(`Failed to connect`);
         console.error(error);
-        alert(`Failed to connect.\n` + error);
       });
   }
 
@@ -202,12 +201,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .then(() => {
         setButtonText(`register-btn`, `Unregister`);
         setButtonsDisabled([
-          {id: `dnd-btn`, disabled: true}]);
+          {id: `dnd-btn`, disabled: true}]);        
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to register`);
         console.error(error);
-        alert(`[${this.endUser.id}] Failed to register.\n` + error);
       });
   }
 
@@ -222,7 +220,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to unregister`);
         console.error(error);
-        alert(`[${this.endUser.id}] Failed to unregister.\n` + error);
       });
   }
 
@@ -257,10 +254,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           addInputValue(`call-number`, toneNum);
         })
         .catch((err: Error) => {
+          addInputValue(`call-number`, toneNum);
           console.error(`[${this.endUser.id}] failed to send DTMF`);
           console.error(err);
-          alert(`[${this.endUser.id}] Failed to send DTMF.\n` + err);
-          addInputValue(`call-number`, toneNum);
         });
     }
   }
@@ -325,7 +321,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           this.callState = true;
           console.error(`[${this.endUser.id}] failed to answer call`);
           console.error(err);
-          alert(`[${this.endUser.id}] Failed to answer call.\n` + err);
           return;
         });
     }
@@ -362,7 +357,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           .catch((error: Error) => {
             console.error(`[${this.endUser.id}] failed to transfer call`);
             console.error(error);
-            alert(`Failed to transfer call.\n` + error);
             return;
           });
       }
@@ -376,7 +370,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
                 message += `Reason: ${response.message.reasonPhrase}\n`;
                 message += `Perhaps "${targetNum}" is not connected or registered?\n`;
                 message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
-                alert(message);
+                console.log(message);
                 this.callState = false;
               }
             }
@@ -385,7 +379,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             this.callState = false;
             console.error(`Failed to place call`);
             console.error(err);
-            alert(`Failed to place call.\n` + err);
             return;
           });
       }
@@ -413,14 +406,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         .catch((err: Error) => {
           console.error(`[${this.endUser.id}] failed to decline call`);
           console.error(err);
-          alert(`[${this.endUser.id}] Failed to decline call.\n` + err);
         });
     }
     else {
       this.endUser.hangup().catch((err: Error) => {
         console.error(`Failed to hangup call`);
         console.error(err);
-        alert(`Failed to hangup call.\n` + err);
       });
     }
   }
@@ -432,7 +423,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       if (this.endUser.isMuted() === false) {
         this.muteToggle = false;
         console.error(`[${this.endUser.id}] failed to mute call`);
-        alert(`Failed to mute call.\n`);
       }
     }
     else {
@@ -440,7 +430,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       if (this.endUser.isMuted() === true) {
         this.muteToggle = true;
         console.error(`[${this.endUser.id}] failed to unmute call`);
-        alert(`Failed to unmute call.\n`);
       }
     }
   }
@@ -452,7 +441,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         this.holdToggle = false;
         console.error(`[${this.endUser.id}] failed to hold call`);
         console.error(error);
-        alert(`Failed to hold call.\n` + error);
       });
     }
     else {
@@ -460,7 +448,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         this.holdToggle = true;
         console.error(`[${this.endUser.id}] failed to unhold call`);
         console.error(error);
-        alert(`Failed to unhold call.\n` + error);
       });
     }
   }
@@ -475,7 +462,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallCreatedCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call created`);
-
+      this.phoneState = `Dialing`;
       setButtonsDisabled([
         {id: `begin-call`, disabled: true}, 
         {id: `end-call`, disabled: false}, 
@@ -488,14 +475,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallAnsweredCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call answered`);
+      this.phoneState = `Connected`;
 
       var AudioContext = window.AudioContext;
       this.audioContext = new AudioContext();
-
       if (user.localMediaStream !== undefined) {
         this.handleMeterLocal(user.localMediaStream);
       }
-
       if (user.remoteMediaStream !== undefined) {
         this.handleMeterRemote(user.remoteMediaStream);
       }
@@ -503,7 +489,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeCallReceivedCallback(callerId: string, autoAnswer: boolean): void {
+    console.log(`[${this.endUser.id}] call received`);
     this.callerId = callerId;
+    this.phoneState = `Ringing`;
 
     setButtonsDisabled([
       {id: `begin-call`, disabled: false}, 
@@ -527,6 +515,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${user.id}] call hangup`);
       this.callState = false;
+      this.phoneState = `Call Ended`;
+
       setButtonsDisabled([
         {id: `begin-call`, disabled: true}, 
         {id: `end-call`, disabled: true}, 
@@ -553,26 +543,30 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         });
       });
       console.log(`[${user.id}] registered`);
+      this.phoneState = `Welcome ` + this.phoneUser.displayName;
     };
   }
 
   makeUnregisteredCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] unregistered`);
+      this.phoneState = "Unregistered";
     };
   }
 
   makeServerConnectCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] connected`);
+      this.phoneState = "Connected to Server";
     };
   }
 
   makeServerDisconnectCallback(user: EndUser): () => void {
     return (err?: Error) => {
       console.log(`[${user.id}] disconnected`);
+      this.phoneState = "Disconnected";
       if (err) {
-        alert(`[${user.id}] Server disconnected.\n` + err.message);
+        console.error(`[${user.id}] Server disconnected.\n` + err.message);
       }
     };
   }
@@ -634,7 +628,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         .catch((error: Error) => {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
           console.error(error);
-          alert(`Failed to complete transfer call.\n` + error);
         });
     }
     return;
@@ -651,7 +644,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to change line`);
         console.error(error);
-        alert(`Failed to change line.\n` + error);
       })
   }
 
