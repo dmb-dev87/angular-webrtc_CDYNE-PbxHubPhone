@@ -1,12 +1,22 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { addInputValue, delInputValue, getInputValue, setInputValue, getAudio, getButton, setButtonText, getButtonText, getSpan } from '../../utilities/ui-utils';
+import {
+  addInputValue, 
+  delInputValue, 
+  getInputValue, 
+  setInputValue, 
+  getAudio, 
+  getButton, 
+  setButtonText, 
+  getButtonText, 
+  getSpan, 
+  setButtonsDisabled } from '../../utilities/ui-utils';
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { PhoneContact } from '../../models/phonecontact';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
-import { SoundMeter } from '../../utilities/sound-meter';
+import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -48,15 +58,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private invitationState = false;
   private _phoneUser: PhoneUser = undefined;
   private _phoneContacts: Array<PhoneContact> = [];
-  private soundMeter: SoundMeter = undefined;
-
-  private beginButton = null;
-  private endButton = null;
-  private muteButton = null;
-  private holdButton = null;
-  private xferButton = null;
-  private dndButton = null;
   
+  private localSoundMeter: LocalSoundMeter = undefined;
+  private remoteSoundMeter: RemoteSoundMeter = undefined;
   private audioContext = undefined;
 
   constructor(private pbxControlService: PbxControlService) {
@@ -102,19 +106,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.receiverVolume = remoteAudio.volume * 100;     
     })
 
-    this.beginButton = getButton(`begin-call`);
-    this.endButton = getButton(`end-call`);
-    this.muteButton = getButton(`mute-btn`);
-    this.holdButton = getButton(`hold-btn`);
-    this.xferButton = getButton(`transfer-call`);
-    this.dndButton = getButton(`dnd-btn`);
-
-    this.beginButton.disabled = true;
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
-    this.dndButton.disabled = true;
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: true}, 
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}, 
+      {id: `dnd-btn`, disabled: true}]);
   }
 
   onRegister(): void {
@@ -175,6 +173,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     const delegate: EndUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(this.endUser),
+      onCallAnswered: this.makeCallAnsweredCallback(this.endUser),
       onCallReceived: (callerId: string, autoAnswer: boolean): void => this.makeCallReceivedCallback(callerId, autoAnswer),
       onCallHangup: this.makeCallHangupCallback(this.endUser),
       onRegistered: this.makeRegisteredCallback(this.endUser),
@@ -202,7 +201,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .register(undefined)
       .then(() => {
         setButtonText(`register-btn`, `Unregister`);
-        this.dndButton.disabled = false;
+        setButtonsDisabled([
+          {id: `dnd-btn`, disabled: true}]);
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to register`);
@@ -216,7 +216,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .unregister()
       .then(() => {
         setButtonText(`register-btn`, `Register`);
-        this.dndButton.disabled = true;
+        setButtonsDisabled([
+          {id: `dnd-btn`, disabled: true}]);
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to unregister`);
@@ -238,16 +239,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     if (this.callState === false || this.lineChanged === true || this.transferState === true) {
       addInputValue(`call-number`, toneNum);
 
-      this.beginButton.disabled = false;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: false}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}]);
     }
     else {
-      this.beginButton.disabled = false;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: false}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}]);
 
       this.endUser.sendDTMF(toneNum)
         .then(() => {
@@ -262,31 +265,33 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
-  handleMeterSuccess(stream: any): void {
-    console.log(`++++++++++++++++++++++++++++`, stream);
-    console.log(`++++++++++++++++++++++++++++++`, this.audioContext);
-
-    window.MediaStream = stream;
-    this.soundMeter = new SoundMeter(this.audioContext);
-    this.soundMeter.connectToSource(stream, (e: Error) => {
-      if (e) {
-        alert(e);
-        return;
-      }
+  handleMeterLocal(stream: any): void {
+    this.localSoundMeter = new LocalSoundMeter(this.audioContext);
+    this.localSoundMeter.connectToSource(stream, (e: Error) => {
       this.micMeterRefresh = setInterval(() => {
-        this.micLiveMeter = this.soundMeter.inputInstant;
-      }, 1000/15);
-
-      this.receiverMeterRefresh = setInterval(() => {
-        this.receiverLiveMeter = this.soundMeter.calculateAudioLevels();
-        console.log(`++++++++++++++++++++++++++`, this.receiverLiveMeter.toFixed(2));
+        this.micLiveMeter = this.localSoundMeter.inputInstant;
       }, 1000/15);
     })
   }
 
-  handleMeterStop(stream: any): void {
-    stream.getTracks().forEach(track => track.stop());
-    this.soundMeter.stop();    
+  handleMeterRemote(stream: any): void {
+    this.remoteSoundMeter = new RemoteSoundMeter(this.audioContext);
+    this.remoteSoundMeter.connectToSource(stream, (e: Error) => {
+      this.receiverMeterRefresh = setInterval(() => {
+        this.receiverLiveMeter = this.remoteSoundMeter.calculateAudioLevels();
+      }, 1000/15);
+    })
+  }
+
+  handleMeterStop(): void {
+    if (this.remoteSoundMeter !== undefined) {
+      this.remoteSoundMeter.stop();
+    }
+
+    if (this.localSoundMeter !== undefined) {
+      this.localSoundMeter.stop();
+    }
+
     clearInterval(this.micMeterRefresh);
     clearInterval(this.receiverMeterRefresh);
     this.micLiveMeter = 0;
@@ -299,25 +304,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    var AudioContext = window.AudioContext;
-    this.audioContext = new AudioContext();
-    
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then((stream) => {
-        this.handleMeterSuccess(stream);
-      })
-      .catch((err) => {
-        console.log(`navigator.MediaDevices.getUserMedia error: `, err.message, err.name);    
-      });
-
-    this.beginButton.disabled = true;
-    this.endButton.disabled = false;
-    this.muteButton.disabled = false;
-    this.holdButton.disabled = false;
-    this.xferButton.disabled = false;
+    setButtonsDisabled([{id: `begin-call`, disabled: true}, {id: `end-call`, disabled: false}, {id: `mute-btn`, disabled: false}, {id: `hold-btn`, disabled: false}, {id: `transfer-call`, disabled: false}]);
 
     this.callState = true;
-
     this.numberBtnToggle = false;
     this.searchBtnToggle = false;
 
@@ -332,6 +321,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(`[${this.endUser.id}] failed to answer call`);
           console.error(err);
           alert(`[${this.endUser.id}] Failed to answer call.\n` + err);
+          return;
         });
     }
     else {
@@ -368,6 +358,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             console.error(`[${this.endUser.id}] failed to transfer call`);
             console.error(error);
             alert(`Failed to transfer call.\n` + error);
+            return;
           });
       }
       else {
@@ -390,17 +381,19 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             console.error(`Failed to place call`);
             console.error(err);
             alert(`Failed to place call.\n` + err);
+            return;
           });
       }
     }
   }
 
   hangupCall(): void {
-    this.beginButton.disabled = true;
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: true}, 
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     setInputValue(`call-number`, ``);
 
@@ -425,14 +418,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         alert(`Failed to hangup call.\n` + err);
       });
     }
-
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then((stream) => {
-        this.handleMeterStop(stream);
-      })
-      .catch((err) => {
-        console.log(`navigator.MediaDevices.getUserMedia error: `, err.message, err.name);    
-      });
   }
 
   onMute(): void {
@@ -486,22 +471,41 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${user.id}] call created`);
 
-      this.beginButton.disabled = true;
-      this.endButton.disabled = false;
-      this.muteButton.disabled = false;
-      this.holdButton.disabled = false;
-      this.xferButton.disabled = false;
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: true}, 
+        {id: `end-call`, disabled: false}, 
+        {id: `mute-btn`, disabled: false}, 
+        {id: `hold-btn`, disabled: false}, 
+        {id: `transfer-call`, disabled: false}]);
     };
+  }
+
+  makeCallAnsweredCallback(user: EndUser): () => void {
+    return () => {
+      console.log(`[${user.id}] call answered`);
+
+      var AudioContext = window.AudioContext;
+      this.audioContext = new AudioContext();
+
+      if (user.localMediaStream !== undefined) {
+        this.handleMeterLocal(user.localMediaStream);
+      }
+
+      if (user.remoteMediaStream !== undefined) {
+        this.handleMeterRemote(user.remoteMediaStream);
+      }
+    }
   }
 
   makeCallReceivedCallback(callerId: string, autoAnswer: boolean): void {
     this.callerId = callerId;
 
-    this.beginButton.disabled = false;
-    this.endButton.disabled = false;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: false}, 
+      {id: `end-call`, disabled: false}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     this.invitationState = true;
 
@@ -517,16 +521,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallHangupCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call hangup`);
-
       this.callState = false;
-
-      this.beginButton.disabled = true;
-      this.endButton.disabled = true;
-      this.muteButton.disabled = true;
-      this.holdButton.disabled = true;
-      this.xferButton.disabled = true;
-
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: true}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}, 
+        {id: `transfer-call`, disabled: true}]);
       this.callerId = ``;
+      this.handleMeterStop();
     };
   }
 
@@ -570,15 +573,16 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   searchContact(): void {
-    const searchWord = getInputValue(`call-number`);    
+    const searchWord = getInputValue(`call-number`);
 
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     if (searchWord) {
-      this.beginButton.disabled = false;
+      setButtonsDisabled([{id: `begin-call`, disabled: false}]); 
       this.searchResult = this._phoneContacts.filter((ele, i, array) => {
         const eleStr = ele.extension + ele.firstName + ele.lastName;
         const arrayelement = eleStr.toLowerCase();
@@ -586,24 +590,25 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
     }
     else {
-      this.beginButton.disabled = true;
+      setButtonsDisabled([{id: `begin-call`, disabled: true}]);
       this.searchResult = [];
     }
   }
 
   clickSearchList(extension: string): void {
-    this.endButton.disabled = true;
-    this.muteButton.disabled = true;
-    this.holdButton.disabled = true;
-    this.xferButton.disabled = true;
+    setButtonsDisabled([
+      {id: `end-call`, disabled: true}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
 
     if (extension) {
       setInputValue(`call-number`, extension);
-      this.beginButton.disabled = false;
+      setButtonsDisabled([{id: `begin-call`, disabled: false}]);
     }
     else {
       setInputValue(`call-number`, ``);
-      this.beginButton.disabled = true;
+      setButtonsDisabled([{id: `begin-call`, disabled: true}]);
     }
     this.searchResult = [];
   }
