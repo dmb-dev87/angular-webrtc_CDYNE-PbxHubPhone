@@ -14,6 +14,7 @@ import { effects } from './effects';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from './material.module';
+import { ClickOutsideModule } from 'ng-click-outside';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { MaterialModule } from './material.module';
     BrowserAnimationsModule,
     FormsModule,
     MaterialModule,
+    ClickOutsideModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

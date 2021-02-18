@@ -650,4 +650,30 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     const volume = Math.round(this.receiverVolume) / 100;
     remoteAudio.volume = parseFloat(volume.toFixed(2));
   }
+
+  onClickOutsideNumber(e: Event): void {
+    const targetClass = (e.target as Element).className;
+    const targetId = (e.target as Element).id;
+    
+    if (targetClass !== `fas fa-bars` && targetId !== `number-toggle`) {
+      this.numberBtnToggle = false;
+    }
+  }
+
+  onClickOutsideSearch(e: Event): void {
+    const targetClass = (e.target as Element).className;
+    const targetId = (e.target as Element).id;
+    
+    if (targetClass !== `fas fa-search` && targetId !== `search-toggle`) {
+      this.searchBtnToggle = false;
+    }
+  }
+
+  onClickOutsideReceiver(e: Event): void {
+    const targetClass = (e.target as Element).className;
+    
+    if (targetClass !== `fas fa-headset`) {
+      this.receiverCtrlToggle = false;
+    }
+  }
 }

@@ -36,7 +36,7 @@
               </div>
               <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
               <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
-                <div class=" slider-group">
+                <div class=" slider-group" (clickOutside)="onClickOutsideReceiver($event)">
                   <div class=" row">
                     <mat-slider thumbLabel class=" receiver-ctrl" min="0" max="100" [(ngModel)]="receiverVolume" (change) = "changeReceiverVolume()" vertical></mat-slider>
                   </div>
@@ -83,7 +83,7 @@
         </div>
       </div>
       <div class=" row number-pad" *ngIf="this.numberBtnToggle && !this.searchBtnToggle">
-        <div class=" number-group">
+        <div class=" number-group" (clickOutside)="onClickOutsideNumber($event)">
           <div class=" row">
             <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
           </div>
@@ -102,7 +102,7 @@
         </div>
       </div>
       <div class=" row search-pad" *ngIf="(this.searchResult.length > 0 && this.searchBtnToggle) && !this.numberBtnToggle">
-        <div class=" search-list">
+        <div class=" search-list" (clickOutside)="onClickOutsideSearch($event)">
           <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
             <div class=" col-8">
               <p>{{item.firstName}} {{item.lastName}}</p>
