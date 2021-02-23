@@ -4,6 +4,7 @@
       <app-user-info
         [callerId]="callerId"
         [callStatus]="callStatus"
+        [registerStatus]="registerStatus"
         (register)="onRegister($event)"
         (unregister)="onUnregister()">
       </app-user-info>
@@ -16,6 +17,8 @@
     </div>
     <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
       <app-phone-control
+        [dndStatus]="dndStatus"
+        (changeNumber)="onChangeNumber($event)"
         (hold)="onHold($event)"
         (mute)="onMute($event)"
         (dnd)="onDnd()"

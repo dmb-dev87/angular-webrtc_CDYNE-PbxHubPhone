@@ -1,5 +1,4 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
-import { PhoneStatusService } from 'src/app/services/phonestatus.service';
 import { getButtonText } from 'src/app/utilities/ui-utils';
 
 @Component({
@@ -13,8 +12,9 @@ export class UserInfoComponent implements OnInit {
 
   @Input() callerId: string;
   @Input() callStatus: string;
+  @Input() registerStatus: boolean;
 
-  constructor(private phoneStatusService: PhoneStatusService) {}
+  constructor() {}
 
   ngOnInit(): void {
 

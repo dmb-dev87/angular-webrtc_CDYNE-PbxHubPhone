@@ -13,11 +13,9 @@ import {
   setButtonsDisabled } from '../../utilities/ui-utils';
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
-import { PhoneContact } from '../../models/phonecontact';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
-import { PhoneStatusService } from 'src/app/services/phonestatus.service';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -37,35 +35,32 @@ const constraints = {
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   callerId = null;
   callStatus = `Unregistered`;
+  registerStatus = false;
+
   selectLine = `1`;
   receiverVolume = 0.0;
   micLiveMeter = 100;
   receiverLiveMeter = 100;
-
-  searchBtnToggle = false;
-  searchResult = [];
-  numberBtnToggle = false;
-  muteToggle = false;
-  holdToggle = false;
-  dndToggle = false;
   receiverCtrlToggle = false;  
+
+  dndStatus = false;
 
   private endUser = null;
   private callState = false;
   private transferState = false;
   private lineChanged = false;
   private invitationState = false;
+  private targetNum = null;
 
   private _phoneUser: PhoneUser = undefined;
-  private _phoneContacts: Array<PhoneContact> = [];
-
+  
   private micMeterRefresh = null;
   private receiverMeterRefresh = null;
   private localSoundMeter: LocalSoundMeter = undefined;
   private remoteSoundMeter: RemoteSoundMeter = undefined;
   private audioContext = undefined;
 
-  constructor(private pbxControlService: PbxControlService, private phoneStatusService: PhoneStatusService) {
+  constructor(private pbxControlService: PbxControlService) {
 
   }
 
@@ -156,19 +151,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
       this.pbxControlService.loadPhoneContacts();
-      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-        this._phoneContacts = phonecontacts.data;
-      });
-      
       this.pbxControlService.toggleDnd().subscribe(response => {
         //call twice because status get toggled when call api
         this.pbxControlService.toggleDnd().subscribe(response => {
           const dndStatus = parseDnd(response);        
-          this.dndToggle = dndStatus === DndState.Enabled ? true : false;
+          this.dndStatus = dndStatus === DndState.Enabled ? true : false;
         });
       });
       console.log(`[${user.id}] registered`);
-      // this.phoneStatusService.updateCallStatus(`Welcome ` + this.phoneUser.displayName);
+      this.registerStatus = true;
       this.callStatus = `Welcome ` + this.phoneUser.displayName;
     };
   }
@@ -176,6 +167,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeUnregisteredCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] unregistered`);
+      this.registerStatus = false;
       this.callStatus = "Unregistered";
     };
   }
@@ -214,7 +206,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   onUnregister(): void {
     this.unregister();
     this.phoneUser = undefined;
-    this._phoneContacts = [];
     localStorage.removeItem(`user_name`);
     localStorage.removeItem(`user_id`);
   }
@@ -272,9 +263,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endUser
       .register(undefined)
       .then(() => {
-        setButtonText(`register-btn`, `Unregister`);
-        setButtonsDisabled([
-          {id: `dnd-btn`, disabled: true}]);        
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to register`);
@@ -286,9 +274,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endUser
       .unregister()
       .then(() => {
-        setButtonText(`register-btn`, `Register`);
-        setButtonsDisabled([
-          {id: `dnd-btn`, disabled: true}]);
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to unregister`);
@@ -298,6 +283,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Phone Control Events Emitter
+  onChangeNumber(value: string): void {
+    this.targetNum = value;
+  }
+
   onHold(value: boolean): void {
     if (this.endUser === null) {
       return;
@@ -339,7 +328,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   onDnd(): void {
     this.pbxControlService.toggleDnd().subscribe(response => {
       const dndStatus = parseDnd(response);
-      this.dndToggle = dndStatus === DndState.Enabled ? true : false;
+      this.dndStatus = dndStatus === DndState.Enabled ? true : false;
     });
   }
 
@@ -371,16 +360,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    setButtonsDisabled([
-      {id: `begin-call`, disabled: true}, 
-      {id: `end-call`, disabled: false}, 
-      {id: `mute-btn`, disabled: false}, 
-      {id: `hold-btn`, disabled: false}, 
-      {id: `transfer-call`, disabled: false}]);
-
     this.callState = true;
-    this.numberBtnToggle = false;
-    this.searchBtnToggle = false;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -396,19 +376,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         });
     }
     else {
-      const targetNum = getInputValue(`call-number`);
-      const target = `sip:${targetNum}@${hostURL}`;
+      const target = `sip:${this.targetNum}@${hostURL}`;
 
       this.lineChanged = false;
 
-      if (this.selectLine === `1`) {
-        setInputValue(`callerid_line1`, targetNum);
-      }
-      else {
-        setInputValue(`callerid_line2`, targetNum);
-      }
+      // if (this.selectLine === `1`) {
+      //   setInputValue(`callerid_line1`, this.targetNum);
+      // }
+      // else {
+      //   setInputValue(`callerid_line2`, this.targetNum);
+      // }
 
-      setInputValue(`call-number`, ``);
+      // setInputValue(`call-number`, ``);
 
       if (this.transferState === true) {
         this.endUser
@@ -416,11 +395,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             requestDelegate: {
               onReject: (response) => {
                 console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${targetNum}" rejected.\n`;
+                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
                 message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
-                alert(message);
+                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
                 this.transferState = false;
               }
             }
@@ -437,10 +415,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             requestDelegate: {
               onReject: (response) => {
                 console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${targetNum}" rejected.\n`;
+                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
                 message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${targetNum}" did not grant access to video?\n`;
+                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
                 console.log(message);
                 this.callState = false;
               }
@@ -500,105 +478,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  onClickOutsideNumber(e: Event): void {
-    const targetClass = (e.target as Element).className;
-    const targetId = (e.target as Element).id;
-    
-    if (targetClass !== `fas fa-bars` && targetId !== `number-toggle`) {
-      this.numberBtnToggle = false;
-    }
-  }
-
-  onClickOutsideSearch(e: Event): void {
-    const targetClass = (e.target as Element).className;
-    const targetId = (e.target as Element).id;
-    
-    if (targetClass !== `fas fa-search` && targetId !== `search-toggle`) {
-      this.searchBtnToggle = false;
-    }
-  }
-
-  clickNumber(toneNum: string): void {
-    if (this.endUser === null) {
-      return;
-    }
-
-    if (toneNum === "clear") {
-      delInputValue(`call-number`);
-      return;
-    }
-    
-    if (this.callState === false || this.lineChanged === true || this.transferState === true) {
-      addInputValue(`call-number`, toneNum);
-
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: false}, 
-        {id: `end-call`, disabled: true}, 
-        {id: `mute-btn`, disabled: true}, 
-        {id: `hold-btn`, disabled: true}]);
-    }
-    else {
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: false}, 
-        {id: `end-call`, disabled: true}, 
-        {id: `mute-btn`, disabled: true}, 
-        {id: `hold-btn`, disabled: true}]);
-
-      this.endUser.sendDTMF(toneNum)
-        .then(() => {
-          addInputValue(`call-number`, toneNum);
-        })
-        .catch((err: Error) => {
-          addInputValue(`call-number`, toneNum);
-          console.error(`[${this.endUser.id}] failed to send DTMF`);
-          console.error(err);
-        });
-    }
-  }
-
-  searchContact(): void {
-    const searchWord = getInputValue(`call-number`);
-
-    setButtonsDisabled([
-      {id: `end-call`, disabled: true}, 
-      {id: `mute-btn`, disabled: true}, 
-      {id: `hold-btn`, disabled: true}, 
-      {id: `transfer-call`, disabled: true}]);
-
-    if (searchWord) {
-      this.searchBtnToggle = true;
-      this.numberBtnToggle = false;
-      setButtonsDisabled([{id: `begin-call`, disabled: false}]); 
-      this.searchResult = this._phoneContacts.filter((ele, i, array) => {
-        const eleStr = ele.extension + ele.firstName + ele.lastName;
-        const arrayelement = eleStr.toLowerCase();
-        return arrayelement.includes(searchWord);
-      });
-    }
-    else {      
-      setButtonsDisabled([{id: `begin-call`, disabled: true}]);
-      this.searchResult = [];
-    }
-  }
-
-  clickSearchList(extension: string): void {
-    setButtonsDisabled([
-      {id: `end-call`, disabled: true}, 
-      {id: `mute-btn`, disabled: true}, 
-      {id: `hold-btn`, disabled: true}, 
-      {id: `transfer-call`, disabled: true}]);
-
-    if (extension) {
-      setInputValue(`call-number`, extension);
-      setButtonsDisabled([{id: `begin-call`, disabled: false}]);
-    }
-    else {
-      setInputValue(`call-number`, ``);
-      setButtonsDisabled([{id: `begin-call`, disabled: true}]);
-    }
-    this.searchResult = [];
-  }
-
+  
   handleMeterLocal(stream: any): void {
     this.localSoundMeter = new LocalSoundMeter(this.audioContext);
     this.localSoundMeter.connectToSource(stream, (e: Error) => {

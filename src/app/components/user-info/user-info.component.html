@@ -13,6 +13,6 @@
 <div class=" row login-pad">
   <div class=" login-panel btns-panel">
     <input type="text" placeholder="Email" #email>
-    <button class=" btn btn-fill login-btn" id="register-btn" (click)="onRegister(email.value)">Register</button>
+    <button class=" btn btn-fill login-btn" id="register-btn" (click)="onRegister(email.value)">{{registerStatus?"Unregister":"Register"}}</button>
   </div>
 </div>

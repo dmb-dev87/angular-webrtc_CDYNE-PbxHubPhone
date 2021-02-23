@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-phone-control',
@@ -8,21 +8,19 @@ import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular
 export class PhoneControlComponent implements OnInit {
   holdToggle = false;
   muteToggle = false;
-  dndToggle = false;
+
+  @Input() dndStatus: boolean;
 
   @Output() hold = new EventEmitter<boolean>();
   @Output() mute = new EventEmitter<boolean>();
   @Output() dnd = new EventEmitter();
   @Output() hangupCall = new EventEmitter();
   @Output() makeCall = new EventEmitter();
+  @Output() changeNumber = new EventEmitter<string>();
   
   constructor() { }
 
   ngOnInit(): void {
-  }
-
-  ngAfterViewInit(): void {
-    
   }
 
   onHold(): void {
@@ -36,7 +34,6 @@ export class PhoneControlComponent implements OnInit {
   }
 
   onDnd(): void {
-    this.dndToggle = !this.dndToggle;
     this.dnd.emit();
   }
 
@@ -46,5 +43,9 @@ export class PhoneControlComponent implements OnInit {
 
   onMakeCall(): void {
     this.makeCall.emit();
+  }
+
+  onChangeNumber(value: string): void {
+    this.changeNumber.emit(value);
   }
 }
