@@ -1,16 +1,32 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
     <div class=" col-lg-3 col-md-3 col-sm-12">
-      <app-user-info (register)="onRegister($event)" (unregister)="onUnregister()"></app-user-info>
+      <app-user-info
+        [callerId]="callerId"
+        [callStatus]="callStatus"
+        (register)="onRegister($event)"
+        (unregister)="onUnregister()">
+      </app-user-info>
     </div>
     <div class=" col-lg-2 col-md-2 col-sm-12 control-pad">
-      <!-- <app-line-info (changeLine)="changeLine()"></app-line-info> -->
+      <app-line-info
+        (changeReceiverVolume)="changeReceiverVolume($event)"
+        (changeLine)="changeLine($event)">
+      </app-line-info>
     </div>
     <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
-      <!-- <app-phone-contorl (holeEvent)="onHold($event)"></app-phone-contorl> -->
+      <app-phone-control
+        (hold)="onHold($event)"
+        (mute)="onMute($event)"
+        (dnd)="onDnd()"
+        (hangupCall)="onHangupCall()"
+        (makeCall)="onMakeCall()">
+      </app-phone-control>
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
-      <!-- <app-misc-control></app-misc-control> -->
+      <app-misc-control
+        (transfer)="onMakeTransfer()">
+      </app-misc-control>
     </div>
   </div>
 </div>

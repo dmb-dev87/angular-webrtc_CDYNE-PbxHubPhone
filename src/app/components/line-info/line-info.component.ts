@@ -13,7 +13,8 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
   receiverLiveMeter = 100;
   selectLine = `1`;
 
-  @Output() changeLine = new EventEmitter();
+  @Output() changeLine = new EventEmitter<number>();
+  @Output() changeReceiverVolume = new EventEmitter<number>();
 
   constructor() { }
 
@@ -24,14 +25,6 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
     const receiverSpan = getSpan(`receiver-control`);
     receiverSpan.addEventListener(`click`, () => {
       this.receiverCtrlToggle = !this.receiverCtrlToggle;
-      // const remoteAudio = getAudio(`remoteAudio`);
-      // if (this.endUser && this.endUser.remoteAudioTrack !== undefined) {
-      //   const audioTrack = this.endUser.remoteAudioTrack;
-      //   const settings = audioTrack.getSettings();
-      //   const volume = settings.map(setting => setting.volume);
-      //   remoteAudio.volume = volume;
-      // }
-      // this.receiverVolume = remoteAudio.volume * 100;
     });
   }
 
@@ -43,13 +36,13 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
     }
   }
 
-  changeReceiverVolume(): void {
-    const remoteAudio = getAudio(`remoteAudio`);    
+  onChangeReceiverVolume(): void {
     const volume = Math.round(this.receiverVolume) / 100;
-    remoteAudio.volume = parseFloat(volume.toFixed(2));
+    this.changeReceiverVolume.emit(parseFloat(volume.toFixed(2)));
   }
 
   onChangeLine(): void {
-    this.changeLine.emit();
+    const lineNumber = this.selectLine === '1' ? 0:1;
+    this.changeLine.emit(lineNumber);
   }
 }

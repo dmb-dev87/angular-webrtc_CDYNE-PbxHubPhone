@@ -5,10 +5,16 @@ import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular
   templateUrl: './phone-control.component.html',
   styleUrls: ['./phone-control.component.scss']
 })
-export class PhoneControlComponent implements OnInit, AfterViewInit {
+export class PhoneControlComponent implements OnInit {
   holdToggle = false;
+  muteToggle = false;
+  dndToggle = false;
 
-  @Output() holdEvent = new EventEmitter<boolean>();
+  @Output() hold = new EventEmitter<boolean>();
+  @Output() mute = new EventEmitter<boolean>();
+  @Output() dnd = new EventEmitter();
+  @Output() hangupCall = new EventEmitter();
+  @Output() makeCall = new EventEmitter();
   
   constructor() { }
 
@@ -19,7 +25,26 @@ export class PhoneControlComponent implements OnInit, AfterViewInit {
     
   }
 
-  onHold(value: boolean): void {
-    this.holdEvent.emit(value);
+  onHold(): void {
+    this.holdToggle = !this.holdToggle;
+    this.hold.emit(this.holdToggle);
+  }
+
+  onMute(): void {
+    this.muteToggle = !this.muteToggle;
+    this.mute.emit(this.muteToggle);
+  }
+
+  onDnd(): void {
+    this.dndToggle = !this.dndToggle;
+    this.dnd.emit();
+  }
+
+  onHangupCall(): void {
+    this.hangupCall.emit();
+  }
+
+  onMakeCall(): void {
+    this.makeCall.emit();
   }
 }

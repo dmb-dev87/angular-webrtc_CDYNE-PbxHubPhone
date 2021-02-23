@@ -1,5 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { PhoneUser } from 'src/app/models/phoneuser';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { PhoneStatusService } from 'src/app/services/phonestatus.service';
 import { getButtonText } from 'src/app/utilities/ui-utils';
 
@@ -12,9 +11,8 @@ export class UserInfoComponent implements OnInit {
   @Output() register = new EventEmitter<string>();
   @Output() unregister = new EventEmitter();
 
-  phoneUser: PhoneUser = undefined;
-  callerId: string;
-  callStatus: string;
+  @Input() callerId: string;
+  @Input() callStatus: string;
 
   constructor(private phoneStatusService: PhoneStatusService) {}
 

@@ -15,7 +15,7 @@
         <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
           <div class=" slider-group" (clickOutside)="onClickOutsideReceiver($event)">
             <div class=" row">
-              <mat-slider thumbLabel class=" receiver-ctrl" min="0" max="100" [(ngModel)]="receiverVolume" (change) = "changeReceiverVolume()" vertical></mat-slider>
+              <mat-slider thumbLabel class=" receiver-ctrl" min="0" max="100" [(ngModel)]="receiverVolume" (change) = "onChangeReceiverVolume()" vertical></mat-slider>
             </div>
           </div>
         </div>

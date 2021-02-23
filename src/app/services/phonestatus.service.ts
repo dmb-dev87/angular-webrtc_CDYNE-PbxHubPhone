@@ -24,7 +24,7 @@ export class PhoneStatusService {
     this.store.dispatch(new PhoneStatusActions.UpdateCallStatus(callStatus));
   }
 
-  getPhoneStatusState(): any {
+  getPhoneStatus(): any {
     return this.store.select(getPhoneStatusState);
   }
 }

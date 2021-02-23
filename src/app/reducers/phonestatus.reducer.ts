@@ -1,4 +1,3 @@
-import { createReducer } from '@ngrx/store';
 import * as fromCallStatus from '../actions/phonestatus.actions';
 
 export interface PhoneStatusState {

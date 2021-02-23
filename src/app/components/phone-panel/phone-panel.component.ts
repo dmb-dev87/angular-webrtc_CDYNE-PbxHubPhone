@@ -36,7 +36,7 @@ const constraints = {
 
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   callerId = null;
-  phoneState = `Unregistered`;
+  callStatus = `Unregistered`;
   selectLine = `1`;
   receiverVolume = 0.0;
   micLiveMeter = 100;
@@ -77,35 +77,128 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this._phoneUser = phoneUser;
   }
 
-  ngOnInit(): void {
-    
+  ngOnInit(): void {    
   }
 
   ngAfterViewInit(): void {
-    // const numberToggle = getButton(`number-toggle`);
-    // numberToggle.addEventListener(`click`, () => {
-    //   this.numberBtnToggle = !this.numberBtnToggle;
-    //   this.searchBtnToggle = false;
-    // });
-
-    // const searchBtn = getButton(`search-toggle`);
-    // searchBtn.addEventListener(`click`, () => {
-    //   this.searchResult = this._phoneContacts;
-    //   this.searchBtnToggle = !this.searchBtnToggle;
-    //   this.numberBtnToggle = false;      
-    // });
-
-    
-
-    // setButtonsDisabled([
-    //   {id: `begin-call`, disabled: true}, 
-    //   {id: `end-call`, disabled: true}, 
-    //   {id: `mute-btn`, disabled: true}, 
-    //   {id: `hold-btn`, disabled: true}, 
-    //   {id: `transfer-call`, disabled: true}, 
-    //   {id: `dnd-btn`, disabled: true}]);
+  }
+  
+  // EndUser Callback functions
+  makeCallCreatedCallback(user: EndUser): () => void {
+    return () => {
+      console.log(`[${user.id}] call created`);
+      this.callStatus = `Dialing`;
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: true}, 
+        {id: `end-call`, disabled: false}, 
+        {id: `mute-btn`, disabled: false}, 
+        {id: `hold-btn`, disabled: false}, 
+        {id: `transfer-call`, disabled: false}]);
+    };
   }
 
+  makeCallAnsweredCallback(user: EndUser): () => void {
+    return () => {
+      console.log(`[${user.id}] call answered`);
+      this.callStatus = `Connected`;
+
+      var AudioContext = window.AudioContext;
+      this.audioContext = new AudioContext();
+      if (user.localMediaStream !== undefined) {
+        this.handleMeterLocal(user.localMediaStream);
+      }
+      if (user.remoteMediaStream !== undefined) {
+        this.handleMeterRemote(user.remoteMediaStream);
+      }
+    }
+  }
+
+  makeCallReceivedCallback(callerId: string, autoAnswer: boolean): void {
+    console.log(`[${this.endUser.id}] call received`);
+    this.callerId = callerId;
+    this.callStatus = `Ringing`;
+
+    setButtonsDisabled([
+      {id: `begin-call`, disabled: false}, 
+      {id: `end-call`, disabled: false}, 
+      {id: `mute-btn`, disabled: true}, 
+      {id: `hold-btn`, disabled: true}, 
+      {id: `transfer-call`, disabled: true}]);
+
+    this.invitationState = true;
+
+    if (autoAnswer == true) {
+      this.onMakeCall();
+    } else {
+      ringAudio.loop = true;
+      ringAudio.autoplay = true;
+      ringAudio.play();
+    }
+  }
+
+  makeCallHangupCallback(user: EndUser): () => void {
+    return () => {
+      console.log(`[${user.id}] call hangup`);
+      this.callState = false;
+      this.callStatus = `Call Ended`;
+
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: true}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}, 
+        {id: `transfer-call`, disabled: true}]);
+      this.callerId = ``;
+      this.handleMeterStop();
+    };
+  }
+
+  makeRegisteredCallback(user: EndUser): () => void {
+    return () => {
+      this.pbxControlService.loadPhoneContacts();
+      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+        this._phoneContacts = phonecontacts.data;
+      });
+      
+      this.pbxControlService.toggleDnd().subscribe(response => {
+        //call twice because status get toggled when call api
+        this.pbxControlService.toggleDnd().subscribe(response => {
+          const dndStatus = parseDnd(response);        
+          this.dndToggle = dndStatus === DndState.Enabled ? true : false;
+        });
+      });
+      console.log(`[${user.id}] registered`);
+      // this.phoneStatusService.updateCallStatus(`Welcome ` + this.phoneUser.displayName);
+      this.callStatus = `Welcome ` + this.phoneUser.displayName;
+    };
+  }
+
+  makeUnregisteredCallback(user: EndUser): () => void {
+    return () => {
+      console.log(`[${user.id}] unregistered`);
+      this.callStatus = "Unregistered";
+    };
+  }
+
+  makeServerConnectCallback(user: EndUser): () => void {
+    return () => {
+      console.log(`[${user.id}] connected`);
+      this.callStatus = "Connected to Server";
+    };
+  }
+
+  makeServerDisconnectCallback(user: EndUser): () => void {
+    return (err?: Error) => {
+      console.log(`[${user.id}] disconnected`);
+      this.callStatus = "Disconnected";
+      if (err) {
+        console.error(`[${user.id}] Server disconnected.\n` + err.message);
+      }
+    };
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // UserInfo Event Emitter
   onRegister(email: string): void {
     this.pbxControlService.webRtcDemo(email).subscribe(response => {
       this.phoneUser = parseWebRtcDemo(response);
@@ -202,79 +295,77 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         console.error(error);
       });
   }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  clickNumber(toneNum: string): void {
+  // Phone Control Events Emitter
+  onHold(value: boolean): void {
     if (this.endUser === null) {
       return;
     }
 
-    if (toneNum === "clear") {
-      delInputValue(`call-number`);
-      return;
-    }
-    
-    if (this.callState === false || this.lineChanged === true || this.transferState === true) {
-      addInputValue(`call-number`, toneNum);
-
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: false}, 
-        {id: `end-call`, disabled: true}, 
-        {id: `mute-btn`, disabled: true}, 
-        {id: `hold-btn`, disabled: true}]);
+    if (value) {
+      this.endUser.hold().catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to hold call`);
+        console.error(error);
+      });
     }
     else {
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: false}, 
-        {id: `end-call`, disabled: true}, 
-        {id: `mute-btn`, disabled: true}, 
-        {id: `hold-btn`, disabled: true}]);
+      this.endUser.unhold().catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to unhold call`);
+        console.error(error);
+      });
+    }
+  }
 
-      this.endUser.sendDTMF(toneNum)
-        .then(() => {
-          addInputValue(`call-number`, toneNum);
-        })
+  onMute(value: boolean): void {
+    if (this.endUser === null) {
+      return;
+    }
+
+    if (value) {
+      this.endUser.mute();
+      if (this.endUser.isMuted() === false) {
+        console.error(`[${this.endUser.id}] failed to mute call`);
+      }
+    }
+    else {
+      this.endUser.unmute();
+      if (this.endUser.isMuted() === true) {
+        console.error(`[${this.endUser.id}] failed to unmute call`);
+      }
+    }
+  }
+
+  onDnd(): void {
+    this.pbxControlService.toggleDnd().subscribe(response => {
+      const dndStatus = parseDnd(response);
+      this.dndToggle = dndStatus === DndState.Enabled ? true : false;
+    });
+  }
+
+  onHangupCall(): void {
+    this.callState = false;
+
+    if (this.invitationState === true) {
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
+      this.invitationState = false;
+      this.endUser
+        .decline()
         .catch((err: Error) => {
-          addInputValue(`call-number`, toneNum);
-          console.error(`[${this.endUser.id}] failed to send DTMF`);
+          console.error(`[${this.endUser.id}] failed to decline call`);
           console.error(err);
         });
     }
-  }
-
-  handleMeterLocal(stream: any): void {
-    this.localSoundMeter = new LocalSoundMeter(this.audioContext);
-    this.localSoundMeter.connectToSource(stream, (e: Error) => {
-      this.micMeterRefresh = setInterval(() => {
-        this.micLiveMeter = this.localSoundMeter.inputInstant;
-      }, 1000/15);
-    })
-  }
-
-  handleMeterRemote(stream: any): void {
-    this.remoteSoundMeter = new RemoteSoundMeter(this.audioContext);
-    this.remoteSoundMeter.connectToSource(stream, (e: Error) => {
-      this.receiverMeterRefresh = setInterval(() => {
-        this.receiverLiveMeter = this.remoteSoundMeter.calculateAudioLevels();
-      }, 1000/15);
-    })
-  }
-
-  handleMeterStop(): void {
-    if (this.remoteSoundMeter !== undefined) {
-      this.remoteSoundMeter.stop();
+    else {
+      this.endUser.hangup().catch((err: Error) => {
+        console.error(`Failed to hangup call`);
+        console.error(err);
+      });
     }
-
-    if (this.localSoundMeter !== undefined) {
-      this.localSoundMeter.stop();
-    }
-
-    clearInterval(this.micMeterRefresh);
-    clearInterval(this.receiverMeterRefresh);
-    this.micLiveMeter = 0;
-    this.receiverLiveMeter = 0;
   }
 
-  makeCall(): void {
+  onMakeCall(): void {
     if (!this.endUser.registerer.registered) {
       console.error(`Failed to call, have to register`);
       return;
@@ -321,7 +412,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       if (this.transferState === true) {
         this.endUser
-          .makeTransfer(target, undefined, {
+          .onMakeTransfer(target, undefined, {
             requestDelegate: {
               onReject: (response) => {
                 console.warn(`[${this.endUser.id}] INVITE rejected`);
@@ -364,193 +455,105 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
     }
   }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  hangupCall(): void {
-    setButtonsDisabled([
-      {id: `begin-call`, disabled: true}, 
-      {id: `end-call`, disabled: true}, 
-      {id: `mute-btn`, disabled: true}, 
-      {id: `hold-btn`, disabled: true}, 
-      {id: `transfer-call`, disabled: true}]);
+  // Misc Controller Events
+  onMakeTransfer(): void {
+    const btnText = getButtonText('transfer-call');
+    if (btnText === 'X-fer' && this.transferState === false) {
+      setButtonText(`transfer-call`, `Complete X-fer`);
+      this.selectLine = `2`;
+      this.endUser.changeLine(1);
+      this.transferState = true;
+      return;
+    } else if (btnText === 'Complete X-fer' && this.transferState === true) {
+      setButtonText(`transfer-call`, 'X-fer');
+      this.transferState = false;
+      this.selectLine = `1`;
+      this.endUser.completeTransfer()
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to complete transfer call`);
+          console.error(error);
+        });
+    }
+    return;
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    setInputValue(`call-number`, ``);
+  // Line Info Events
+  changeLine(lineNumber: number): void {
+    this.lineChanged = true;
+    if (this.endUser === null) {
+      return;
+    }
+    this.endUser
+      .changeLine(lineNumber)
+      .catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to change line`);
+        console.error(error);
+      })
+  }
 
-    this.callState = false;
+  changeReceiverVolume(volume: number): void {
+    const remoteAudio = getAudio(`remoteAudio`);    
+    remoteAudio.volume = volume;
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    if (this.invitationState === true) {
-      ringAudio.pause();
-      ringAudio.currentTime = 0;
-      this.invitationState = false;
-      this.endUser
-        .decline()
+  onClickOutsideNumber(e: Event): void {
+    const targetClass = (e.target as Element).className;
+    const targetId = (e.target as Element).id;
+    
+    if (targetClass !== `fas fa-bars` && targetId !== `number-toggle`) {
+      this.numberBtnToggle = false;
+    }
+  }
+
+  onClickOutsideSearch(e: Event): void {
+    const targetClass = (e.target as Element).className;
+    const targetId = (e.target as Element).id;
+    
+    if (targetClass !== `fas fa-search` && targetId !== `search-toggle`) {
+      this.searchBtnToggle = false;
+    }
+  }
+
+  clickNumber(toneNum: string): void {
+    if (this.endUser === null) {
+      return;
+    }
+
+    if (toneNum === "clear") {
+      delInputValue(`call-number`);
+      return;
+    }
+    
+    if (this.callState === false || this.lineChanged === true || this.transferState === true) {
+      addInputValue(`call-number`, toneNum);
+
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: false}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}]);
+    }
+    else {
+      setButtonsDisabled([
+        {id: `begin-call`, disabled: false}, 
+        {id: `end-call`, disabled: true}, 
+        {id: `mute-btn`, disabled: true}, 
+        {id: `hold-btn`, disabled: true}]);
+
+      this.endUser.sendDTMF(toneNum)
+        .then(() => {
+          addInputValue(`call-number`, toneNum);
+        })
         .catch((err: Error) => {
-          console.error(`[${this.endUser.id}] failed to decline call`);
+          addInputValue(`call-number`, toneNum);
+          console.error(`[${this.endUser.id}] failed to send DTMF`);
           console.error(err);
         });
     }
-    else {
-      this.endUser.hangup().catch((err: Error) => {
-        console.error(`Failed to hangup call`);
-        console.error(err);
-      });
-    }
-  }
-
-  onMute(): void {
-    this.muteToggle = !this.muteToggle;
-    if (this.muteToggle) {
-      this.endUser.mute();
-      if (this.endUser.isMuted() === false) {
-        this.muteToggle = false;
-        console.error(`[${this.endUser.id}] failed to mute call`);
-      }
-    }
-    else {
-      this.endUser.unmute();
-      if (this.endUser.isMuted() === true) {
-        this.muteToggle = true;
-        console.error(`[${this.endUser.id}] failed to unmute call`);
-      }
-    }
-  }
-
-  onHold(value: boolean): void {
-    this.holdToggle = !this.holdToggle;
-    if (this.holdToggle) {
-      this.endUser.hold().catch((error: Error) => {
-        this.holdToggle = false;
-        console.error(`[${this.endUser.id}] failed to hold call`);
-        console.error(error);
-      });
-    }
-    else {
-      this.endUser.unhold().catch((error: Error) => {
-        this.holdToggle = true;
-        console.error(`[${this.endUser.id}] failed to unhold call`);
-        console.error(error);
-      });
-    }
-  }
-
-  onDnd(): void {
-    this.pbxControlService.toggleDnd().subscribe(response => {
-      const dndStatus = parseDnd(response);
-      this.dndToggle = dndStatus === DndState.Enabled ? true : false;
-    });
-  }
-
-  makeCallCreatedCallback(user: EndUser): () => void {
-    return () => {
-      console.log(`[${user.id}] call created`);
-      this.phoneState = `Dialing`;
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: true}, 
-        {id: `end-call`, disabled: false}, 
-        {id: `mute-btn`, disabled: false}, 
-        {id: `hold-btn`, disabled: false}, 
-        {id: `transfer-call`, disabled: false}]);
-    };
-  }
-
-  makeCallAnsweredCallback(user: EndUser): () => void {
-    return () => {
-      console.log(`[${user.id}] call answered`);
-      this.phoneState = `Connected`;
-
-      var AudioContext = window.AudioContext;
-      this.audioContext = new AudioContext();
-      if (user.localMediaStream !== undefined) {
-        this.handleMeterLocal(user.localMediaStream);
-      }
-      if (user.remoteMediaStream !== undefined) {
-        this.handleMeterRemote(user.remoteMediaStream);
-      }
-    }
-  }
-
-  makeCallReceivedCallback(callerId: string, autoAnswer: boolean): void {
-    console.log(`[${this.endUser.id}] call received`);
-    this.callerId = callerId;
-    this.phoneState = `Ringing`;
-
-    setButtonsDisabled([
-      {id: `begin-call`, disabled: false}, 
-      {id: `end-call`, disabled: false}, 
-      {id: `mute-btn`, disabled: true}, 
-      {id: `hold-btn`, disabled: true}, 
-      {id: `transfer-call`, disabled: true}]);
-
-    this.invitationState = true;
-
-    if (autoAnswer == true) {
-      this.makeCall();
-    } else {
-      ringAudio.loop = true;
-      ringAudio.autoplay = true;
-      ringAudio.play();
-    }
-  }
-
-  makeCallHangupCallback(user: EndUser): () => void {
-    return () => {
-      console.log(`[${user.id}] call hangup`);
-      this.callState = false;
-      this.phoneState = `Call Ended`;
-
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: true}, 
-        {id: `end-call`, disabled: true}, 
-        {id: `mute-btn`, disabled: true}, 
-        {id: `hold-btn`, disabled: true}, 
-        {id: `transfer-call`, disabled: true}]);
-      this.callerId = ``;
-      this.handleMeterStop();
-    };
-  }
-
-  makeRegisteredCallback(user: EndUser): () => void {
-    return () => {
-      this.pbxControlService.loadPhoneContacts();
-      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-        this._phoneContacts = phonecontacts.data;
-      });
-      
-      this.pbxControlService.toggleDnd().subscribe(response => {
-        //call twice because status get toggled when call api
-        this.pbxControlService.toggleDnd().subscribe(response => {
-          const dndStatus = parseDnd(response);        
-          this.dndToggle = dndStatus === DndState.Enabled ? true : false;
-        });
-      });
-      console.log(`[${user.id}] registered`);
-      this.phoneStatusService.updateCallStatus(`Welcome ` + this.phoneUser.displayName);
-      // this.phoneState = `Welcome ` + this.phoneUser.displayName;
-
-    };
-  }
-
-  makeUnregisteredCallback(user: EndUser): () => void {
-    return () => {
-      console.log(`[${user.id}] unregistered`);
-      this.phoneState = "Unregistered";
-    };
-  }
-
-  makeServerConnectCallback(user: EndUser): () => void {
-    return () => {
-      console.log(`[${user.id}] connected`);
-      this.phoneState = "Connected to Server";
-    };
-  }
-
-  makeServerDisconnectCallback(user: EndUser): () => void {
-    return (err?: Error) => {
-      console.log(`[${user.id}] disconnected`);
-      this.phoneState = "Disconnected";
-      if (err) {
-        console.error(`[${user.id}] Server disconnected.\n` + err.message);
-      }
-    };
   }
 
   searchContact(): void {
@@ -596,64 +599,36 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.searchResult = [];
   }
 
-  makeTransfer(): void {
-    const btnText = getButtonText('transfer-call');
-    if (btnText === 'X-fer' && this.transferState === false) {
-      setButtonText(`transfer-call`, `Complete X-fer`);
-      this.selectLine = `2`;
-      this.endUser.changeLine(1);
-      this.transferState = true;
-      return;
-    } else if (btnText === 'Complete X-fer' && this.transferState === true) {
-      setButtonText(`transfer-call`, 'X-fer');
-      this.transferState = false;
-      this.selectLine = `1`;
-      this.endUser.completeTransfer()
-        .catch((error: Error) => {
-          console.error(`[${this.endUser.id}] failed to complete transfer call`);
-          console.error(error);
-        });
-    }
-    return;
+  handleMeterLocal(stream: any): void {
+    this.localSoundMeter = new LocalSoundMeter(this.audioContext);
+    this.localSoundMeter.connectToSource(stream, (e: Error) => {
+      this.micMeterRefresh = setInterval(() => {
+        this.micLiveMeter = this.localSoundMeter.inputInstant;
+      }, 1000/15);
+    })
   }
 
-  changeLine(): void {
-    const lineNumber = this.selectLine === '1' ? 0:1;
-    this.lineChanged = true;
-    if (this.endUser === null) {
-      return;
-    }
-    this.endUser
-      .changeLine(lineNumber)
-      .catch((error: Error) => {
-        console.error(`[${this.endUser.id}] failed to change line`);
-        console.error(error);
-      })
+  handleMeterRemote(stream: any): void {
+    this.remoteSoundMeter = new RemoteSoundMeter(this.audioContext);
+    this.remoteSoundMeter.connectToSource(stream, (e: Error) => {
+      this.receiverMeterRefresh = setInterval(() => {
+        this.receiverLiveMeter = this.remoteSoundMeter.calculateAudioLevels();
+      }, 1000/15);
+    })
   }
 
-  // changeReceiverVolume(): void {
-  //   const remoteAudio = getAudio(`remoteAudio`);    
-  //   const volume = Math.round(this.receiverVolume) / 100;
-  //   remoteAudio.volume = parseFloat(volume.toFixed(2));
-  // }
-
-  onClickOutsideNumber(e: Event): void {
-    const targetClass = (e.target as Element).className;
-    const targetId = (e.target as Element).id;
-    
-    if (targetClass !== `fas fa-bars` && targetId !== `number-toggle`) {
-      this.numberBtnToggle = false;
+  handleMeterStop(): void {
+    if (this.remoteSoundMeter !== undefined) {
+      this.remoteSoundMeter.stop();
     }
-  }
 
-  onClickOutsideSearch(e: Event): void {
-    const targetClass = (e.target as Element).className;
-    const targetId = (e.target as Element).id;
-    
-    if (targetClass !== `fas fa-search` && targetId !== `search-toggle`) {
-      this.searchBtnToggle = false;
+    if (this.localSoundMeter !== undefined) {
+      this.localSoundMeter.stop();
     }
-  }
 
-  
+    clearInterval(this.micMeterRefresh);
+    clearInterval(this.receiverMeterRefresh);
+    this.micLiveMeter = 0;
+    this.receiverLiveMeter = 0;
+  }
 }

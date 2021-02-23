@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-misc-control',
@@ -7,9 +7,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MiscControlComponent implements OnInit {
 
+  @Output() transfer = new EventEmitter();
+
   constructor() { }
 
   ngOnInit(): void {
+  }
+
+  onMakeTransfer(): void {
+    this.transfer.emit();
   }
 
 }
