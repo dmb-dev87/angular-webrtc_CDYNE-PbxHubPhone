@@ -15,6 +15,7 @@ const constraints = {
   audio: true,
   video: false
 };
+const monitorTarget = `*5`;
 
 @Component({
   selector: 'app-phone-panel',
@@ -420,6 +421,33 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         });
     }
     return;
+  }
+
+  onDialMonitor(): void {
+    if (this.endUser === null) {
+      return;
+    }
+    const target = `sip:${monitorTarget}@${hostURL}`;
+    this.endUser
+      .call(target, undefined, {
+        requestDelegate: {
+          onReject: (response) => {
+            console.warn(`[${this.endUser.id}] INVITE rejected`);
+            let message = `Session invitation to "${this.targetNum}" rejected.\n`;
+            message += `Reason: ${response.message.reasonPhrase}\n`;
+            message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+            message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+            console.log(message);
+            this.callState = false;
+          }
+        }
+      })
+      .catch((err: Error) => {
+        this.callState = false;
+        console.error(`Failed to place call`);
+        console.error(err);
+        return;
+      });    
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

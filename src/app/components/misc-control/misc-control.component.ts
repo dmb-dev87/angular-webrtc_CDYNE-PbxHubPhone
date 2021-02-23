@@ -9,6 +9,7 @@ import { getButtonText, setButtonText } from '../../utilities/ui-utils';
 export class MiscControlComponent implements OnInit {
 
   @Output() transfer = new EventEmitter<boolean>();
+  @Output() monitor = new EventEmitter();
   
   @Input() transferState: boolean;
 
@@ -29,5 +30,9 @@ export class MiscControlComponent implements OnInit {
       completed = true;
     }
     this.transfer.emit(completed);   
+  }
+
+  onDialMonitor(): void {
+    this.monitor.emit();
   }
 }
