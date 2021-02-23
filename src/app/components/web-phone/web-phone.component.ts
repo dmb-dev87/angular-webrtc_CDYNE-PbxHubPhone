@@ -104,7 +104,7 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
           localStorage.setItem(`user_id`, this.phoneUser.clientId);
           this.connect();
 
-          this.pbxControlService.load();
+          this.pbxControlService.loadPhoneContacts();
 
           this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
             this._phoneContacts = phonecontacts.data;

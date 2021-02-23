@@ -1,0 +1,14 @@
+<div class=" row">
+  <div class=" btns-panel">
+    <button class=" btn btn-fill phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
+    <button class=" btn btn-fill phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
+    <button class=" btn btn-fill phone-ctrlbtn-small" [ngClass]="dndToggle ? 'btn-danger' : 'btn-success'"  id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND ON":"DND OFF"}}</button>
+  </div>  
+  <div class=" btns-panel">
+    <button class=" btn btn-fill btn-danger call-btn" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
+  </div>
+  <app-dial-pad></app-dial-pad>
+  <div class=" btns-panel">
+    <button class=" btn btn-fill btn-success call-btn" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
+  </div>
+</div>

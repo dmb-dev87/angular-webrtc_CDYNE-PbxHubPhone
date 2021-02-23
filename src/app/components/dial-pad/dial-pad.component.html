@@ -1,0 +1,36 @@
+<div class=" input-number">
+  <button id="search-toggle"><i class="fas fa-search"></i></button>
+  <input type="text" id="call-number" (input)="searchContact()">
+  <button id="number-toggle"><i class="fas fa-bars"></i></button>
+</div>
+<div class=" row number-pad" *ngIf="this.numberBtnToggle && !this.searchBtnToggle">
+  <div class=" number-group" (clickOutside)="onClickOutsideNumber($event)">
+    <div class=" row">
+      <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
+    </div>
+    <div class=" row">
+      <button *ngFor="let n of ['4', '5', '6'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
+    </div>
+    <div class=" row">
+      <button *ngFor="let n of ['7', '8', '9'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
+    </div>
+    <div class=" row">
+      <button *ngFor="let n of ['#', '0', '*'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
+    </div>
+    <div class=" row">
+      <button class=" btn btn-fill btn-number" (click)="clickNumber('clear')">Clear</button>
+    </div>
+  </div>
+</div>
+<div class=" row search-pad" *ngIf="(this.searchResult.length > 0 && this.searchBtnToggle) && !this.numberBtnToggle">
+  <div class=" search-list" (clickOutside)="onClickOutsideSearch($event)">
+    <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
+      <div class=" col-8">
+        <p>{{item.firstName}} {{item.lastName}}</p>
+      </div>
+      <div class=" col-4">
+        <p>{{item.extension}}</p>
+      </div>
+    </div>
+  </div>
+</div>

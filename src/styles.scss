@@ -11,10 +11,43 @@ label {
   margin-bottom: 0px;
 }
 
+.btn {
+  margin-left: 5px;
+  margin-right: 5px;
+  padding: 5px 0px;
+  font-size: 0.6rem;
+  border-radius: 3px;
+}
+
+.btn-normal {
+  background: #4a4a4a;
+  background-image: linear-gradient(to bottom left, #4a4a4a, #4a4a4a, #4a4a4a);
+  background-size: 210% 210%;
+  background-position: top right;
+  background-color: #4a4a4a;
+  transition: all 0.15s ease;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+.btns-panel {
+  padding: 5px 0px;
+
+  input {
+    width: 120px;
+  }
+}
+
 .main-panel {
   background: #ffffff;
   border: none;
   font-size: 0.75rem;
+}
+
+.control-pad {
+  div.row {
+    justify-content: center;
+  }
 }
 
 .mat-radio-outer-circle {

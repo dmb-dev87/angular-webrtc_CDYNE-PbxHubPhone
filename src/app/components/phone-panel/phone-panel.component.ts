@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import {
   addInputValue, 
@@ -17,6 +17,7 @@ import { PhoneContact } from '../../models/phonecontact';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
+import { PhoneStatusService } from 'src/app/services/phonestatus.service';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -64,7 +65,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private remoteSoundMeter: RemoteSoundMeter = undefined;
   private audioContext = undefined;
 
-  constructor(private pbxControlService: PbxControlService) {
+  constructor(private pbxControlService: PbxControlService, private phoneStatusService: PhoneStatusService) {
 
   }
 
@@ -81,65 +82,48 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const numberToggle = getButton(`number-toggle`);
-    numberToggle.addEventListener(`click`, () => {
-      this.numberBtnToggle = !this.numberBtnToggle;
-      this.searchBtnToggle = false;
-    });
+    // const numberToggle = getButton(`number-toggle`);
+    // numberToggle.addEventListener(`click`, () => {
+    //   this.numberBtnToggle = !this.numberBtnToggle;
+    //   this.searchBtnToggle = false;
+    // });
 
-    const searchBtn = getButton(`search-toggle`);
-    searchBtn.addEventListener(`click`, () => {
-      this.searchResult = this._phoneContacts;
-      this.searchBtnToggle = !this.searchBtnToggle;
-      this.numberBtnToggle = false;      
-    });
+    // const searchBtn = getButton(`search-toggle`);
+    // searchBtn.addEventListener(`click`, () => {
+    //   this.searchResult = this._phoneContacts;
+    //   this.searchBtnToggle = !this.searchBtnToggle;
+    //   this.numberBtnToggle = false;      
+    // });
 
-    const receiverSpan = getSpan(`receiver-control`);
-    receiverSpan.addEventListener(`click`, () => {
-      this.receiverCtrlToggle = !this.receiverCtrlToggle;
-      const remoteAudio = getAudio(`remoteAudio`);
-      if (this.endUser && this.endUser.remoteAudioTrack !== undefined) {
-        const audioTrack = this.endUser.remoteAudioTrack;
-        const settings = audioTrack.getSettings();
-        const volume = settings.map(setting => setting.volume);
-        remoteAudio.volume = volume;
-      }
-      this.receiverVolume = remoteAudio.volume * 100;     
-    })
+    
 
-    setButtonsDisabled([
-      {id: `begin-call`, disabled: true}, 
-      {id: `end-call`, disabled: true}, 
-      {id: `mute-btn`, disabled: true}, 
-      {id: `hold-btn`, disabled: true}, 
-      {id: `transfer-call`, disabled: true}, 
-      {id: `dnd-btn`, disabled: true}]);
+    // setButtonsDisabled([
+    //   {id: `begin-call`, disabled: true}, 
+    //   {id: `end-call`, disabled: true}, 
+    //   {id: `mute-btn`, disabled: true}, 
+    //   {id: `hold-btn`, disabled: true}, 
+    //   {id: `transfer-call`, disabled: true}, 
+    //   {id: `dnd-btn`, disabled: true}]);
   }
 
-  onRegister(): void {
-    const email = getInputValue(`email`);
-    if (email === ``) {
-      return
-    }
-    const btnText = getButtonText(`register-btn`);
-    if (btnText === `Register`) {
-      this.pbxControlService.webRtcDemo(email).subscribe(response => {
-        this.phoneUser = parseWebRtcDemo(response);
-        if (this.phoneUser) {
-          // set user information to localstorage
-          localStorage.setItem(`user_name`, this.phoneUser.authName);
-          localStorage.setItem(`user_id`, this.phoneUser.clientId);
-          this.connect();
-        }
-      })
-    }
-    else if (btnText === `Unregister`) {
-      this.unregister();
-      this.phoneUser = undefined;
-      this._phoneContacts = [];
-      localStorage.removeItem(`user_name`);
-      localStorage.removeItem(`user_id`);
-    }
+  onRegister(email: string): void {
+    this.pbxControlService.webRtcDemo(email).subscribe(response => {
+      this.phoneUser = parseWebRtcDemo(response);
+      if (this.phoneUser) {
+        // set user information to localstorage
+        localStorage.setItem(`user_name`, this.phoneUser.authName);
+        localStorage.setItem(`user_id`, this.phoneUser.clientId);
+        this.connect();
+      }
+    })
+  }
+
+  onUnregister(): void {
+    this.unregister();
+    this.phoneUser = undefined;
+    this._phoneContacts = [];
+    localStorage.removeItem(`user_name`);
+    localStorage.removeItem(`user_id`);
   }
 
   connect(): void {
@@ -430,7 +414,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onHold(): void {
+  onHold(value: boolean): void {
     this.holdToggle = !this.holdToggle;
     if (this.holdToggle) {
       this.endUser.hold().catch((error: Error) => {
@@ -526,7 +510,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
-      this.pbxControlService.load();
+      this.pbxControlService.loadPhoneContacts();
       this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
         this._phoneContacts = phonecontacts.data;
       });
@@ -539,7 +523,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         });
       });
       console.log(`[${user.id}] registered`);
-      this.phoneState = `Welcome ` + this.phoneUser.displayName;
+      this.phoneStatusService.updateCallStatus(`Welcome ` + this.phoneUser.displayName);
+      // this.phoneState = `Welcome ` + this.phoneUser.displayName;
+
     };
   }
 
@@ -645,11 +631,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       })
   }
 
-  changeReceiverVolume(): void {
-    const remoteAudio = getAudio(`remoteAudio`);    
-    const volume = Math.round(this.receiverVolume) / 100;
-    remoteAudio.volume = parseFloat(volume.toFixed(2));
-  }
+  // changeReceiverVolume(): void {
+  //   const remoteAudio = getAudio(`remoteAudio`);    
+  //   const volume = Math.round(this.receiverVolume) / 100;
+  //   remoteAudio.volume = parseFloat(volume.toFixed(2));
+  // }
 
   onClickOutsideNumber(e: Event): void {
     const targetClass = (e.target as Element).className;
@@ -669,11 +655,5 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onClickOutsideReceiver(e: Event): void {
-    const targetClass = (e.target as Element).className;
-    
-    if (targetClass !== `fas fa-headset`) {
-      this.receiverCtrlToggle = false;
-    }
-  }
+  
 }

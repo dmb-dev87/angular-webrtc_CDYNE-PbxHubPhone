@@ -3,7 +3,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 
 import * as PhoneContactsActions from '../actions/phonecontacts.actions';
-import { AppState, getPhoneContactsState } from '../reducers';
+import * as PhoneUserActions from '../actions/phoneuser.actions';
+
+import { AppState, getPhoneContactsState, getPhoneUserState } from '../reducers';
 
 export enum DndState {
   Enabled = `DND Enabled`,
@@ -25,10 +27,14 @@ export class PbxControlService {
     
   }
 
-  load(): void {
-    this.user_id = localStorage.getItem(`user_id`);
-    this.user_name = localStorage.getItem(`user_name`);
-    this.store.dispatch(new PhoneContactsActions.LoadPhoneContactsBegin());
+  // load(): void {
+  //   this.user_id = localStorage.getItem(`user_id`);
+  //   this.user_name = localStorage.getItem(`user_name`);
+  //   this.store.dispatch(new PhoneContactsActions.LoadPhoneContactsBegin());
+  // }
+
+  loadPhoneUser(email: string): void {
+    this.store.dispatch(new PhoneUserActions.LoadPhoneUserBegin(email));
   }
 
   webRtcDemo(email: string): any {
@@ -46,6 +52,16 @@ export class PbxControlService {
         .append('SOAPAction', soapAction),
       responseType: 'text'
     });
+  }
+
+  getPhoneUser(): any {
+    return this.store.select(getPhoneUserState);
+  }
+
+  loadPhoneContacts(): void {
+    this.user_id = localStorage.getItem(`user_id`);
+    this.user_name = localStorage.getItem(`user_name`);
+    this.store.dispatch(new PhoneContactsActions.LoadPhoneContactsBegin());
   }
 
   userGetDirecotry(): any {
