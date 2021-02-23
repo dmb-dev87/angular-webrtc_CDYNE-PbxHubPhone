@@ -1,16 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import {
-  addInputValue, 
-  delInputValue, 
-  getInputValue, 
-  setInputValue, 
-  getAudio, 
-  getButton, 
-  setButtonText, 
-  getButtonText, 
-  getSpan, 
-  setButtonsDisabled } from '../../utilities/ui-utils';
+import { getAudio } from '../../utilities/ui-utils';
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
@@ -38,10 +28,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   registerStatus = false;
 
   selectLine = `1`;
-  receiverVolume = 0.0;
   micLiveMeter = 100;
   receiverLiveMeter = 100;
-  receiverCtrlToggle = false;  
 
   dndStatus = false;
 
@@ -83,12 +71,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${user.id}] call created`);
       this.callStatus = `Dialing`;
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: true}, 
-        {id: `end-call`, disabled: false}, 
-        {id: `mute-btn`, disabled: false}, 
-        {id: `hold-btn`, disabled: false}, 
-        {id: `transfer-call`, disabled: false}]);
     };
   }
 
@@ -112,14 +94,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     console.log(`[${this.endUser.id}] call received`);
     this.callerId = callerId;
     this.callStatus = `Ringing`;
-
-    setButtonsDisabled([
-      {id: `begin-call`, disabled: false}, 
-      {id: `end-call`, disabled: false}, 
-      {id: `mute-btn`, disabled: true}, 
-      {id: `hold-btn`, disabled: true}, 
-      {id: `transfer-call`, disabled: true}]);
-
     this.invitationState = true;
 
     if (autoAnswer == true) {
@@ -136,13 +110,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`[${user.id}] call hangup`);
       this.callState = false;
       this.callStatus = `Call Ended`;
-
-      setButtonsDisabled([
-        {id: `begin-call`, disabled: true}, 
-        {id: `end-call`, disabled: true}, 
-        {id: `mute-btn`, disabled: true}, 
-        {id: `hold-btn`, disabled: true}, 
-        {id: `transfer-call`, disabled: true}]);
       this.callerId = ``;
       this.handleMeterStop();
     };
@@ -436,16 +403,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Misc Controller Events
-  onMakeTransfer(): void {
-    const btnText = getButtonText('transfer-call');
-    if (btnText === 'X-fer' && this.transferState === false) {
-      setButtonText(`transfer-call`, `Complete X-fer`);
+  onMakeTransfer(completed: boolean): void {
+    if (completed === false) {
       this.selectLine = `2`;
       this.endUser.changeLine(1);
       this.transferState = true;
       return;
-    } else if (btnText === 'Complete X-fer' && this.transferState === true) {
-      setButtonText(`transfer-call`, 'X-fer');
+    } 
+    else {
       this.transferState = false;
       this.selectLine = `1`;
       this.endUser.completeTransfer()
@@ -473,7 +438,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   changeReceiverVolume(volume: number): void {
-    const remoteAudio = getAudio(`remoteAudio`);    
+    const remoteAudio = getAudio(`remoteAudio`);
     remoteAudio.volume = volume;
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -508,7 +473,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
     clearInterval(this.micMeterRefresh);
     clearInterval(this.receiverMeterRefresh);
-    this.micLiveMeter = 0;
-    this.receiverLiveMeter = 0;
+    this.micLiveMeter = 100;
+    this.receiverLiveMeter = 100;
   }
 }

@@ -1,4 +1,5 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+import { getButtonText, setButtonText } from '../../utilities/ui-utils';
 
 @Component({
   selector: 'app-misc-control',
@@ -7,7 +8,9 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 })
 export class MiscControlComponent implements OnInit {
 
-  @Output() transfer = new EventEmitter();
+  @Output() transfer = new EventEmitter<boolean>();
+  
+  @Input() transferState: boolean;
 
   constructor() { }
 
@@ -15,7 +18,16 @@ export class MiscControlComponent implements OnInit {
   }
 
   onMakeTransfer(): void {
-    this.transfer.emit();
+    let completed = false;
+    const btnText = getButtonText('transfer-call').toLowerCase();
+    if (btnText === `x-fer`) {
+      setButtonText(`transfer-call`, `Complete X-fer`);
+      completed = false;
+    }
+    else if (btnText === `complete x-fer`) {
+      setButtonText(`transfer-call`, 'X-fer');
+      completed = true;
+    }
+    this.transfer.emit(completed);   
   }
-
 }

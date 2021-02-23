@@ -3,19 +3,19 @@
     <div class=" row">
       <div class=" col mic-panel">
         <div class=" mic-meter">
-          <mat-progress-bar [value]="micLiveMeter"></mat-progress-bar>
+          <mat-progress-bar [value]="micMeter"></mat-progress-bar>
         </div>
         <span class=" mic-control" id="mic-control"><i class="fas fa-microphone"></i></span>
       </div>
       <div class=" col receiver-panel">
         <div class=" receiver-meter">
-          <mat-progress-bar [value]="receiverLiveMeter"></mat-progress-bar>
+          <mat-progress-bar [value]="receiverMeter"></mat-progress-bar>
         </div>
         <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
         <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
           <div class=" slider-group" (clickOutside)="onClickOutsideReceiver($event)">
             <div class=" row">
-              <mat-slider thumbLabel class=" receiver-ctrl" min="0" max="100" [(ngModel)]="receiverVolume" (change) = "onChangeReceiverVolume()" vertical></mat-slider>
+              <mat-slider thumbLabel class=" receiver-ctrl" min="0" max="100" [(ngModel)]="receiverVolume" (change)="onChangeReceiverVolume()" vertical></mat-slider>
             </div>
           </div>
         </div>

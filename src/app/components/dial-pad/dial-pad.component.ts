@@ -83,7 +83,7 @@ export class DialPadComponent implements OnInit, AfterViewInit {
 
     const value = getInputValue(`call-number`);
     this.changeNumberEvent.emit(value);
-    
+
     // if (this.callState === false || this.lineChanged === true || this.transferState === true) {
     //   addInputValue(`call-number`, toneNum);
 

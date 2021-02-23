@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, AfterViewInit, EventEmitter, Output, Input } from '@angular/core';
 import { getSpan, getAudio } from '../../utilities/ui-utils';
 
 @Component({
@@ -8,13 +8,16 @@ import { getSpan, getAudio } from '../../utilities/ui-utils';
 })
 export class LineInfoComponent implements OnInit, AfterViewInit {
   receiverCtrlToggle = false;
-  receiverVolume = 0.0;
+  receiverVolume = 100;
   micLiveMeter = 100;
   receiverLiveMeter = 100;
-  selectLine = `1`;
 
   @Output() changeLine = new EventEmitter<number>();
   @Output() changeReceiverVolume = new EventEmitter<number>();
+
+  @Input() micMeter: number;
+  @Input() receiverMeter: number;
+  @Input() selectLine: string;
 
   constructor() { }
 

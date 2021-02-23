@@ -1,7 +1,7 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
     <div class=" col-lg-3 col-md-3 col-sm-12">
-      <app-user-info
+      <app-user-info        
         [callerId]="callerId"
         [callStatus]="callStatus"
         [registerStatus]="registerStatus"
@@ -11,6 +11,9 @@
     </div>
     <div class=" col-lg-2 col-md-2 col-sm-12 control-pad">
       <app-line-info
+        [selectLine]="selectLine"
+        [micMeter]="micLiveMeter"
+        [receiverMeter]="receiverLiveMeter"
         (changeReceiverVolume)="changeReceiverVolume($event)"
         (changeLine)="changeLine($event)">
       </app-line-info>
@@ -28,7 +31,7 @@
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
       <app-misc-control
-        (transfer)="onMakeTransfer()">
+        (transfer)="onMakeTransfer($event)">
       </app-misc-control>
     </div>
   </div>
