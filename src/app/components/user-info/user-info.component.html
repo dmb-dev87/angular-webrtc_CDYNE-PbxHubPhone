@@ -1,0 +1,18 @@
+<div class=" row info-pad">
+  <div class=" col-2 logo">
+    <a href="javascript:void(0)">CDYNE</a>
+  </div>
+  <div class=" col-6 caller-id">
+    <span>CallerID: </span>
+    <span>{{callerId}}</span>
+  </div>
+  <div class=" col-4 user-name">
+    <span>{{callStatus}}</span>
+  </div>
+</div>
+<div class=" row login-pad">
+  <div class=" login-panel btns-panel">
+    <input type="text" placeholder="Email" #email>
+    <button class=" btn btn-fill login-btn" id="register-btn" (click)="onRegister(email.value)">{{registerStatus?"Unregister":"Register"}}</button>
+  </div>
+</div>

@@ -1159,8 +1159,8 @@ export class EndUser {
     return oldSession.refer(this.transferTarget);
   }
 
-  async changeLine(lineNumber: number): Promise<void> {
-    this.logger.log(`[${this.id}] Changing Lines...`);
+  async changeLineForTransfer(lineNumber: number): Promise<void> {
+    this.logger.log(`[${this.id}] Changing Lines for transfer...`);
 
     if (lineNumber === this._curLineNumber) {
       return Promise.resolve();
@@ -1188,6 +1188,39 @@ export class EndUser {
 
     if (this.session.state !== SessionState.Established) {
       return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
+    }
+
+    return this.setLineHold(false);
+  }
+
+  async changeLine(lineNumber: number): Promise<void> {
+    this.logger.log(`[${this.id}] Changing Lines...`);
+
+    if (lineNumber === this._curLineNumber) {
+      return Promise.resolve();
+    }
+
+    this.session = this.getCurLineSession();
+
+    if (this.session) {
+      if (this.session.state === SessionState.Established) {        
+        await this.setLineHold(true);
+      }
+      else {
+        return Promise.reject(new Error(`[${this.id}] An established session is required to hold on`));
+      }      
+    }
+
+    this._curLineNumber = lineNumber;
+
+    this.session = this.getCurLineSession();
+
+    if (!this.session) {
+      return Promise.resolve();
+    }
+
+    if (this.session.state !== SessionState.Established) {
+      return Promise.reject(new Error(`[${this.id}] An established session is required to hold off`));
     }
 
     return this.setLineHold(false);

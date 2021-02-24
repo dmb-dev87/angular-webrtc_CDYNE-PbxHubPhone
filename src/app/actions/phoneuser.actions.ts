@@ -8,6 +8,8 @@ export enum ActionTypes {
 
 export class LoadPhoneUserBegin implements Action {
   readonly type = ActionTypes.LoadPhoneUserBegin;
+
+  constructor(public email: string) {}
 }
 
 export class LoadPhoneUserSuccess implements Action {

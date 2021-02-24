@@ -1,0 +1,126 @@
+.audio-panel {
+  padding: 14px 0px 2px 0px;
+  color: #ffffff;
+  font-size: 1rem;
+  
+  .mic-panel {
+    padding: 0px 2px;
+    position: relative;
+
+    .mic-control {
+      margin: 0px 5px;
+    }
+
+    .mic-slider-pad {
+      margin: 0px 0px;
+      position: absolute;
+      z-index: 9999;
+      top: 29px;
+      left: -4px;
+      background-color: transparent;
+    }
+  }
+
+  .receiver-panel {
+    padding: 0px 2px;
+    position: relative;
+
+    .receiver-control {
+      margin: 0px 5px;
+    }
+
+    .receiver-slider-pad {
+      margin: 0px 0px;
+      position: absolute;
+      z-index: 9999;
+      top: 29px;
+      left: -2px;
+      background-color: transparent;
+    }
+  }   
+}
+
+.line-panel {
+  margin: 0px 20px;
+  font-size: 0.6rem;
+
+  span {
+    color: #ffffff;
+    margin-left: 5px;
+    margin-right: 10px;
+  }
+}
+
+:host ::ng-deep .slider-group {
+  padding: 5px 5px;
+  align-items: center;
+  background-color: #1d1d1d;
+  border: 2px solid #c5c5c5;
+  border-top: none;
+
+  .mat-slider-track-background {
+    background-color: #ffffff;
+  }
+
+  .mic-ctrl  {
+    .mat-slider-thumb {
+      background-color: #ff4081;
+    }
+    .mat-slider-thumb-label {
+      background-color: #ff4081;
+    }
+    .mat-slider-track-fill {
+      background-color: #ff4081;
+    }
+  }
+
+  .receiver-ctrl  {
+    .mat-slider-thumb {
+      background-color: #6bb04c;
+    }
+    .mat-slider-thumb-label {
+      background-color: #6bb04c;
+    }
+    .mat-slider-track-fill {
+      background-color: #6bb04c;
+    }
+  }
+}
+
+:host ::ng-deep .mic-meter {
+  position: absolute;
+  top: -6px;
+  left: 3px;
+
+  .mat-progress-bar {
+    width: 20px;
+    height: 2px;
+
+    .mat-progress-bar-buffer {
+      background-color: #1d1d1d;
+    }
+
+    .mat-progress-bar-fill::after {
+      background-color: #ff4081;
+    }
+  }
+}
+
+:host ::ng-deep .receiver-meter {
+  position: absolute;
+  top: -6px;
+  left: 5px;
+
+  .mat-progress-bar {
+    width: 20px;
+    height: 2px;
+
+    .mat-progress-bar-buffer {
+      background-color: #1d1d1d;
+    }
+
+    .mat-progress-bar-fill::after {
+      background-color: #6bb04c;
+    }
+  }
+}
