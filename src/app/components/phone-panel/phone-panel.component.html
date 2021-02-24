@@ -14,12 +14,19 @@
         [selectLine]="selectLine"
         [micMeter]="micLiveMeter"
         [receiverMeter]="receiverLiveMeter"
+        [lineStatusOne]="lineStatusOne"
+        [lineStatusTwo]="lineStatusTwo"
         (changeReceiverVolume)="changeReceiverVolume($event)"
         (changeLine)="changeLine($event)">
       </app-line-info>
     </div>
     <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
       <app-phone-control
+        [holdBtnDisabled]="holdBtnDisabled"
+        [muteBtnDisabled]="muteBtnDisabled"
+        [dndBtnDisabled]="dndBtnDisabled"
+        [beginBtnDisabled]="beginBtnDisabled"
+        [endBtnDisabled]="endBtnDisabled"
         [dndStatus]="dndStatus"
         (changeNumber)="onChangeNumber($event)"
         (hold)="onHold($event)"
@@ -31,6 +38,8 @@
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
       <app-misc-control
+        [xferBtnDisabled]="xferBtnDisabled"
+        [monitorBtnDisabled]="monitorBtnDisabled"
         (transfer)="onMakeTransfer($event)"
         (monitor)="onDialMonitor()">
       </app-misc-control>

@@ -18,6 +18,8 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
   @Input() micMeter: number;
   @Input() receiverMeter: number;
   @Input() selectLine: string;
+  @Input() lineStatusOne: string;
+  @Input() lineStatusTwo: string;
 
   constructor() { }
 

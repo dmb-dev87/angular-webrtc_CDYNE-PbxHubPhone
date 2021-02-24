@@ -11,6 +11,12 @@ export class PhoneControlComponent implements OnInit {
 
   @Input() dndStatus: boolean;
 
+  @Input() holdBtnDisabled: boolean;
+  @Input() muteBtnDisabled: boolean;
+  @Input() dndBtnDisabled: boolean;
+  @Input() beginBtnDisabled: boolean;
+  @Input() endBtnDisabled: boolean;
+
   @Output() hold = new EventEmitter<boolean>();
   @Output() mute = new EventEmitter<boolean>();
   @Output() dnd = new EventEmitter();

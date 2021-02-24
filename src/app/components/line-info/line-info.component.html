@@ -28,13 +28,13 @@
         <mat-radio-button value="1">
           <span>Line 1:</span>
         </mat-radio-button>
-        <input type="text" placeholder="CallerID Info" id="callerid_line1" disabled>
+        <input type="text" placeholder="CallerID Info" id="callerid_line1" [value]="lineStatusOne" disabled>
       </div>
       <div>
         <mat-radio-button value="2">
           <span>Line 2:</span>
         </mat-radio-button>
-        <input type="text" placeholder="CallerID Info" id="callerid_line2" disabled>
+        <input type="text" placeholder="CallerID Info" id="callerid_line2" [value]="lineStatusTwo"  disabled>
       </div>
     </mat-radio-group>
   </div>

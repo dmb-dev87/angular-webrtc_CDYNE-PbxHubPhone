@@ -31,13 +31,22 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   selectLine = `1`;
   micLiveMeter = 100;
   receiverLiveMeter = 100;
+  lineStatusOne = `CallerID Info`;
+  lineStatusTwo = `CallerID Info`;
 
   dndStatus = false;
+  holdBtnDisabled = true;
+  muteBtnDisabled = true;
+  dndBtnDisabled = true;
+  beginBtnDisabled = true;
+  endBtnDisabled = true;
+
+  xferBtnDisabled = true;
+  monitorBtnDisabled = true;
 
   private endUser = null;
   private callState = false;
   private transferState = false;
-  private lineChanged = false;
   private invitationState = false;
   private targetNum = null;
 
@@ -72,6 +81,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${user.id}] call created`);
       this.callStatus = `Dialing`;
+
+      this.holdBtnDisabled = false;
+      this.muteBtnDisabled = false;
+      this.beginBtnDisabled = false;
+      this.endBtnDisabled = false;
+
+      this.xferBtnDisabled = false;
+
+      this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
     };
   }
 
@@ -79,6 +97,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${user.id}] call answered`);
       this.callStatus = `Connected`;
+
+      this.holdBtnDisabled = false;
+      this.muteBtnDisabled = false;
+      this.beginBtnDisabled = false;
+      this.endBtnDisabled = false;
+
+      this.xferBtnDisabled = false;
 
       var AudioContext = window.AudioContext;
       this.audioContext = new AudioContext();
@@ -96,6 +121,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.callerId = callerId;
     this.callStatus = `Ringing`;
     this.invitationState = true;
+    this.selectLine === `1` ? this.lineStatusOne = `Call Received` : this.lineStatusTwo = `Call Received`;
+
+    this.holdBtnDisabled = false;
+    this.muteBtnDisabled = false;
+    this.beginBtnDisabled = false;
+    this.endBtnDisabled = false;
+
+    this.xferBtnDisabled = true;
 
     if (autoAnswer == true) {
       this.onMakeCall();
@@ -109,9 +142,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallHangupCallback(user: EndUser): () => void {
     return () => {
       console.log(`[${user.id}] call hangup`);
+      this.selectLine === `1` ? this.lineStatusOne = `Call Ended` : this.lineStatusTwo = `Call Ended`;
       this.callState = false;
       this.callStatus = `Call Ended`;
       this.callerId = ``;
+
+      this.holdBtnDisabled = true;
+      this.muteBtnDisabled = true;
+      this.beginBtnDisabled = false;
+      this.endBtnDisabled = true;
+
+      this.xferBtnDisabled = true;
+      
       this.handleMeterStop();
     };
   }
@@ -129,6 +171,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`[${user.id}] registered`);
       this.registerStatus = true;
       this.callStatus = `Welcome ` + this.phoneUser.displayName;
+
+      this.holdBtnDisabled = true;
+      this.muteBtnDisabled = true;
+      this.dndBtnDisabled = false;
+      this.beginBtnDisabled = false;
+      this.endBtnDisabled = true;
+
+      this.xferBtnDisabled = true;
+      this.monitorBtnDisabled = false;
     };
   }
 
@@ -137,6 +188,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`[${user.id}] unregistered`);
       this.registerStatus = false;
       this.callStatus = "Unregistered";
+
+      this.holdBtnDisabled = true;
+      this.muteBtnDisabled = true;
+      this.dndBtnDisabled = true;
+      this.beginBtnDisabled = true;
+      this.endBtnDisabled = true;
+
+      this.xferBtnDisabled = true;
+      this.monitorBtnDisabled = true;
     };
   }
 
@@ -346,17 +406,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     else {
       const target = `sip:${this.targetNum}@${hostURL}`;
 
-      this.lineChanged = false;
-
-      // if (this.selectLine === `1`) {
-      //   setInputValue(`callerid_line1`, this.targetNum);
-      // }
-      // else {
-      //   setInputValue(`callerid_line2`, this.targetNum);
-      // }
-
-      // setInputValue(`call-number`, ``);
-
       if (this.transferState === true) {
         this.endUser
           .onMakeTransfer(target, undefined, {
@@ -407,9 +456,17 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   onMakeTransfer(completed: boolean): void {
     if (completed === false) {
       this.selectLine = `2`;
-      this.endUser.changeLine(1);
-      this.transferState = true;
-      return;
+      this.endUser
+        .changeLineForTransfer(1)
+        .then(() => {
+          this.transferState = true;
+          return;
+        })
+        .catch((error: Error) => {
+          this.transferState = false;
+          console.error(`[${this.endUser.id}] failed to change line`);
+          console.error(error);
+        });
     } 
     else {
       this.transferState = false;
@@ -453,7 +510,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   // Line Info Events
   changeLine(lineNumber: number): void {
-    this.lineChanged = true;
     if (this.endUser === null) {
       return;
     }

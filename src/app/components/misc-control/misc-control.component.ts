@@ -1,4 +1,5 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+import { BodyAndContentType } from 'sip.js';
 import { getButtonText, setButtonText } from '../../utilities/ui-utils';
 
 @Component({
@@ -12,6 +13,8 @@ export class MiscControlComponent implements OnInit {
   @Output() monitor = new EventEmitter();
   
   @Input() transferState: boolean;
+  @Input() xferBtnDisabled: boolean;
+  @Input() monitorBtnDisabled: boolean;
 
   constructor() { }
 
