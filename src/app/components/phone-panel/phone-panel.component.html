@@ -1,128 +1,48 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
-    <div class=" col-lg-3 col-md-3 col-sm-12 info-pad">
-      <div class=" row">
-        <div class=" col-2 logo">
-          <a href="javascript:void(0)">CDYNE</a>
-        </div>
-        <div class=" col-6 caller-id">
-          <span>CallerID: </span>
-          <span>{{callerId}}</span>
-        </div>
-        <div class=" col-4 user-name">
-          <span>{{phoneState}}</span>
-        </div>
-      </div>
-      <div class=" row login-pad">
-        <div class=" login-panel btns-panel">
-          <input type="text" placeholder="Email" id="email">
-          <button class=" btn btn-fill login-btn" id="register-btn" (click)="onRegister()">Register</button>
-        </div>        
-      </div>
-    </div>
-    <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
-      <div class=" row">
-        <div class=" audio-panel">
-          <div class=" row">
-            <div class=" col mic-panel">
-              <div class=" mic-meter">
-                <mat-progress-bar [value]="micLiveMeter"></mat-progress-bar>
-              </div>
-              <span class=" mic-control" id="mic-control"><i class="fas fa-microphone"></i></span>
-            </div>
-            <div class=" col receiver-panel">
-              <div class=" receiver-meter">
-                <mat-progress-bar value="100" [value]="receiverLiveMeter"></mat-progress-bar>
-              </div>
-              <span class=" receiver-control" id="receiver-control"><i class="fas fa-headset"></i></span>
-              <div class=" row receiver-slider-pad" *ngIf="this.receiverCtrlToggle">
-                <div class=" slider-group" (clickOutside)="onClickOutsideReceiver($event)">
-                  <div class=" row">
-                    <mat-slider thumbLabel class=" receiver-ctrl" min="0" max="100" [(ngModel)]="receiverVolume" (change) = "changeReceiverVolume()" vertical></mat-slider>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class=" line-panel">
-          <mat-radio-group [(ngModel)]="selectLine" (ngModelChange)="changeLine()">
-            <div>
-              <mat-radio-button value="1">
-                <span>Line 1:</span>                
-              </mat-radio-button>
-              <input type="text" placeholder="CallerID Info" id="callerid_line1" disabled>
-            </div>
-            <div>
-              <mat-radio-button value="2">
-                <span>Line 2:</span>                
-              </mat-radio-button>
-              <input type="text" placeholder="CallerID Info" id="callerid_line2" disabled>
-            </div>
-          </mat-radio-group>
-        </div>
-        <div class=" btns-panel">
-          <button class=" btn btn-fill phone-ctrlbtn-small" id="hold-btn" (click)="onHold()">{{holdToggle?"Unhold":"Hold"}}</button>
-          <button class=" btn btn-fill phone-ctrlbtn-small" id="mute-btn" (click)="onMute()">{{muteToggle?"Unmute":"Mute"}}</button>
-          <button class=" btn btn-fill phone-ctrlbtn-small" [ngClass]="dndToggle ? 'btn-danger' : 'btn-success'"  id="dnd-btn" (click)="onDnd()">{{dndToggle?"DND ON":"DND OFF"}}</button>
-        </div>
-      </div>      
+    <div class=" col-lg-3 col-md-3 col-sm-12">
+      <app-user-info        
+        [callerId]="callerId"
+        [callStatus]="callStatus"
+        [registerStatus]="registerStatus"
+        (register)="onRegister($event)"
+        (unregister)="onUnregister()">
+      </app-user-info>
     </div>
     <div class=" col-lg-2 col-md-2 col-sm-12 control-pad">
-      <div class=" row">
-        <div class=" btns-panel">
-          <button class=" btn btn-fill btn-danger call-btn" id="end-call" (click)="hangupCall()"><i class="fas fa-phone-slash"></i></button>
-        </div>
-        <div class=" input-number">
-          <button id="search-toggle"><i class="fas fa-search"></i></button>
-          <input type="text" id="call-number" (input)="searchContact()">
-          <button id="number-toggle"><i class="fas fa-bars"></i></button>
-        </div>
-        <div class=" btns-panel">
-          <button class=" btn btn-fill btn-success call-btn" id="begin-call" (click)="makeCall()"><i class="fas fa-phone-alt"></i></button>
-        </div>
-      </div>
-      <div class=" row number-pad" *ngIf="this.numberBtnToggle && !this.searchBtnToggle">
-        <div class=" number-group" (clickOutside)="onClickOutsideNumber($event)">
-          <div class=" row">
-            <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
-          </div>
-          <div class=" row">
-            <button *ngFor="let n of ['4', '5', '6'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
-          </div>
-          <div class=" row">
-            <button *ngFor="let n of ['7', '8', '9'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
-          </div>
-          <div class=" row">
-            <button *ngFor="let n of ['#', '0', '*'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
-          </div>
-          <div class=" row">
-            <button class=" btn btn-fill btn-number" (click)="clickNumber('clear')">Clear</button>
-          </div>
-        </div>
-      </div>
-      <div class=" row search-pad" *ngIf="(this.searchResult.length > 0 && this.searchBtnToggle) && !this.numberBtnToggle">
-        <div class=" search-list" (clickOutside)="onClickOutsideSearch($event)">
-          <div class=" row" *ngFor="let item of this.searchResult;" (click)="clickSearchList(item.extension)">
-            <div class=" col-8">
-              <p>{{item.firstName}} {{item.lastName}}</p>
-            </div>
-            <div class=" col-4">
-              <p>{{item.extension}}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-line-info
+        [selectLine]="selectLine"
+        [micMeter]="micLiveMeter"
+        [receiverMeter]="receiverLiveMeter"
+        [lineStatusOne]="lineStatusOne"
+        [lineStatusTwo]="lineStatusTwo"
+        (changeReceiverVolume)="changeReceiverVolume($event)"
+        (changeLine)="changeLine($event)">
+      </app-line-info>
+    </div>
+    <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
+      <app-phone-control
+        [holdBtnDisabled]="holdBtnDisabled"
+        [muteBtnDisabled]="muteBtnDisabled"
+        [dndBtnDisabled]="dndBtnDisabled"
+        [beginBtnDisabled]="beginBtnDisabled"
+        [endBtnDisabled]="endBtnDisabled"
+        [dndStatus]="dndStatus"
+        (changeNumber)="onChangeNumber($event)"
+        (hold)="onHold($event)"
+        (mute)="onMute($event)"
+        (dnd)="onDnd()"
+        (hangupCall)="onHangupCall()"
+        (makeCall)="onMakeCall()">
+      </app-phone-control>
     </div>
     <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
-      <div class=" row">
-        <div class=" btns-panel">
-          <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="makeTransfer()">X-fer</button>
-          <button class=" btn btn-fill btn-normal phone-ctrlbtn">Monitor</button>
-          <button class=" btn btn-fill btn-normal call-btn"><i class="fas fa-record-vinyl"></i></button>
-          <input type="text">
-        </div>
-      </div>
+      <app-misc-control
+        [xferBtnDisabled]="xferBtnDisabled"
+        [monitorBtnDisabled]="monitorBtnDisabled"
+        (transfer)="onMakeTransfer($event)"
+        (monitor)="onDialMonitor()">
+      </app-misc-control>
     </div>
   </div>
 </div>

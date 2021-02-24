@@ -17,7 +17,7 @@ export interface AppState {
 
 export const reducers: ActionReducerMap<AppState> = {
   phoneuser: fromPhoneUser.reducer,
-  phonecontacts: fromPhoneContacts.reducer
+  phonecontacts: fromPhoneContacts.reducer,
 };
 
 export const metaReducers: MetaReducer<AppState>[] = !environment.production ? [] : [];

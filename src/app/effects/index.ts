@@ -1,4 +1,3 @@
-import { PhoneUserEffects } from './phoneuser.effects';
-import { PhoneContactsEffects } from './phonecontacts.effects';
+import { PbxControlEffects } from './pbxcontrol.effects';
 
-export const effects: any[] = [PhoneUserEffects, PhoneContactsEffects];
+export const effects: any[] = [PbxControlEffects];
