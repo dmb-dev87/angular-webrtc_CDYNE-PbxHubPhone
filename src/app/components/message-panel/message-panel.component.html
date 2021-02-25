@@ -1,0 +1,31 @@
+<div class=" col-lg-3 col-md-6 col-sm-12 message-panel">
+  <div class=" row">
+    <h3>Chat</h3>
+  </div>  
+  <div class=" row">
+    <div class=" col-4 contact-list" tabindex="-1">
+      <div *ngFor="let contact of this.phoneContacts;" [ngClass]="{'row':true, 'contact-item':true, 'selected':contact.extension === selectExtension}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
+        <div class=" col">
+          <div class=" row">
+            <p class=" contact-name">{{contact.firstName}} {{contact.lastName}}</p>
+          </div>
+          <div class=" row">
+            <p class=" contact-number">{{contact.extension}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class=" col-8 message-box" id="message-box"></div>
+  </div>  
+  <div class=" row">
+    <div class=" col-4"></div>
+    <div class=" col-8">
+      <mat-form-field class="message-form">
+        <input matInput type="text" [(ngModel)]="messageStr">
+        <button mat-button *ngIf="messageStr" matSuffix mat-icon-button aria-label="Clear" (click)="onSendMessage()">
+          <mat-icon>send</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+  </div>
+</div>

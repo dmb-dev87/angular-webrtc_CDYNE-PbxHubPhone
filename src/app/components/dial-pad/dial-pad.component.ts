@@ -46,7 +46,7 @@ export class DialPadComponent implements OnInit, AfterViewInit {
 
     this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
       this.phoneContacts = phonecontacts.data;
-    })
+    });
 
     if (searchWord) {
       this.searchBtnToggle = true;
@@ -86,19 +86,6 @@ export class DialPadComponent implements OnInit, AfterViewInit {
 
     // if (this.callState === false || this.lineChanged === true || this.transferState === true) {
     //   addInputValue(`call-number`, toneNum);
-
-    //   setButtonsDisabled([
-    //     {id: `begin-call`, disabled: false}, 
-    //     {id: `end-call`, disabled: true}, 
-    //     {id: `mute-btn`, disabled: true}, 
-    //     {id: `hold-btn`, disabled: true}]);
-    // }
-    // else {
-    //   setButtonsDisabled([
-    //     {id: `begin-call`, disabled: false}, 
-    //     {id: `end-call`, disabled: true}, 
-    //     {id: `mute-btn`, disabled: true}, 
-    //     {id: `hold-btn`, disabled: true}]);
 
     //   this.endUser.sendDTMF(toneNum)
     //     .then(() => {

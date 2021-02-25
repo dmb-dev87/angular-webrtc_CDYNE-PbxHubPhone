@@ -44,6 +44,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   xferBtnDisabled = true;
   monitorBtnDisabled = true;
 
+  isMessage = false;
+
   private endUser = null;
   private callState = false;
   private transferState = false;
@@ -216,6 +218,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
     };
   }
+
+  makeMessageReceivedCallback(): () => void {
+    return (messageStr?: string) => {
+      console.log(`[${this.endUser.id}] received message`);
+      if (messageStr) {
+        console.log(`++++++++++++++++++++++++++++++++`, messageStr);
+      }
+    }
+  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // UserInfo Event Emitter
@@ -272,6 +283,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       onUnregistered: this.makeUnregisteredCallback(this.endUser),
       onServerConnect: this.makeServerConnectCallback(this.endUser),
       onServerDisconnect: this.makeServerDisconnectCallback(this.endUser),
+      onMessageReceived: this.makeMessageReceivedCallback(),
     };
 
     this.endUser.delegate = delegate;
@@ -506,6 +518,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         return;
       });    
   }
+
+  onMessageDialog(): void {
+    this.isMessage = !this.isMessage;
+  }
+
+  onClickOutsideMessage(e: Event): void {
+    const targetText = (e.target as Element).textContent;
+    
+    if (targetText !== `Message`) {
+      this.isMessage = false;
+    }
+  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Line Info Events
@@ -518,7 +542,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to change line`);
         console.error(error);
-      })
+      });
   }
 
   changeReceiverVolume(volume: number): void {
@@ -527,6 +551,25 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  // Message Panel Events
+  onSendMessage(messageObj: any) {
+    console.log(`+++++++++++++++++++++++++`, messageObj);
+    const extensionNum = messageObj.extension;
+    const messageStr = messageObj.message;
+    console.log(`+++++++++++++++++++++++++`, extensionNum);
+    console.log(`++++++++++++++++++++++++++`, messageStr);
+    if (this.endUser === null) {
+      return;
+    }
+    const target = `sip:${extensionNum}@${hostURL}`
+    this.endUser
+      .message(target, messageStr)
+      .catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to send message`);
+        console.error(error);
+      });
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   handleMeterLocal(stream: any): void {
     this.localSoundMeter = new LocalSoundMeter(this.audioContext);
@@ -534,7 +577,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.micMeterRefresh = setInterval(() => {
         this.micLiveMeter = this.localSoundMeter.inputInstant;
       }, 1000/15);
-    })
+    });
   }
 
   handleMeterRemote(stream: any): void {
@@ -543,7 +586,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.receiverMeterRefresh = setInterval(() => {
         this.receiverLiveMeter = this.remoteSoundMeter.calculateAudioLevels();
       }, 1000/15);
-    })
+    });
   }
 
   handleMeterStop(): void {

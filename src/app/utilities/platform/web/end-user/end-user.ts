@@ -1154,8 +1154,6 @@ export class EndUser {
       return Promise.reject(new Error(`Old Session does not exists.`));
     }
 
-    console.log(`+++++++++++++++++++++++++++`, this.transferTarget);
-
     return oldSession.refer(this.transferTarget);
   }
 
