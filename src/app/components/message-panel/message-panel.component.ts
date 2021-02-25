@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
 import { PhoneContact } from '../../models/phonecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
-import { MessageHistory } from '../../models/messagehistory';
+import { MessageHistory, MessageRecord } from '../../models/messagehistory';
 
 @Component({
   selector: 'app-message-panel',
@@ -11,11 +11,11 @@ import { MessageHistory } from '../../models/messagehistory';
 export class MessagePanelComponent implements OnInit, AfterViewInit {
   messageStr: string;
   phoneContacts: Array<PhoneContact> = [];
-  selectExtension: string;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
 
-  @Input() activeMessages: Array<MessageHistory>;
+  @Input() activeRecords: Array<MessageRecord>;
+  @Input() selectedExtension: string;
 
   constructor(private pbxControlService: PbxControlService) { }
 
@@ -26,21 +26,40 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    
+    if (this.selectedExtension !== ``) {
+      this.getActiveRecords();
+    }
+  }
+
+  getActiveRecords(): void {
+    this.pbxControlService.getMessageHistories().subscribe(histories=> {
+      console.log(`++++++++++++++++++++++++ histories`, histories);
+      const messageHistories: Array<MessageHistory> = histories.messageHistories;
+      const activeHistory = messageHistories.find(e => e.extension === this.selectedExtension);
+      console.log(`++++++++++++++++++++++++ Active History: `, activeHistory);
+      this.activeRecords = activeHistory.records;
+      console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);
+    })
   }
 
   onSelectContact(extension: string): void {
-    this.selectExtension = extension;
+    this.selectedExtension = extension;
+    this.getActiveRecords();
   }
 
   onSendMessage(): void {
     const messageStr = this.messageStr;
     this.messageStr = ``;
-    if (this.selectExtension === undefined) {
+
+    if (this.selectedExtension === undefined) {
       return;
     }
-    
-    this.sendMessage.emit({extension: this.selectExtension, message: messageStr});
+
+    this.activeRecords.push(new MessageRecord(messageStr, '', undefined, true));
+
+    console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);
+
+    this.sendMessage.emit({extension: this.selectedExtension, message: messageStr});
   }
 
 }

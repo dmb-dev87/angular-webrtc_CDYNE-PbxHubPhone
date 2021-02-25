@@ -32,6 +32,14 @@
   overflow-y: auto;
   border: 2px solid white;
   background-color: white;
+
+  .record-item {
+    background-color: #1d1d1d;    
+  }
+
+  .sent {
+    justify-content: right;
+  }
 }
 
 .message-form {

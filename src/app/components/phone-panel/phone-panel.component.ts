@@ -6,6 +6,7 @@ import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
+import { MessageRecord, MessageHistory } from '../../models/messagehistory';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -46,6 +47,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   messageBtnDisabled = true;
 
   isMessage = false;
+  selectedExtension = ``;
+  activeRecords: Array<MessageRecord> = [];
 
   private endUser = null;
   private callState = false;
@@ -164,6 +167,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
       this.pbxControlService.loadPhoneContacts();
+      this.pbxControlService.getPhoneContacts().subscribe(contacts => {
+        this.pbxControlService.loadMessageHistories(contacts.data);
+      });
+
       this.pbxControlService.toggleDnd().subscribe(response => {
         //call twice because status get toggled when call api
         this.pbxControlService.toggleDnd().subscribe(response => {
@@ -226,11 +233,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return (fromUser?:string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
       if (fromUser) {
-        console.log(`+++++++++++++++++++++++++++++`, fromUser);
+        console.log(`+++++++++++++++++++++++++++++`, fromUser);        
       }
       if (messageStr) {
         console.log(`++++++++++++++++++++++++++++++++`, messageStr);
       }
+      this.selectedExtension = fromUser;
+      this.isMessage = true;
     }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

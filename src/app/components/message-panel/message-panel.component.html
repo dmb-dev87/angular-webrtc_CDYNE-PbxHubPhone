@@ -3,7 +3,7 @@
     <h3>Chat</h3>
   </div>  
   <div class=" row">
-    <div class=" col-4 contact-list" tabindex="-1">
+    <div class=" col-4 contact-list">
       <div *ngFor="let contact of this.phoneContacts;" [ngClass]="{'row':true, 'contact-item':true, 'selected':contact.extension === selectExtension}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
         <div class=" col">
           <div class=" row">
@@ -15,7 +15,11 @@
         </div>
       </div>
     </div>
-    <div class=" col-8 message-box" id="message-box"></div>
+    <div class=" col-8 message-box" id="message-box">
+      <div *ngFor="let record of this.activeRecords" [ngClass]="{'row':true, 'record-item':true, 'sent':record.sent === true}">        
+        <p>{{record.body}}</p>
+      </div>
+    </div>
   </div>  
   <div class=" row">
     <div class=" col-4"></div>

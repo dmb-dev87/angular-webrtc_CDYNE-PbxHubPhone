@@ -52,6 +52,7 @@
 <div>
   <app-message-panel 
     *ngIf="isMessage"
+    [selectedExtension]="selectedExtension"
     (sendMessage)="onSendMessage($event)"
     (clickOutside)="onClickOutsideMessage($event)">
   </app-message-panel>
