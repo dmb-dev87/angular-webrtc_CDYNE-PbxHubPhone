@@ -54,12 +54,9 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
     if (this.selectedExtension === undefined) {
       return;
     }
-
-    this.activeRecords.push(new MessageRecord(messageStr, '', undefined, true));
-
-    console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);
-
     this.sendMessage.emit({extension: this.selectedExtension, message: messageStr});
+    this.activeRecords.push(new MessageRecord(messageStr, '', undefined, true));
+    console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);
   }
 
 }
