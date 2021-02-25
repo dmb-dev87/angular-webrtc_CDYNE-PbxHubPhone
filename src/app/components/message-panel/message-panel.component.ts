@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
 import { PhoneContact } from '../../models/phonecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
+import { MessageHistory } from '../../models/messagehistory';
 
 @Component({
   selector: 'app-message-panel',
@@ -13,6 +14,8 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   selectExtension: string;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
+
+  @Input() activeMessages: Array<MessageHistory>;
 
   constructor(private pbxControlService: PbxControlService) { }
 
@@ -33,7 +36,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   onSendMessage(): void {
     const messageStr = this.messageStr;
     this.messageStr = ``;
-    if (this.selectExtension === ``) {
+    if (this.selectExtension === undefined) {
       return;
     }
     

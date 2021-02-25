@@ -43,6 +43,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   xferBtnDisabled = true;
   monitorBtnDisabled = true;
+  messageBtnDisabled = true;
 
   isMessage = false;
 
@@ -182,6 +183,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       this.xferBtnDisabled = true;
       this.monitorBtnDisabled = false;
+      this.messageBtnDisabled = false;
     };
   }
 
@@ -199,6 +201,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       this.xferBtnDisabled = true;
       this.monitorBtnDisabled = true;
+      this.messageBtnDisabled = true;
     };
   }
 
@@ -220,8 +223,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeMessageReceivedCallback(): () => void {
-    return (messageStr?: string) => {
+    return (fromUser?:string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
+      if (fromUser) {
+        console.log(`+++++++++++++++++++++++++++++`, fromUser);
+      }
       if (messageStr) {
         console.log(`++++++++++++++++++++++++++++++++`, messageStr);
       }
@@ -524,9 +530,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   onClickOutsideMessage(e: Event): void {
-    const targetText = (e.target as Element).textContent;
+    const targetText = (e.target as Element).textContent.toLowerCase();
     
-    if (targetText !== `Message`) {
+    if (targetText !== `message` && targetText !== `send`) {
       this.isMessage = false;
     }
   }
@@ -553,11 +559,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   // Message Panel Events
   onSendMessage(messageObj: any) {
-    console.log(`+++++++++++++++++++++++++`, messageObj);
     const extensionNum = messageObj.extension;
     const messageStr = messageObj.message;
-    console.log(`+++++++++++++++++++++++++`, extensionNum);
-    console.log(`++++++++++++++++++++++++++`, messageStr);
     if (this.endUser === null) {
       return;
     }

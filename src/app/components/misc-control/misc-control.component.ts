@@ -12,9 +12,9 @@ export class MiscControlComponent implements OnInit {
   @Output() monitor = new EventEmitter();
   @Output() message = new EventEmitter();
   
-  @Input() transferState: boolean;
   @Input() xferBtnDisabled: boolean;
   @Input() monitorBtnDisabled: boolean;
+  @Input() messageBtnDisabled: boolean;
 
   constructor() { }
 
