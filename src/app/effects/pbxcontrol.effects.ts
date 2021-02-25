@@ -7,8 +7,9 @@ import { PbxControlService } from '../services/pbxcontrol.service';
 import * as PhoneContacsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
+import * as MessageRecordsActions from '../actions/messagerecords.actions';
 
-import { parseContact, parseWebRtcDemo } from '../utilities/parse-utils';
+import { parseContact, parseMessageRecords, parseWebRtcDemo } from '../utilities/parse-utils';
 
 @Injectable()
 
@@ -54,15 +55,21 @@ export class PbxControlEffects {
     map(data => new MessageHistoriesActions.LoadMessageHistoriesSuccess({histories: data})),
     catchError(error => of(new MessageHistoriesActions.LoadMessageHistoriesFailure({ error })))
   );
-  //     return this.pbxControlService.getHistories(action.phoneContacts).pipe(
-  //       map(data => {
-  //         console.log(`+++++++++++++++++++++++++++ data`, data);
-  //         return new MessageHistoriesActions.LoadMessageHistoriesSuccess({histories: data});
-  //       }),
-  //       catchError(error =>
-  //         of(new MessageHistoriesActions.LoadMessageHistoriesFailure({ error }))
-  //       )
-  //     );
-  //   })
-  // );
+
+  @Effect()
+  getRecords = this.actions.pipe(
+    ofType(MessageRecordsActions.ActionTypes.LoadMessageRecordsBegin),
+    switchMap((action: MessageRecordsActions.LoadMessageRecordsBegin) => {
+      return this.pbxControlService.getRecords(action.extension).pipe(
+        map(data => {
+          const records = parseMessageRecords(data);
+          console.log(`+++++++++++++++++++++++++++`, records);
+          return new MessageRecordsActions.LoadMessageRecordsSuccess({records: records});
+        }),
+        catchError(error =>
+          of(new MessageRecordsActions.LoadMessageRecordsFailure({ error }))
+        )
+      );
+    })
+  );
 }

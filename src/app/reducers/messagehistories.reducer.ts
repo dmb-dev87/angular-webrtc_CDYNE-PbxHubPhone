@@ -1,4 +1,3 @@
-import { stat } from 'fs';
 import * as fromMessageHistories from './../actions/messagehistories.actions';
 import { MessageHistory } from './../models/messagehistory';
 

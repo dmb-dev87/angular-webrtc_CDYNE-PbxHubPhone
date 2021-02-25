@@ -5,13 +5,13 @@ import { Store } from '@ngrx/store';
 import * as PhoneContactsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
+import * as MessageRecordsActions from '../actions/messagerecords.actions';
 
 import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUserState } from '../reducers';
 import { PhoneContact } from '../models/phonecontact';
 
 import { parseMessageRecords } from './../utilities/parse-utils';
 import { MessageHistory, MessageRecord } from '../models/messagehistory';
-import { parse } from 'path';
 
 export enum DndState {
   Enabled = `DND Enabled`,
@@ -28,9 +28,34 @@ export class PbxControlService {
   user_id: string;
   user_name: string;
   message: string;
-  records: Array<MessageRecord> = [];
-
+  
   constructor(private store: Store<AppState>, private http: HttpClient) {}
+
+  loadMessageRecords(extension: string): void {
+    this.user_name = localStorage.getItem(`user_name`);
+    this.store.dispatch(new MessageRecordsActions.LoadMessageRecordsBegin(extension));
+  }
+
+  getRecords(extension: string, messageId: number = 0) {
+    const soapAction = `"http://tempuri.org/IPBXControl/GetMessages"`;
+
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><GetMessages xmlns="http://tempuri.org/"><Username>${this.user_name}</Username><Extension>${extension}</Extension><messageid>${messageId}</messageid></GetMessages></s:Body></s:Envelope>`; 
+
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    });
+  }
+
+  getMessageRecords(): any {
+    return this.store.select(this.getMessageRecords);
+  }
 
   loadMessageHistories(contacts: Array<PhoneContact>): void {
     this.user_name = localStorage.getItem(`user_name`);

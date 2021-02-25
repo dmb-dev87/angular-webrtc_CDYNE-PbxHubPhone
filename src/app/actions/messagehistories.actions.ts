@@ -4,7 +4,7 @@ import { PhoneContact } from '../models/phonecontact';
 export enum ActionTypes {
   LoadMessageHistoriesBegin = `[MessageHistories] Load data begin`,
   LoadMessageHistoriesSuccess = `[MessageHitories] Load data success`,
-  LoadMessageHistoriesFailure = `[MessageHitories] Load data failure`
+  LoadMessageHistoriesFailure = `[MessageHitories] Load data failure`,
 }
 
 export class LoadMessageHistoriesBegin implements Action {

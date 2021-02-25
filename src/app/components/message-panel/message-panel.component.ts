@@ -32,6 +32,12 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   }
 
   getActiveRecords(): void {
+    // this.pbxControlService.loadMessageRecords(this.selectedExtension);
+
+    // this.pbxControlService.getMessageHistories().subscribe(records => {
+    //   this.activeRecords = records.messagerecords;
+    //   console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);  
+    // });
     this.pbxControlService.getMessageHistories().subscribe(histories=> {
       console.log(`++++++++++++++++++++++++ histories`, histories);
       const messageHistories: Array<MessageHistory> = histories.messageHistories;
