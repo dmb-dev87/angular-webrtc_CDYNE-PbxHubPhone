@@ -486,9 +486,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   // Misc Controller Events
   onMakeTransfer(completed: boolean): void {
     if (completed === false) {
-      this.selectLine = `2`;
+      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      const changeLineNumber = this.selectLine === `1`? 1 : 0;
       this.endUser
-        .changeLineForTransfer(1)
+        .changeLineForTransfer(changeLineNumber)
         .then(() => {
           this.transferState = true;
           return;
@@ -501,7 +502,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     } 
     else {
       this.transferState = false;
-      this.selectLine = `1`;
+      this.selectLine = this.selectLine === `1`? `2` : `1`;
       this.endUser.completeTransfer()
         .catch((error: Error) => {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
