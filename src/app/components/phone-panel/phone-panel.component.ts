@@ -44,7 +44,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   xferBtnDisabled = true;
   monitorBtnDisabled = true;
-  messageBtnDisabled = true;
+  messageBtnDisabled = false;
 
   isMessage = false;
   selectedExtension = ``;
@@ -488,8 +488,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   // Misc Controller Events
   onMakeTransfer(completed: boolean): void {
     if (completed === false) {
-      this.selectLine = this.selectLine === `1`? `2` : `1`;
       const changeLineNumber = this.selectLine === `1`? 1 : 0;
+      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      console.log(`++++++++++++++++++=`, this.selectLine);      
+      console.log(`+++++++++++++++++++`, changeLineNumber);
       this.endUser
         .changeLineForTransfer(changeLineNumber)
         .then(() => {
