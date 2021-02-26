@@ -8,7 +8,7 @@ import { MessageHistory, MessageRecord } from '../../models/messagehistory';
   templateUrl: './message-panel.component.html',
   styleUrls: ['./message-panel.component.scss']
 })
-export class MessagePanelComponent implements OnInit, AfterViewInit {
+export class MessagePanelComponent implements OnInit, AfterViewInit  {
   messageStr: string;
   phoneContacts: Array<PhoneContact> = [];
 
@@ -17,16 +17,26 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   @Input() activeRecords: Array<MessageRecord>;
   @Input() selectedExtension: string;
 
-  constructor(private pbxControlService: PbxControlService) { }
-
-  ngOnInit(): void {
+  constructor(private pbxControlService: PbxControlService) { 
     this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
       this.phoneContacts = phonecontacts.data;
     });
+
+    console.log(`+++++++++++++++++++++`, this.selectedExtension);
+
+    if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
+      this.getActiveRecords();
+    }
+  }
+
+  ngOnInit(): void {
+    
   }
 
   ngAfterViewInit(): void {
-    if (this.selectedExtension !== ``) {
+    console.log(`+++++++++++++++++++++`, this.selectedExtension);
+
+    if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
       this.getActiveRecords();
     }
   }

@@ -232,6 +232,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return (fromUser?:string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
 
+      console.log(`+++++++++++++++++++++++++`, fromUser);
+
       this.selectedExtension = fromUser;
       const receivedMsg: MessageRecord = {
         body: messageStr,
