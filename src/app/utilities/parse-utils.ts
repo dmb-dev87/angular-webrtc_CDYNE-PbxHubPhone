@@ -85,7 +85,7 @@ export function parseMessageRecords(data: any): Array<MessageRecord> {
 				body: item['a:Body'][0],
 				datetime: item['a:Entrydate'][0],
 				messageId: item['a:messageid'][0],
-				sent: item['a:sent'][0]
+				sent: item['a:sent'][0] === 'true'
 			});
 		}
 	});

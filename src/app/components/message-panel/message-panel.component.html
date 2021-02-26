@@ -8,37 +8,7 @@
       </div>
       <div class=" row">
         <div class=" col contacts-pad">
-          <div [ngClass]="{'row':true, 'contact-item':true, 'selected': true}">
-            <div class=" col">
-              <div class=" row">
-                <p class=" contact-name">John Doe</p>
-              </div>
-              <div class=" row">
-                <p class=" contact-number">2001</p>
-              </div>
-            </div>
-          </div>
-          <div [ngClass]="{'row':true, 'contact-item':true, 'selected': false}">
-            <div class=" col">
-              <div class=" row">
-                <p class=" contact-name">John Doe</p>
-              </div>
-              <div class=" row">
-                <p class=" contact-number">2001</p>
-              </div>
-            </div>
-          </div>
-          <div [ngClass]="{'row':true, 'contact-item':true, 'selected': false}">
-            <div class=" col">
-              <div class=" row">
-                <p class=" contact-name">John Doe</p>
-              </div>
-              <div class=" row">
-                <p class=" contact-number">2001</p>
-              </div>
-            </div>
-          </div>
-          <div *ngFor="let contact of this.phoneContacts;" [ngClass]="{'row':true, 'contact-item':true, 'selected':contact.extension === selectExtension}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
+          <div *ngFor="let contact of phoneContacts;" [ngClass]="{'row':true, 'contact-item':true, 'selected':contact.extension === selectedExtension}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
             <div class=" col">
               <div class=" row">
                 <p class=" contact-name">{{contact.firstName}} {{contact.lastName}}</p>
@@ -54,43 +24,15 @@
     <div class=" col-9 message-list">
       <div class=" row">
         <div class=" col current-name">
-          <p>John Doe</p>
+          <p>{{curName}}</p>
         </div>        
       </div>
       <div class=" row">
         <div class=" col message-box" id="message-box">
-          <div class=" row">
-            <div class=" sent-message">
-              <p>I thought this would be an awesome way to interact with the interface</p>
+          <div *ngFor="let record of activeRecords" [ngClass]="{'row':true, 'received':!record.sent}">
+            <div [ngClass]="{'received-message':!record.sent, 'sent-message':record.sent}">
+              <p>{{record.body}}</p>  
             </div>
-          </div>
-          <div class=" row received">
-            <div class=" received-message">
-              <p>I thought this would be an awesome way to interact with the interface</p>
-            </div>
-          </div>
-          <div class=" row">
-            <div class=" sent-message">
-              <p>I thought this would be an awesome way to interact with the interface</p>
-            </div>
-          </div>
-          <div class=" row received">
-            <div class=" received-message">
-              <p>I thought this would be an awesome way to interact with the interface</p>
-            </div>
-          </div>
-          <div class=" row">
-            <div class=" sent-message">
-              <p>I thought this would be an awesome way to interact with the interface</p>
-            </div>
-          </div>
-          <div class=" row received">
-            <div class=" received-message">
-              <p>I thought this would be an awesome way to interact with the interface</p>
-            </div>
-          </div>
-          <div *ngFor="let record of this.activeRecords" [ngClass]="{'row':true, 'record-item':true, 'sent':record.sent === true}">        
-            <p>{{record.body}}</p>
           </div>
         </div>
       </div>

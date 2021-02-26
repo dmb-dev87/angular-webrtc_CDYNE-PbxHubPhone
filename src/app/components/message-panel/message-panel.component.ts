@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter } from '@
 import { PhoneContact } from '../../models/phonecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
 import { MessageHistory, MessageRecord } from '../../models/messagehistory';
+import { act } from '@ngrx/effects';
 
 @Component({
   selector: 'app-message-panel',
@@ -10,19 +11,18 @@ import { MessageHistory, MessageRecord } from '../../models/messagehistory';
 })
 export class MessagePanelComponent implements OnInit, AfterViewInit  {
   messageStr: string;
-  phoneContacts: Array<PhoneContact> = [];
+  phoneContacts: Array<PhoneContact> = [];  
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
 
   @Input() activeRecords: Array<MessageRecord>;
   @Input() selectedExtension: string;
+  @Input() curName: string;
 
   constructor(private pbxControlService: PbxControlService) { 
     this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
       this.phoneContacts = phonecontacts.data;
     });
-
-    console.log(`+++++++++++++++++++++`, this.selectedExtension);
 
     if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
       this.getActiveRecords();
@@ -34,8 +34,6 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
   }
 
   ngAfterViewInit(): void {
-    console.log(`+++++++++++++++++++++`, this.selectedExtension);
-
     if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
       this.getActiveRecords();
     }
@@ -45,8 +43,10 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
     this.pbxControlService.getMessageHistories().subscribe(histories=> {
       const messageHistories: Array<MessageHistory> = histories.messageHistories;
       const activeHistory = messageHistories.find(e => e.extension === this.selectedExtension);
-      this.activeRecords = activeHistory.records;
+      this.activeRecords = activeHistory.records;      
     })
+    const activeContact = this.phoneContacts.find(e => e.extension === this.selectedExtension);
+    this.curName = activeContact.firstName + ` ` + activeContact.lastName;
   }
 
   onSelectContact(extension: string): void {
