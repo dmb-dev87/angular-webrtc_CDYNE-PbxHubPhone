@@ -553,7 +553,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Line Info Events
-  changeLine(lineNumber: number): void {
+  changeLine(selectLine: string): void {
+    this.selectLine = selectLine;
+    const lineNumber = this.selectLine === `1` ? 0 : 1;
     if (this.endUser === null) {
       return;
     }
