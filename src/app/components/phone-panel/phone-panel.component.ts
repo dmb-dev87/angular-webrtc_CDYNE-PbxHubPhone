@@ -46,7 +46,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   monitorBtnDisabled = true;
   messageBtnDisabled = false;
 
-  isMessage = true;
+  isMessage = false;
   selectedExtension = ``;
   activeRecords: Array<MessageRecord> = [];
 
