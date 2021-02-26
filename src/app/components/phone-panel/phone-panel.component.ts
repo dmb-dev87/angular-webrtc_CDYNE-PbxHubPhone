@@ -490,8 +490,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     if (completed === false) {
       const changeLineNumber = this.selectLine === `1`? 1 : 0;
       this.selectLine = this.selectLine === `1`? `2` : `1`;
-      console.log(`++++++++++++++++++=`, this.selectLine);      
-      console.log(`+++++++++++++++++++`, changeLineNumber);
       this.endUser
         .changeLineForTransfer(changeLineNumber)
         .then(() => {
