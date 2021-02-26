@@ -438,7 +438,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       const target = `sip:${this.targetNum}@${hostURL}`;
       if (this.transferState === true) {
         this.endUser
-          .onMakeTransfer(target, undefined, {
+          .call(target, undefined, {
             requestDelegate: {
               onReject: (response) => {
                 console.warn(`[${this.endUser.id}] INVITE rejected`);
