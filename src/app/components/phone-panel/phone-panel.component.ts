@@ -46,7 +46,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   monitorBtnDisabled = true;
   messageBtnDisabled = false;
 
-  isMessage = false;
+  isMessage = true;
   selectedExtension = ``;
   activeRecords: Array<MessageRecord> = [];
 
@@ -440,7 +440,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       const target = `sip:${this.targetNum}@${hostURL}`;
       if (this.transferState === true) {
         this.endUser
-          .call(target, undefined, {
+          .makeTransfer(target, undefined, {
             requestDelegate: {
               onReject: (response) => {
                 console.warn(`[${this.endUser.id}] INVITE rejected`);
@@ -501,7 +501,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
         });
-    } 
+    }
     else {
       this.transferState = false;
       this.selectLine = this.selectLine === `1`? `2` : `1`;

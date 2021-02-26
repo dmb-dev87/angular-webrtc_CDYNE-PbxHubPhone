@@ -1,71 +1,98 @@
 .message-panel {
-  padding: 20px 30px;
   position: fixed;
   top: 50%;
   left: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   background-color: #1d1d1d;
+  border-radius: 15px;
 }
 
 .contact-list {
-  height: 200px;
+  border-right: 2px solid #75757a;
+  padding: 20px 30px;
 
-  .contact-item {
-    opacity: 0.5;
+  .search-pad {
+    margin-bottom: 30px;
+  }
+
+  .contacts-pad {
+    .contact-item { 
+      padding: 5px 15px;
+      margin-bottom: 10px;
+    }
+
+    .selected {      
+      background-color: #2f2f33;
+      border-radius: 8px;
+    }
 
     .contact-name {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
     }
+
     .contact-number {
       font-size: 0.5rem;
     }
-  }
-
-  .selected {
-    opacity: 1;
+    
   }
 }
 
-.message-box {
-  height: 200px;
-  overflow-y: auto;
-  border: 2px solid white;
-  background-color: white;
+.message-list {
+  padding: 20px 30px;
 
-  .record-item {
-    background-color: #1d1d1d;    
+  .current-name {
+    padding: 10px 10px 15px 10px;
+    border-bottom: 2px solid #75757a;
   }
 
-  .sent {
-    justify-content: right;
-  }
-}
+  .message-box {
+    height: 500px;
+    padding: 10px 20px 30px 20px;
+    border-bottom: 2px solid #75757a;
 
-.message-form {
-  margin-top: 10px;
-  width: 100%;
-  font-size: 0.75rem;
-  margin-bottom: -15px;  
+    .sent-message {
+      background-color: #2f2f33;
+      padding: 12px 12px 7px 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
 
-  .mat-input-element {
-    color: white;
+    .received {
+      justify-content: flex-end;
+    }
+
+    .received-message {
+      background-color: #06002f;
+      padding: 12px 12px 7px 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
   }
+
+  .message-form {
+    margin-top: 10px;
+    width: 100%;
+    font-size: 0.75rem;
   
-  .mat-input-element::placeholder {
-    color: white;
-  }
-
-  input {
-    caret-color: white;
-  }
-
-  .mat-focused .mat-form-field-underline {
-    display: none;
+    .mat-input-element {
+      color: white;
+      border: none;
+    }
+    
+    .mat-input-element::placeholder {
+      color: white;
+    }    
+  
+    input {
+      caret-color: white;
+    }
+  
+    .mat-focused .mat-form-field-underline {
+      display: none;
+    }
   }
 }
-
-
 
 ::ng-deep .mat-button{
   color: white !important;
