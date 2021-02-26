@@ -65,15 +65,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private remoteSoundMeter: RemoteSoundMeter = undefined;
   private audioContext = undefined;
 
-  constructor(private pbxControlService: PbxControlService) {
-    this.messageBtnDisabled = false;
-    localStorage.setItem(`user_name`, `9FE12102-FAB4-4524-ACF4-641F247145E7`);
-    localStorage.setItem(`user_id`, `eedf7e45-9f31-4a20-a4fe-40a40a83a50b`);
-    this.pbxControlService.loadPhoneContacts();
-    this.pbxControlService.getPhoneContacts().subscribe(contacts => {
-      this.pbxControlService.loadMessageHistories(contacts.data);
-    });
-  }
+  constructor(private pbxControlService: PbxControlService) {}
 
   get phoneUser(): PhoneUser {
     return this._phoneUser;
