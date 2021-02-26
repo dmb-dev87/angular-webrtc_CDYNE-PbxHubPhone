@@ -5,13 +5,14 @@ import { Store } from '@ngrx/store';
 import * as PhoneContactsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
-import * as MessageRecordsActions from '../actions/messagerecords.actions';
 
 import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUserState } from '../reducers';
 import { PhoneContact } from '../models/phonecontact';
 
 import { parseMessageRecords } from './../utilities/parse-utils';
 import { MessageHistory, MessageRecord } from '../models/messagehistory';
+import { Messager } from 'sip.js';
+import { Observable, of } from 'rxjs';
 
 export enum DndState {
   Enabled = `DND Enabled`,
@@ -31,30 +32,24 @@ export class PbxControlService {
   
   constructor(private store: Store<AppState>, private http: HttpClient) {}
 
-  loadMessageRecords(extension: string): void {
-    this.user_name = localStorage.getItem(`user_name`);
-    this.store.dispatch(new MessageRecordsActions.LoadMessageRecordsBegin(extension));
+  addMessageRecord(extension: string, messageRecord: MessageRecord): void {
+    this.store.dispatch(new MessageHistoriesActions.AddMessageRecordBegin({extension: extension, messageRecord: messageRecord}));
   }
 
-  getRecords(extension: string, messageId: number = 0) {
-    const soapAction = `"http://tempuri.org/IPBXControl/GetMessages"`;
+  async addMessageRecordToHistory(payload: any) {
+    var records: Array<MessageRecord> = [];
+    var messageHistories: Array<MessageHistory> = [];
 
-    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><GetMessages xmlns="http://tempuri.org/"><Username>${this.user_name}</Username><Extension>${extension}</Extension><messageid>${messageId}</messageid></GetMessages></s:Body></s:Envelope>`; 
-
-    return this.http.post(baseURL, body, {
-      headers: new HttpHeaders()
-        .set('Content-Type', 'text/xml; charset=utf-8')
-        .append('Accept', '*/*')
-        .append('Access-Control-Allow-Methods', 'GET,POST')
-        .append('Access-Control-Allow-Origin', '*')
-        .append('Content-Encoding', 'gzip, deflate, br')
-        .append('SOAPAction', soapAction),
-      responseType: 'text'
+    this.getMessageHistories().subscribe(histories => {
+      messageHistories = histories.messageHistories;
+      let activeHistory: MessageHistory = messageHistories.find(e => e.extension === payload.extension);
+      let index = messageHistories.indexOf(activeHistory);
+      records = Object.assign([], activeHistory.records);
+      records.push(payload.messageRecord);
+      messageHistories = Object.assign([], messageHistories);
+      messageHistories[index] = {extension:payload.extension, records: records};      
     });
-  }
-
-  getMessageRecords(): any {
-    return this.store.select(this.getMessageRecords);
+    return messageHistories;
   }
 
   loadMessageHistories(contacts: Array<PhoneContact>): void {

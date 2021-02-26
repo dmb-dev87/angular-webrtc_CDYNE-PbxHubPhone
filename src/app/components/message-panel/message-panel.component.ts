@@ -32,19 +32,10 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   }
 
   getActiveRecords(): void {
-    // this.pbxControlService.loadMessageRecords(this.selectedExtension);
-
-    // this.pbxControlService.getMessageHistories().subscribe(records => {
-    //   this.activeRecords = records.messagerecords;
-    //   console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);  
-    // });
     this.pbxControlService.getMessageHistories().subscribe(histories=> {
-      console.log(`++++++++++++++++++++++++ histories`, histories);
       const messageHistories: Array<MessageHistory> = histories.messageHistories;
       const activeHistory = messageHistories.find(e => e.extension === this.selectedExtension);
-      console.log(`++++++++++++++++++++++++ Active History: `, activeHistory);
       this.activeRecords = activeHistory.records;
-      console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);
     })
   }
 
@@ -61,8 +52,15 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
       return;
     }
     this.sendMessage.emit({extension: this.selectedExtension, message: messageStr});
-    this.activeRecords.push(new MessageRecord(messageStr, '', undefined, true));
-    console.log(`++++++++++++++++++++++++++ Active Records: `, this.activeRecords);
+    const newMessage: MessageRecord = {
+      body: messageStr,
+      datetime: ``,
+      messageId: 0,
+      sent: true
+    };
+    this.activeRecords = Object.assign([], this.activeRecords);
+    this.activeRecords.push(newMessage);
+    this.pbxControlService.addMessageRecord(this.selectedExtension, newMessage);
   }
 
 }

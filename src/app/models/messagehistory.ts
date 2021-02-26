@@ -1,9 +1,8 @@
-export class MessageRecord {      
-  constructor(
-    body: string,
-    datetime: string,
-    messageId: number,
-    sent: boolean) {}
+export class MessageRecord {
+  public body: string;
+  public datetime: string;
+  public messageId: number;
+  public sent: boolean;
 }
 
 export class MessageHistory {

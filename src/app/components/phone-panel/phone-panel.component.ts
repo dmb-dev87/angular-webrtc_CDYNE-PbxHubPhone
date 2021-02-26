@@ -6,7 +6,7 @@ import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
-import { MessageRecord, MessageHistory } from '../../models/messagehistory';
+import { MessageHistory, MessageRecord } from '../../models/messagehistory';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -55,6 +55,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private transferState = false;
   private invitationState = false;
   private targetNum = null;
+  private lineCount = 0;
 
   private _phoneUser: PhoneUser = undefined;
   
@@ -65,7 +66,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private audioContext = undefined;
 
   constructor(private pbxControlService: PbxControlService) {
-
+    this.messageBtnDisabled = false;
+    localStorage.setItem(`user_name`, `9FE12102-FAB4-4524-ACF4-641F247145E7`);
+    localStorage.setItem(`user_id`, `eedf7e45-9f31-4a20-a4fe-40a40a83a50b`);
+    this.pbxControlService.loadPhoneContacts();
+    this.pbxControlService.getPhoneContacts().subscribe(contacts => {
+      this.pbxControlService.loadMessageHistories(contacts.data);
+    });
   }
 
   get phoneUser(): PhoneUser {
@@ -156,7 +163,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
       this.beginBtnDisabled = false;
-      this.endBtnDisabled = true;
+      this.endBtnDisabled = this.lineCount === 0 ? true : false;
 
       this.xferBtnDisabled = true;
       
@@ -165,7 +172,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeRegisteredCallback(user: EndUser): () => void {
-    return () => {
+    return () => {      
       this.pbxControlService.loadPhoneContacts();
       this.pbxControlService.getPhoneContacts().subscribe(contacts => {
         this.pbxControlService.loadMessageHistories(contacts.data);
@@ -232,13 +239,16 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeMessageReceivedCallback(): () => void {
     return (fromUser?:string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
-      if (fromUser) {
-        console.log(`+++++++++++++++++++++++++++++`, fromUser);        
-      }
-      if (messageStr) {
-        console.log(`++++++++++++++++++++++++++++++++`, messageStr);
-      }
+
       this.selectedExtension = fromUser;
+      const receivedMsg: MessageRecord = {
+        body: messageStr,
+        datetime: ``,
+        messageId: 0,
+        sent: true
+      };
+
+      this.pbxControlService.addMessageRecord(this.selectedExtension, receivedMsg);
       this.isMessage = true;
     }
   }
@@ -389,6 +399,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onHangupCall(): void {
     this.callState = false;
+    this.lineCount = this.lineCount - 1;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -416,6 +427,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
 
     this.callState = true;
+    this.lineCount = this.lineCount + 1;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -432,7 +444,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
     else {
       const target = `sip:${this.targetNum}@${hostURL}`;
-
       if (this.transferState === true) {
         this.endUser
           .onMakeTransfer(target, undefined, {
@@ -443,6 +454,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
                 message += `Reason: ${response.message.reasonPhrase}\n`;
                 message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
                 message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+                console.warn(message);
                 this.transferState = false;
               }
             }
@@ -463,7 +475,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
                 message += `Reason: ${response.message.reasonPhrase}\n`;
                 message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
                 message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.log(message);
+                console.warn(message);
                 this.callState = false;
               }
             }

@@ -39,6 +39,27 @@ export function reducer(
         error: action.payload.error
       };
     }
+    case fromMessageHistories.ActionTypes.AddMessageRecordBegin: {
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+    }
+    case fromMessageHistories.ActionTypes.AddMessageRecordSuccess: {
+      return {
+        ...state,
+        loading: false,
+        messageHistories: action.payload.histories
+      };
+    }
+    case fromMessageHistories.ActionTypes.AddMessageRecordFailure: {
+      return {
+        ...state,
+        loading: false,
+        error: action.payload.error
+      };
+    }
     default: {
       return state;
     }
