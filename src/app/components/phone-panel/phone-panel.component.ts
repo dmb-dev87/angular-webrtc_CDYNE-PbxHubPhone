@@ -166,8 +166,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {      
       this.pbxControlService.loadPhoneContacts();
-      this.pbxControlService.getPhoneContacts().subscribe(contacts => {
-        this.pbxControlService.loadMessageHistories(contacts.data);
+
+      this.pbxControlService.loadMessageContacts();
+      this.pbxControlService.getMessageContacts().subscribe(contacts => {
+        this.pbxControlService.loadMessageHistories(contacts.contacts);
       });
 
       this.pbxControlService.toggleDnd().subscribe(response => {
@@ -177,6 +179,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           this.dndStatus = dndStatus === DndState.Enabled ? true : false;
         });
       });
+
       console.log(`[${user.id}] registered`);
       this.registerStatus = true;
       this.callStatus = `Welcome ` + this.phoneUser.displayName;

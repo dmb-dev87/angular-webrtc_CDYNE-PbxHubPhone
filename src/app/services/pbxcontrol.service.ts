@@ -5,14 +5,14 @@ import { Store } from '@ngrx/store';
 import * as PhoneContactsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
+import * as MessageContactsActions from '../actions/messagecontacts.actions';
 
-import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUserState } from '../reducers';
+import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUserState, getMessageContactsState } from '../reducers';
 import { PhoneContact } from '../models/phonecontact';
 
 import { parseMessageRecords } from './../utilities/parse-utils';
 import { MessageHistory, MessageRecord } from '../models/messagehistory';
-import { Messager } from 'sip.js';
-import { Observable, of } from 'rxjs';
+import { MessageContact } from '../models/messagecontact';
 
 export enum DndState {
   Enabled = `DND Enabled`,
@@ -146,6 +146,61 @@ export class PbxControlService {
 
   getPhoneContacts(): any {
     return this.store.select(getPhoneContactsState);
+  }
+
+  loadMessageContacts(): void {
+    this.user_id = localStorage.getItem(`user_id`);
+    this.user_name = localStorage.getItem(`user_name`);
+    this.store.dispatch(new MessageContactsActions.LoadMessageContactsBegin());
+  }
+
+  messageContacts(): any {
+    const soapAction = `"http://tempuri.org/IPBXControl/User_GetDirectory"`;
+
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetDirectory xmlns="http://tempuri.org/"><UserKey>${this.user_name}</UserKey></User_GetDirectory></s:Body></s:Envelope>`;
+
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    });
+  }
+
+  getMessageContacts(): any {
+    return this.store.select(getMessageContactsState);
+  }
+
+  deleteMessageContact(hideContact: MessageContact): void {
+    this.store.dispatch(new MessageContactsActions.DeleteMessageContactBegin({contact: hideContact}));
+  }
+
+  async deleteMessageContactFromState(hideContact: MessageContact) {
+    var messageContacts: Array<MessageContact> = [];
+    this.getMessageContacts().subscribe(contacts => {
+      messageContacts = Object.assign([], contacts.contacts);
+      messageContacts.forEach( (item, index) => {
+        if(item === hideContact) messageContacts.splice(index, 1);
+      });
+    });
+    return messageContacts;    
+  }
+
+  addMessageContact(addContact: MessageContact): void {
+    this.store.dispatch(new MessageContactsActions.AddMessageContactBegin({contact: addContact}));
+  }
+
+  async addMessageContactToState(addContact: MessageContact) {
+    var messageContacts: Array<MessageContact> = [];
+    this.getMessageContacts().subscribe(contacts => {
+      messageContacts = Object.assign([], contacts.contacts);
+      messageContacts.push(addContact);
+    })
+    return messageContacts;
   }
 
   toggleDnd(): any {

@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
-import { act, Actions, Effect, ofType } from '@ngrx/effects';
+import { Actions, Effect, ofType } from '@ngrx/effects';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { PbxControlService } from '../services/pbxcontrol.service';
+
 import * as PhoneContacsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
+import * as MessageContactsActions from '../actions/messagecontacts.actions';
 
 import { parseContact, parseWebRtcDemo } from '../utilities/parse-utils';
 
@@ -61,5 +63,37 @@ export class PbxControlEffects {
     switchMap((action: MessageHistoriesActions.AddMessageRecordBegin) => (this.pbxControlService.addMessageRecordToHistory(action.payload))),
     map(data => new MessageHistoriesActions.AddMessageRecordSuccess({histories: data})),
     catchError(error => of(new MessageHistoriesActions.AddMessageRecordFailure({error})))
+  );
+
+  @Effect()
+  messageContacts = this.actions.pipe(
+    ofType(MessageContactsActions.ActionTypes.LoadMessageContactsBegin),
+    switchMap(() => {
+      return this.pbxControlService.userGetDirecotry().pipe(
+        map(data => {
+          const items = parseContact(data);
+          return new MessageContactsActions.LoadMessageContactsSuccess({contacts: items});
+        }),
+        catchError(error =>
+          of(new MessageContactsActions.LoadMessageContactsFailure({ error }))
+        )
+      );
+    })
+  );
+
+  @Effect()
+  deleteMessageContact = this.actions.pipe(
+    ofType(MessageContactsActions.ActionTypes.DeleteMessageContactBegin),
+    switchMap((action: MessageContactsActions.DeleteMessageContactBegin) => (this.pbxControlService.deleteMessageContactFromState(action.payload.contact))),
+    map(data => new MessageContactsActions.DeleteMessageContactSuccess({contacts: data})),
+    catchError(error => of(new MessageContactsActions.DeleteMessageContactFailure({error})))
+  );
+
+  @Effect()
+  addMessageContact = this.actions.pipe(
+    ofType(MessageContactsActions.ActionTypes.AddMessageContactBegin),
+    switchMap((action: MessageContactsActions.AddMessageContactBegin) => (this.pbxControlService.addMessageContactToState(action.payload.contact))),
+    map(data => new MessageContactsActions.AddMessageContactSuccess({contacts: data})),
+    catchError(error => of(new MessageContactsActions.AddMessageContactFailure({error})))
   );
 }

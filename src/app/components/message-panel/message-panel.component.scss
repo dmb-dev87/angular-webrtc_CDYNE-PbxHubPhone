@@ -42,10 +42,34 @@
     }
   }
 
+  .search-result-pad {
+    margin: 0px 0px;
+    position: absolute;
+    z-index: 9999;
+    width: 60%;
+    top: 60px;
+    left: 20px;
+    background-color: transparent;
+  
+    .search-result-list {
+      padding: 8px 20px;
+      background-color: #1d1d1d;
+      border: 2px solid #75757a;
+      border-top: none;
+      width: 170px;
+  
+      p {
+        text-align: left;
+        color: #ffffff;
+      }
+    }
+  }
+
   .contacts-pad {
     .contact-item { 
       padding: 7px 15px 3px 15px;
       margin-bottom: 10px;
+      position: relative;
     }
 
     .selected {      
@@ -59,6 +83,13 @@
 
     .contact-number {
       font-size: 0.5rem;
+    }
+
+    .contact-menu {
+      position: absolute;
+      right: -15px;
+      top: 0px;
+      color: #ffffff;
     }
     
   }
