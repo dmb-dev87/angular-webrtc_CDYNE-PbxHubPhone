@@ -1,6 +1,6 @@
 export class MessageRecord {
   public body: string;
-  public datetime: string;
+  public datetime: Date;
   public messageId: number;
   public sent: boolean;
 }

@@ -68,7 +68,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
     this.sendMessage.emit({extension: this.selectedExtension, message: messageStr});
     const newMessage: MessageRecord = {
       body: messageStr,
-      datetime: ``,
+      datetime: new Date(),
       messageId: 0,
       sent: true
     };
