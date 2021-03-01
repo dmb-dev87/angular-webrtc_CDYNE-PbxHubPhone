@@ -239,7 +239,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         body: messageStr,
         datetime: ``,
         messageId: 0,
-        sent: true
+        sent: false
       };
 
       this.pbxControlService.addMessageRecord(this.selectedExtension, receivedMsg);
