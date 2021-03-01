@@ -6,6 +6,7 @@ import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
+import { MessageHistory, MessageRecord } from '../../models/messagehistory';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -43,12 +44,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   xferBtnDisabled = true;
   monitorBtnDisabled = true;
+  messageBtnDisabled = true;
+
+  isMessage = false;
+  selectedExtension = ``;
+  activeRecords: Array<MessageRecord> = [];
 
   private endUser = null;
   private callState = false;
   private transferState = false;
   private invitationState = false;
   private targetNum = null;
+  private lineCount = 0;
 
   private _phoneUser: PhoneUser = undefined;
   
@@ -58,9 +65,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   private remoteSoundMeter: RemoteSoundMeter = undefined;
   private audioContext = undefined;
 
-  constructor(private pbxControlService: PbxControlService) {
-
-  }
+  constructor(private pbxControlService: PbxControlService) {}
 
   get phoneUser(): PhoneUser {
     return this._phoneUser;
@@ -150,7 +155,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
       this.beginBtnDisabled = false;
-      this.endBtnDisabled = true;
+      this.endBtnDisabled = this.lineCount === 0 ? true : false;
 
       this.xferBtnDisabled = true;
       
@@ -159,8 +164,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeRegisteredCallback(user: EndUser): () => void {
-    return () => {
+    return () => {      
       this.pbxControlService.loadPhoneContacts();
+      this.pbxControlService.getPhoneContacts().subscribe(contacts => {
+        this.pbxControlService.loadMessageHistories(contacts.data);
+      });
+
       this.pbxControlService.toggleDnd().subscribe(response => {
         //call twice because status get toggled when call api
         this.pbxControlService.toggleDnd().subscribe(response => {
@@ -180,6 +189,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       this.xferBtnDisabled = true;
       this.monitorBtnDisabled = false;
+      this.messageBtnDisabled = false;
     };
   }
 
@@ -197,6 +207,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       this.xferBtnDisabled = true;
       this.monitorBtnDisabled = true;
+      this.messageBtnDisabled = true;
     };
   }
 
@@ -215,6 +226,25 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         console.error(`[${user.id}] Server disconnected.\n` + err.message);
       }
     };
+  }
+
+  makeMessageReceivedCallback(): () => void {
+    return (fromUser?:string, messageStr?: string) => {
+      console.log(`[${this.endUser.id}] received message`);
+
+      console.log(`+++++++++++++++++++++++++`, fromUser);
+
+      this.selectedExtension = fromUser;
+      const receivedMsg: MessageRecord = {
+        body: messageStr,
+        datetime: ``,
+        messageId: 0,
+        sent: false
+      };
+
+      this.pbxControlService.addMessageRecord(this.selectedExtension, receivedMsg);
+      this.isMessage = true;
+    }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -272,6 +302,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       onUnregistered: this.makeUnregisteredCallback(this.endUser),
       onServerConnect: this.makeServerConnectCallback(this.endUser),
       onServerDisconnect: this.makeServerDisconnectCallback(this.endUser),
+      onMessageReceived: this.makeMessageReceivedCallback(),
     };
 
     this.endUser.delegate = delegate;
@@ -362,6 +393,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onHangupCall(): void {
     this.callState = false;
+    this.lineCount = this.lineCount - 1;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -389,6 +421,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
 
     this.callState = true;
+    this.lineCount = this.lineCount + 1;
 
     if (this.invitationState === true) {
       ringAudio.pause();
@@ -405,10 +438,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
     else {
       const target = `sip:${this.targetNum}@${hostURL}`;
-
       if (this.transferState === true) {
         this.endUser
-          .onMakeTransfer(target, undefined, {
+          .makeTransfer(target, undefined, {
             requestDelegate: {
               onReject: (response) => {
                 console.warn(`[${this.endUser.id}] INVITE rejected`);
@@ -416,6 +448,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
                 message += `Reason: ${response.message.reasonPhrase}\n`;
                 message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
                 message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+                console.warn(message);
                 this.transferState = false;
               }
             }
@@ -436,7 +469,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
                 message += `Reason: ${response.message.reasonPhrase}\n`;
                 message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
                 message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.log(message);
+                console.warn(message);
                 this.callState = false;
               }
             }
@@ -455,9 +488,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   // Misc Controller Events
   onMakeTransfer(completed: boolean): void {
     if (completed === false) {
-      this.selectLine = `2`;
+      const changeLineNumber = this.selectLine === `1`? 1 : 0;
+      this.selectLine = this.selectLine === `1`? `2` : `1`;
       this.endUser
-        .changeLineForTransfer(1)
+        .changeLineForTransfer(changeLineNumber)
         .then(() => {
           this.transferState = true;
           return;
@@ -467,10 +501,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
         });
-    } 
+    }
     else {
       this.transferState = false;
-      this.selectLine = `1`;
+      this.selectLine = this.selectLine === `1`? `2` : `1`;
       this.endUser.completeTransfer()
         .catch((error: Error) => {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
@@ -506,10 +540,24 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         return;
       });    
   }
+
+  onMessageDialog(): void {
+    this.isMessage = !this.isMessage;
+  }
+
+  onClickOutsideMessage(e: Event): void {
+    const targetText = (e.target as Element).textContent.toLowerCase();
+    
+    if (targetText !== `message` && targetText !== `send`) {
+      this.isMessage = false;
+    }
+  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Line Info Events
-  changeLine(lineNumber: number): void {
+  changeLine(selectLine: string): void {
+    this.selectLine = selectLine;
+    const lineNumber = this.selectLine === `1` ? 0 : 1;
     if (this.endUser === null) {
       return;
     }
@@ -518,7 +566,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to change line`);
         console.error(error);
-      })
+      });
   }
 
   changeReceiverVolume(volume: number): void {
@@ -527,6 +575,22 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  // Message Panel Events
+  onSendMessage(messageObj: any) {
+    const extensionNum = messageObj.extension;
+    const messageStr = messageObj.message;
+    if (this.endUser === null) {
+      return;
+    }
+    const target = `sip:${extensionNum}@${hostURL}`
+    this.endUser
+      .message(target, messageStr)
+      .catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to send message`);
+        console.error(error);
+      });
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   handleMeterLocal(stream: any): void {
     this.localSoundMeter = new LocalSoundMeter(this.audioContext);
@@ -534,7 +598,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.micMeterRefresh = setInterval(() => {
         this.micLiveMeter = this.localSoundMeter.inputInstant;
       }, 1000/15);
-    })
+    });
   }
 
   handleMeterRemote(stream: any): void {
@@ -543,7 +607,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.receiverMeterRefresh = setInterval(() => {
         this.receiverLiveMeter = this.remoteSoundMeter.calculateAudioLevels();
       }, 1000/15);
-    })
+    });
   }
 
   handleMeterStop(): void {

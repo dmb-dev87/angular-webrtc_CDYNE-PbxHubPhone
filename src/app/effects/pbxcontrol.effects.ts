@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType } from '@ngrx/effects';
+import { act, Actions, Effect, ofType } from '@ngrx/effects';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { PbxControlService } from '../services/pbxcontrol.service';
 import * as PhoneContacsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
+import * as MessageHistoriesActions from '../actions/messagehistories.actions';
 
 import { parseContact, parseWebRtcDemo } from '../utilities/parse-utils';
 
@@ -44,5 +45,21 @@ export class PbxControlEffects {
         )
       );
     })
+  );
+
+  @Effect()
+  getHistories = this.actions.pipe(
+    ofType(MessageHistoriesActions.ActionTypes.LoadMessageHistoriesBegin),
+    switchMap((action: MessageHistoriesActions.LoadMessageHistoriesBegin) => (this.pbxControlService.getHistories(action.phoneContacts))),
+    map(data => new MessageHistoriesActions.LoadMessageHistoriesSuccess({histories: data})),
+    catchError(error => of(new MessageHistoriesActions.LoadMessageHistoriesFailure({ error })))
+  );
+
+  @Effect()
+  addMessageRecord = this.actions.pipe(
+    ofType(MessageHistoriesActions.ActionTypes.AddMessageRecordBegin),
+    switchMap((action: MessageHistoriesActions.AddMessageRecordBegin) => (this.pbxControlService.addMessageRecordToHistory(action.payload))),
+    map(data => new MessageHistoriesActions.AddMessageRecordSuccess({histories: data})),
+    catchError(error => of(new MessageHistoriesActions.AddMessageRecordFailure({error})))
   );
 }

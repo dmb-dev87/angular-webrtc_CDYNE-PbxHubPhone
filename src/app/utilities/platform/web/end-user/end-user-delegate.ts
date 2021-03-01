@@ -52,7 +52,7 @@ export interface EndUserDelegate {
    * Callback for handling incoming MESSAGE requests.
    * @param message - The message received.
    */
-  onMessageReceived?(message: string): void;
+  onMessageReceived?(fromUser: string, message: string): void;
 
   /**
    * Called when user is registered to received calls.

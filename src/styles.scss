@@ -66,3 +66,27 @@ label {
 .mat-radio-label-content {
   padding-left: 0px !important;
 }
+
+.mat-dialog-container {
+  background: #1d1d1d !important;
+}
+
+::-webkit-scrollbar {
+  width: 2px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #1d1d1d; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius :1px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}

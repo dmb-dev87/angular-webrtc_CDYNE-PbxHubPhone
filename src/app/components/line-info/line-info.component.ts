@@ -12,7 +12,7 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
   micLiveMeter = 100;
   receiverLiveMeter = 100;
 
-  @Output() changeLine = new EventEmitter<number>();
+  @Output() changeLine = new EventEmitter<string>();
   @Output() changeReceiverVolume = new EventEmitter<number>();
 
   @Input() micMeter: number;
@@ -47,7 +47,6 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
   }
 
   onChangeLine(): void {
-    const lineNumber = this.selectLine === '1' ? 0:1;
-    this.changeLine.emit(lineNumber);
+    this.changeLine.emit(this.selectLine);
   }
 }

@@ -217,9 +217,11 @@ export class EndUser {
       },
       // Handle incoming messages
       onMessage: (message: Message): void => {
-        message.accept().then(() => {
+        message.accept().then(() => {          
+          const uri = message.request.from.uri;
+          const fromUser = uri.user;
           if (this.delegate && this.delegate.onMessageReceived) {
-            this.delegate.onMessageReceived(message.request.body);
+            this.delegate.onMessageReceived(fromUser, message.request.body);
           }
         });
       }
@@ -1153,8 +1155,6 @@ export class EndUser {
     if (!oldSession) {
       return Promise.reject(new Error(`Old Session does not exists.`));
     }
-
-    console.log(`+++++++++++++++++++++++++++`, this.transferTarget);
 
     return oldSession.refer(this.transferTarget);
   }

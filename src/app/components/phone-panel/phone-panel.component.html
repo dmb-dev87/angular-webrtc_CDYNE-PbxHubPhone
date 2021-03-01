@@ -1,6 +1,6 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
-    <div class=" col-lg-3 col-md-3 col-sm-12">
+    <div class=" col-lg-3 col-md-6 col-sm-12">
       <app-user-info        
         [callerId]="callerId"
         [callStatus]="callStatus"
@@ -9,7 +9,7 @@
         (unregister)="onUnregister()">
       </app-user-info>
     </div>
-    <div class=" col-lg-2 col-md-2 col-sm-12 control-pad">
+    <div class=" col-lg-2 col-md-6 col-sm-12 control-pad">
       <app-line-info
         [selectLine]="selectLine"
         [micMeter]="micLiveMeter"
@@ -20,7 +20,7 @@
         (changeLine)="changeLine($event)">
       </app-line-info>
     </div>
-    <div class=" col-lg-4 col-md-4 col-sm-12 control-pad">
+    <div class=" col-lg-4 col-md-6 col-sm-12 control-pad">
       <app-phone-control
         [holdBtnDisabled]="holdBtnDisabled"
         [muteBtnDisabled]="muteBtnDisabled"
@@ -36,15 +36,26 @@
         (makeCall)="onMakeCall()">
       </app-phone-control>
     </div>
-    <div class=" col-lg-3 col-md-3 col-sm-12 control-pad">
+    <div class=" col-lg-3 col-md-6 col-sm-12 control-pad">
       <app-misc-control
         [xferBtnDisabled]="xferBtnDisabled"
         [monitorBtnDisabled]="monitorBtnDisabled"
+        [messageBtnDisabled]="messageBtnDisabled"
         (transfer)="onMakeTransfer($event)"
-        (monitor)="onDialMonitor()">
+        (monitor)="onDialMonitor()"
+        (message)="onMessageDialog()">
       </app-misc-control>
     </div>
-  </div>
+  </div>  
+</div>
+
+<div>
+  <app-message-panel 
+    *ngIf="isMessage"
+    [selectedExtension]="selectedExtension"
+    (sendMessage)="onSendMessage($event)"
+    (clickOutside)="onClickOutsideMessage($event)">
+  </app-message-panel>
 </div>
 
 <audio id="remoteAudio" controls hidden>

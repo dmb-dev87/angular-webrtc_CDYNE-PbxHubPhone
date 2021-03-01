@@ -1,4 +1,5 @@
 import * as xml2js from 'xml2js';
+import { MessageHistory, MessageRecord } from '../models/messagehistory';
 import { PhoneUser } from '../models/phoneuser';
 
 export function parseContact(data: any): any {
@@ -64,4 +65,29 @@ export function parseWebRtcDemo(data: any): any {
   })
 
   return phoneUser;
+}
+
+export function parseMessageRecords(data: any): Array<MessageRecord> {
+	const records: Array<MessageRecord> = [];
+	const parser = new xml2js.Parser({
+		trim: true,
+		explicitArray: true
+	});
+	parser.parseString(data, (err, result) => {
+		const envelope = result['s:Envelope'];
+		const body = envelope['s:Body'];
+		const dirRes = body[0].GetMessagesResponse;
+		const dirResult = dirRes[0].GetMessagesResult;
+		const aMessageList = dirResult[0]['a:SipMessage'] !== undefined? dirResult[0]['a:SipMessage'] : [];
+		for(const k in aMessageList) {
+			const item = aMessageList[k];
+			records.push({
+				body: item['a:Body'][0],
+				datetime: item['a:Entrydate'][0],
+				messageId: item['a:messageid'][0],
+				sent: item['a:sent'][0] === 'true'
+			});
+		}
+	});
+	return records;
 }

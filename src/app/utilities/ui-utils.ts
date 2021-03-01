@@ -1,12 +1,15 @@
-interface DisabledButton {
-  id: string;
-  disabled: boolean;
+export function getDiv(id: string): HTMLDivElement {
+  const el = document.getElementById(id);
+  if (!(el instanceof HTMLDivElement)) {
+    throw new Error(`Element "${id}" not a div element.`);
+  }
+  return el;
 }
 
-export function getSpan(className: string): HTMLSpanElement {
-  const el = document.getElementById(className);
+export function getSpan(id: string): HTMLSpanElement {
+  const el = document.getElementById(id);
   if (!(el instanceof HTMLSpanElement)) {
-    throw new Error(`Element "${className}" not a span element.`);
+    throw new Error(`Element "${id}" not a span element.`);
   }
   return el;
 }
@@ -102,14 +105,4 @@ export function getButton(id: string): HTMLButtonElement {
     throw new Error(`Element "${id}" not found or not a button element`);
   }
   return el;
-}
-
-export function setButtonsDisabled(btns: Array<DisabledButton>): void {
-  for (let i = 0; i < btns.length; i++) {
-    const el = document.getElementById(btns[i].id);
-    if (!(el instanceof HTMLButtonElement)) {
-      throw new Error(`Element "${btns[i].id}" not found or not a button element`);
-    }
-    el.disabled = btns[i].disabled;
-  }
 }

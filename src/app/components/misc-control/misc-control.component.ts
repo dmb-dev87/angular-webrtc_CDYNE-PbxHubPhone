@@ -1,5 +1,4 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
-import { BodyAndContentType } from 'sip.js';
 import { getButtonText, setButtonText } from '../../utilities/ui-utils';
 
 @Component({
@@ -11,10 +10,11 @@ export class MiscControlComponent implements OnInit {
 
   @Output() transfer = new EventEmitter<boolean>();
   @Output() monitor = new EventEmitter();
+  @Output() message = new EventEmitter();
   
-  @Input() transferState: boolean;
   @Input() xferBtnDisabled: boolean;
   @Input() monitorBtnDisabled: boolean;
+  @Input() messageBtnDisabled: boolean;
 
   constructor() { }
 
@@ -37,5 +37,9 @@ export class MiscControlComponent implements OnInit {
 
   onDialMonitor(): void {
     this.monitor.emit();
+  }
+
+  onMessage(): void {
+    this.message.emit();
   }
 }
