@@ -35,10 +35,15 @@
       </div>
       <div class=" row">
         <div class=" col message-box" id="message-box" #scrollMe>
-          <div *ngFor="let record of activeRecords" #messages [ngClass]="{'row':true, 'received':!record.sent}">
-            <div [ngClass]="{'received-message':!record.sent, 'sent-message':record.sent}">
-              <p>{{record.body}}</p>  
-            </div>
+          <div *ngFor="let record of activeRecords" #messages [ngClass]="{'row':true, 'received':!record.sent, 'mb-3':true}">
+            <div>
+              <span class=" time-info">
+                {{record.sent?'' : curName+', '}}{{record.datetime | date:'h:mm a'}}
+              </span>
+              <span [ngClass]="{'received-message':!record.sent, 'sent-message':record.sent}">
+                {{record.body}}
+              </span>
+            </div>            
           </div>
         </div>
       </div>

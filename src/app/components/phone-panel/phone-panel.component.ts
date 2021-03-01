@@ -237,7 +237,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.selectedExtension = fromUser;
       const receivedMsg: MessageRecord = {
         body: messageStr,
-        datetime: ``,
+        datetime: new Date(),
         messageId: 0,
         sent: false
       };
