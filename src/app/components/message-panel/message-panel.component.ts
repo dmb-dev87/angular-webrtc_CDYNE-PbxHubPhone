@@ -1,8 +1,7 @@
-import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild, ContentChildren, QueryList, ViewChildren } from '@angular/core';
 import { PhoneContact } from '../../models/phonecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
 import { MessageHistory, MessageRecord } from '../../models/messagehistory';
-import { act } from '@ngrx/effects';
 
 @Component({
   selector: 'app-message-panel',
@@ -10,6 +9,8 @@ import { act } from '@ngrx/effects';
   styleUrls: ['./message-panel.component.scss']
 })
 export class MessagePanelComponent implements OnInit, AfterViewInit  {
+  @ViewChildren('messages') messages: QueryList<any>;
+  @ViewChild('scrollMe') scrollMe: ElementRef;
   messageStr: string;
   phoneContacts: Array<PhoneContact> = [];  
 
@@ -37,6 +38,9 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
     if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
       this.getActiveRecords();
     }
+
+    this.scrollToBottom();
+    this.messages.changes.subscribe(this.scrollToBottom);
   }
 
   getActiveRecords(): void {
@@ -58,7 +62,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
     const messageStr = this.messageStr;
     this.messageStr = ``;
 
-    if (this.selectedExtension === undefined) {
+    if (this.selectedExtension === undefined || messageStr === ``) {
       return;
     }
     this.sendMessage.emit({extension: this.selectedExtension, message: messageStr});
@@ -73,4 +77,9 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
     this.pbxControlService.addMessageRecord(this.selectedExtension, newMessage);
   }
 
+  scrollToBottom = () => {
+    try {
+      this.scrollMe.nativeElement.scrollTop = this.scrollMe.nativeElement.scrollHeight;
+    } catch (err) {}
+  }
 }

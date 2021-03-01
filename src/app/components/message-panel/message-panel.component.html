@@ -1,10 +1,16 @@
 <div class=" col-lg-6 col-md-12 col-sm-12 message-panel">
   <div class=" row">
-    <div class=" col-3 contact-list">
+    <div class=" col-4 contact-list">
       <div class=" row">
         <div class=" col search-pad">
-          
+          <form class="form-inline search-form">
+            <mat-icon>search</mat-icon>
+            <input class="form-control" type="text" placeholder="Find people and conversations." aria-label="Search">
+          </form>
         </div>
+      </div>
+      <div class=" row plus-pad">
+        <button mat-button matSuffix mat-icon-button class="plus-btn">+</button>
       </div>
       <div class=" row">
         <div class=" col contacts-pad">
@@ -21,15 +27,15 @@
         </div>
       </div>
     </div>
-    <div class=" col-9 message-list">
+    <div class=" col-8 message-list">
       <div class=" row">
         <div class=" col current-name">
           <p>{{curName}}</p>
         </div>        
       </div>
       <div class=" row">
-        <div class=" col message-box" id="message-box">
-          <div *ngFor="let record of activeRecords" [ngClass]="{'row':true, 'received':!record.sent}">
+        <div class=" col message-box" id="message-box" #scrollMe>
+          <div *ngFor="let record of activeRecords" #messages [ngClass]="{'row':true, 'received':!record.sent}">
             <div [ngClass]="{'received-message':!record.sent, 'sent-message':record.sent}">
               <p>{{record.body}}</p>  
             </div>
@@ -38,12 +44,12 @@
       </div>
       <div class=" row">
         <div class=" col">
-          <mat-form-field class="message-form">
-            <input matInput type="text" [(ngModel)]="messageStr">
+          <form class="form-inline message-form">
+            <input class="form-control" type="text" placeholder="Type Message" [(ngModel)]="messageStr" name="message">
             <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="onSendMessage()">
               <mat-icon>send</mat-icon>
             </button>
-          </mat-form-field>
+          </form>
         </div>
       </div>
     </div>

@@ -10,11 +10,36 @@
 
 .contact-list {
   border-right: 2px solid #75757a;
-  padding: 20px 30px;
+  padding: 20px 15px;
   overflow-y: auto;
 
   .search-pad {
-    margin-bottom: 30px;
+    margin-bottom: 50px;
+    color: #ffffff;
+    position: relative;
+
+    .search-form {
+      background-color: #2f2f33;
+      border-radius: 7px;
+      padding: 2px 4px;
+
+      input {
+        border: none;
+        width: calc(100% - 24px);
+      }
+    }
+  }
+
+  .plus-pad {
+    position: absolute;
+    top: 45px;
+    right: 45px;
+
+    .plus-btn {
+      font-size: 20px;
+      border-radius: 50%;
+      background-color: #06002f;
+    }
   }
 
   .contacts-pad {
@@ -74,22 +99,17 @@
 
   .message-form {
     margin-top: 10px;
-    width: 100%;
     font-size: 0.75rem;
-  
-    .mat-input-element {
-      color: white;
+    color: white;
+    background-color: #2f2f33;
+    border-radius: 7px;
+    padding: 2px 4px;
+
+    input {      
       border: none;
+      width: calc(100% - 40px);
     }
     
-    .mat-input-element::placeholder {
-      color: white;
-    }    
-  
-    input {
-      caret-color: white;
-    }
-  
     .mat-focused .mat-form-field-underline {
       display: none;
     }

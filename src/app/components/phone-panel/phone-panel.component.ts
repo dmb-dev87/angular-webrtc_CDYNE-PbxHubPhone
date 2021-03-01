@@ -44,7 +44,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   xferBtnDisabled = true;
   monitorBtnDisabled = true;
-  messageBtnDisabled = false;
+  messageBtnDisabled = true;
 
   isMessage = false;
   selectedExtension = ``;
