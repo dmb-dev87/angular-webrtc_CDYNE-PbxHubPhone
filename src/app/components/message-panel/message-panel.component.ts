@@ -1,7 +1,6 @@
 import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild, ContentChildren, QueryList, ViewChildren } from '@angular/core';
 import { MessageContact } from '../../models/messagecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
-// import { MessageHistory, MessageRecord } from '../../models/messagehistory';
 import { MessageHistory } from '../../models/messagehistory';
 import { PhoneContact } from 'src/app/models/phonecontact';
 import { getInputValue, setInputValue } from '../../utilities/ui-utils';
@@ -34,48 +33,47 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
     this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
       this.phoneContacts = phonecontacts.data;
     });
-
-    // this.getActiveRecords();
   }
 
   ngOnInit(): void {
-    
+
   }
 
   ngAfterViewInit(): void {
-    // this.getActiveRecords();
+    if (this.selectedExtension) {
+      const activeContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
+      if (activeContact === undefined) {
+        this.addContact(this.selectedExtension);
+      }
+    }
+    
+    this.getMessageHistories();
     this.scrollToBottom();
     this.messages.changes.subscribe(this.scrollToBottom);
   }
 
-  // getActiveRecords(): void {
-  //   if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
-  //     this.pbxControlService.getMessageHistories().subscribe(histories=> {
-  //       const messageHistories: Array<MessageHistory> = histories.messageHistories;
-  //       const activeHistory = messageHistories.find(e => e.extension === this.selectedExtension);        
-  //       this.activeRecords = activeHistory === undefined ? [] : activeHistory.records;      
-  //     })
-  //     const activeContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
-  //     this.curName = activeContact.firstName + ` ` + activeContact.lastName;
-  //   }
-  // }
+  getMessageHistories(): void {
+    if (this.selectedExtension) {
+      this.pbxControlService.loadMessageHistories(this.selectedExtension);
+      this.pbxControlService.getMessageHistories().subscribe(historiesState => {
+        this.messageHistories = historiesState.histories;
+      })
+      const activeContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
+      this.curName = activeContact.firstName + ` ` + activeContact.lastName;
+    }    
+    return;
+  }
 
   onSelectContact(extension: string): void {
     this.selectedExtension = extension;
-
-    this.pbxControlService.loadMessageHistories(this.selectedExtension);
-    
-    this.pbxControlService.getMessageHistories().subscribe(historiesState => {      
-      this.messageHistories = historiesState.histories;
-    });
-    // this.getActiveRecords();
+    this.getMessageHistories();
   }
 
-  onHideContact(extensio: string): void {
+  onHideContact(extension: string): void {
+    this.selectedExtension = extension;
     const hideContact = this.messageContacts.find(e => e.extension === this.selectedExtension);    
     this.pbxControlService.deleteMessageContact(hideContact);
     this.pbxControlService.updateMessageHistories([]);
-    // this.pbxControlService.deleteMessageHistoryFromState(hideContact);
     this.selectedExtension = undefined;
     this.curName = undefined;
   }
@@ -88,15 +86,12 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
       return;
     }
     this.sendMessage.emit({extension: this.selectedExtension, message: messageStr});
-    // const newMessage: MessageRecord = {
     const newMessage: MessageHistory = {
       body: messageStr,
       datetime: new Date(),
       messageId: 0,
       sent: true
     };
-    // this.activeRecords = Object.assign([], this.activeRecords);
-    // this.activeRecords.push(newMessage);
     this.pbxControlService.addMessageHistory(newMessage);
   }
 
@@ -141,14 +136,20 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
 
   onAddContact(): void {
     const extension = getInputValue(`search-text`);
+    this.addContact(extension)
+      .then(() => {
+        this.selectedExtension = extension;
+        this.getMessageHistories();
+      })
+  }
+
+  async addContact(extension: string): Promise<void> {
     const phoneContact = this.phoneContacts.find(e => e.extension === extension);
     const addContact: MessageContact = {
       extension: phoneContact.extension,
       firstName: phoneContact.firstName,
       lastName: phoneContact.lastName
     };
-    this.pbxControlService.addMessageContact(addContact);
-    // this.pbxControlService.addMessageHistory(addContact);
-    this.selectedExtension = extension;
+    return this.pbxControlService.addMessageContact(addContact);
   }
 }

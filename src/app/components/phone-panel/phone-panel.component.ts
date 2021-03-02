@@ -6,7 +6,6 @@ import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
-// import { MessageHistory, MessageRecord } from '../../models/messagehistory';
 import { MessageHistory } from '../../models/messagehistory';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
@@ -49,7 +48,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   isMessage = false;
   selectedExtension = ``;
-  // activeRecords: Array<MessageRecord> = [];
   messageHistories: Array<MessageHistory> = [];
 
   private endUser = null;
@@ -84,9 +82,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
   
   // EndUser Callback functions
-  makeCallCreatedCallback(user: EndUser): () => void {
+  makeCallCreatedCallback(): () => void {
     return () => {
-      console.log(`[${user.id}] call created`);
+      console.log(`[${this.endUser.id}] call created`);
       this.callStatus = `Dialing`;
 
       this.holdBtnDisabled = false;
@@ -100,9 +98,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  makeCallAnsweredCallback(user: EndUser): () => void {
+  makeCallAnsweredCallback(): () => void {
     return () => {
-      console.log(`[${user.id}] call answered`);
+      console.log(`[${this.endUser.id}] call answered`);
       this.callStatus = `Connected`;
 
       this.holdBtnDisabled = false;
@@ -114,41 +112,43 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       var AudioContext = window.AudioContext;
       this.audioContext = new AudioContext();
-      if (user.localMediaStream !== undefined) {
-        this.handleMeterLocal(user.localMediaStream);
+      if (this.endUser.localMediaStream !== undefined) {
+        this.handleMeterLocal(this.endUser.localMediaStream);
       }
-      if (user.remoteMediaStream !== undefined) {
-        this.handleMeterRemote(user.remoteMediaStream);
+      if (this.endUser.remoteMediaStream !== undefined) {
+        this.handleMeterRemote(this.endUser.remoteMediaStream);
       }
     }
   }
 
-  makeCallReceivedCallback(callerId: string, autoAnswer: boolean): void {
-    console.log(`[${this.endUser.id}] call received`);
-    this.callerId = callerId;
-    this.callStatus = `Ringing`;
-    this.invitationState = true;
-    this.selectLine === `1` ? this.lineStatusOne = `Call Received` : this.lineStatusTwo = `Call Received`;
+  makeCallReceivedCallback(): () => void {
+    return (callerId?:string, autoAnswer?: boolean) => {
+      console.log(`[${this.endUser.id}] call received`);
+      this.callerId = callerId;
+      this.callStatus = `Ringing`;
+      this.invitationState = true;
+      this.selectLine === `1` ? this.lineStatusOne = `Call Received` : this.lineStatusTwo = `Call Received`;
 
-    this.holdBtnDisabled = false;
-    this.muteBtnDisabled = false;
-    this.beginBtnDisabled = false;
-    this.endBtnDisabled = false;
+      this.holdBtnDisabled = false;
+      this.muteBtnDisabled = false;
+      this.beginBtnDisabled = false;
+      this.endBtnDisabled = false;
 
-    this.xferBtnDisabled = true;
+      this.xferBtnDisabled = true;
 
-    if (autoAnswer == true) {
-      this.onMakeCall();
-    } else {
-      ringAudio.loop = true;
-      ringAudio.autoplay = true;
-      ringAudio.play();
+      if (autoAnswer == true) {
+        this.onMakeCall();
+      } else {
+        ringAudio.loop = true;
+        ringAudio.autoplay = true;
+        ringAudio.play();
+      }
     }
   }
 
-  makeCallHangupCallback(user: EndUser): () => void {
+  makeCallHangupCallback(): () => void {
     return () => {
-      console.log(`[${user.id}] call hangup`);
+      console.log(`[${this.endUser.id}] call hangup`);
       this.selectLine === `1` ? this.lineStatusOne = `Call Ended` : this.lineStatusTwo = `Call Ended`;
       this.callState = false;
       this.callStatus = `Call Ended`;
@@ -165,14 +165,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  makeRegisteredCallback(user: EndUser): () => void {
+  makeRegisteredCallback(): () => void {
     return () => {      
       this.pbxControlService.loadPhoneContacts();
 
       this.pbxControlService.loadMessageContacts();
-      // this.pbxControlService.getMessageContacts().subscribe(contacts => {
-      //   this.pbxControlService.loadMessageHistories(contacts.contacts);
-      // });
 
       this.pbxControlService.toggleDnd().subscribe(response => {
         //call twice because status get toggled when call api
@@ -182,7 +179,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         });
       });
 
-      console.log(`[${user.id}] registered`);
+      console.log(`[${this.endUser.id}] registered`);
       this.registerStatus = true;
       this.callStatus = `Welcome ` + this.phoneUser.displayName;
 
@@ -198,9 +195,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  makeUnregisteredCallback(user: EndUser): () => void {
+  makeUnregisteredCallback(): () => void {
     return () => {
-      console.log(`[${user.id}] unregistered`);
+      console.log(`[${this.endUser.id}] unregistered`);
       this.registerStatus = false;
       this.callStatus = "Unregistered";
 
@@ -216,19 +213,19 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     };
   }
 
-  makeServerConnectCallback(user: EndUser): () => void {
+  makeServerConnectCallback(): () => void {
     return () => {
-      console.log(`[${user.id}] connected`);
+      console.log(`[${this.endUser.id}] connected`);
       this.callStatus = "Connected to Server";
     };
   }
 
-  makeServerDisconnectCallback(user: EndUser): () => void {
+  makeServerDisconnectCallback(): () => void {
     return (err?: Error) => {
-      console.log(`[${user.id}] disconnected`);
+      console.log(`[${this.endUser.id}] disconnected`);
       this.callStatus = "Disconnected";
       if (err) {
-        console.error(`[${user.id}] Server disconnected.\n` + err.message);
+        console.error(`[${this.endUser.id}] Server disconnected.\n` + err.message);
       }
     };
   }
@@ -236,19 +233,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeMessageReceivedCallback(): () => void {
     return (fromUser?:string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
-
-      console.log(`+++++++++++++++++++++++++`, fromUser);
-
       this.selectedExtension = fromUser;
-      // const receivedMsg: MessageRecord = {
-      // const receivedMsg: MessageHistory = {
-      //   body: messageStr,
-      //   datetime: new Date(),
-      //   messageId: 0,
-      //   sent: false
-      // };
-
-      // this.pbxControlService.addMessageRecord(this.selectedExtension, receivedMsg);
       this.isMessage = true;
     }
   }
@@ -300,14 +285,14 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.endUser = new EndUser(webSocketServer, endUserOptions);
 
     const delegate: EndUserDelegate = {
-      onCallCreated: this.makeCallCreatedCallback(this.endUser),
-      onCallAnswered: this.makeCallAnsweredCallback(this.endUser),
-      onCallReceived: (callerId: string, autoAnswer: boolean): void => this.makeCallReceivedCallback(callerId, autoAnswer),
-      onCallHangup: this.makeCallHangupCallback(this.endUser),
-      onRegistered: this.makeRegisteredCallback(this.endUser),
-      onUnregistered: this.makeUnregisteredCallback(this.endUser),
-      onServerConnect: this.makeServerConnectCallback(this.endUser),
-      onServerDisconnect: this.makeServerDisconnectCallback(this.endUser),
+      onCallCreated: this.makeCallCreatedCallback(),
+      onCallAnswered: this.makeCallAnsweredCallback(),
+      onCallReceived: this.makeCallReceivedCallback(),
+      onCallHangup: this.makeCallHangupCallback(),
+      onRegistered: this.makeRegisteredCallback(),
+      onUnregistered: this.makeUnregisteredCallback(),
+      onServerConnect: this.makeServerConnectCallback(),
+      onServerDisconnect: this.makeServerDisconnectCallback(),
       onMessageReceived: this.makeMessageReceivedCallback(),
     };
 
