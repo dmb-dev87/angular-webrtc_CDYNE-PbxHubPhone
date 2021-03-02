@@ -1,7 +1,8 @@
 import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild, ContentChildren, QueryList, ViewChildren } from '@angular/core';
 import { MessageContact } from '../../models/messagecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
-import { MessageHistory, MessageRecord } from '../../models/messagehistory';
+// import { MessageHistory, MessageRecord } from '../../models/messagehistory';
+import { MessageHistory } from '../../models/messagehistory';
 import { PhoneContact } from 'src/app/models/phonecontact';
 import { getInputValue, setInputValue } from '../../utilities/ui-utils';
 
@@ -20,7 +21,8 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
 
-  @Input() activeRecords: Array<MessageRecord>;
+  // @Input() activeRecords: Array<MessageRecord>;
+  @Input() messageHistories: Array<MessageHistory>;
   @Input() selectedExtension: string;
   @Input() curName: string;
 
@@ -33,7 +35,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
       this.phoneContacts = phonecontacts.data;
     });
 
-    this.getActiveRecords();
+    // this.getActiveRecords();
   }
 
   ngOnInit(): void {
@@ -41,32 +43,39 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
   }
 
   ngAfterViewInit(): void {
-    this.getActiveRecords();
+    // this.getActiveRecords();
     this.scrollToBottom();
     this.messages.changes.subscribe(this.scrollToBottom);
   }
 
-  getActiveRecords(): void {
-    if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
-      this.pbxControlService.getMessageHistories().subscribe(histories=> {
-        const messageHistories: Array<MessageHistory> = histories.messageHistories;
-        const activeHistory = messageHistories.find(e => e.extension === this.selectedExtension);        
-        this.activeRecords = activeHistory === undefined ? [] : activeHistory.records;      
-      })
-      const activeContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
-      this.curName = activeContact.firstName + ` ` + activeContact.lastName;
-    }
-  }
+  // getActiveRecords(): void {
+  //   if (this.selectedExtension !== `` && this.selectedExtension !== undefined) {
+  //     this.pbxControlService.getMessageHistories().subscribe(histories=> {
+  //       const messageHistories: Array<MessageHistory> = histories.messageHistories;
+  //       const activeHistory = messageHistories.find(e => e.extension === this.selectedExtension);        
+  //       this.activeRecords = activeHistory === undefined ? [] : activeHistory.records;      
+  //     })
+  //     const activeContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
+  //     this.curName = activeContact.firstName + ` ` + activeContact.lastName;
+  //   }
+  // }
 
   onSelectContact(extension: string): void {
     this.selectedExtension = extension;
-    this.getActiveRecords();  
+
+    this.pbxControlService.loadMessageHistories(this.selectedExtension);
+    
+    this.pbxControlService.getMessageHistories().subscribe(historiesState => {      
+      this.messageHistories = historiesState.histories;
+    });
+    // this.getActiveRecords();
   }
 
   onHideContact(extensio: string): void {
     const hideContact = this.messageContacts.find(e => e.extension === this.selectedExtension);    
     this.pbxControlService.deleteMessageContact(hideContact);
-    this.pbxControlService.deleteMessageHistoryFromState(hideContact);
+    this.pbxControlService.updateMessageHistories([]);
+    // this.pbxControlService.deleteMessageHistoryFromState(hideContact);
     this.selectedExtension = undefined;
     this.curName = undefined;
   }
@@ -79,15 +88,16 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
       return;
     }
     this.sendMessage.emit({extension: this.selectedExtension, message: messageStr});
-    const newMessage: MessageRecord = {
+    // const newMessage: MessageRecord = {
+    const newMessage: MessageHistory = {
       body: messageStr,
       datetime: new Date(),
       messageId: 0,
       sent: true
     };
-    this.activeRecords = Object.assign([], this.activeRecords);
-    this.activeRecords.push(newMessage);
-    this.pbxControlService.addMessageRecord(this.selectedExtension, newMessage);
+    // this.activeRecords = Object.assign([], this.activeRecords);
+    // this.activeRecords.push(newMessage);
+    this.pbxControlService.addMessageHistory(newMessage);
   }
 
   scrollToBottom = () => {
@@ -138,7 +148,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
       lastName: phoneContact.lastName
     };
     this.pbxControlService.addMessageContact(addContact);
-    this.pbxControlService.addMessageHistory(addContact);
+    // this.pbxControlService.addMessageHistory(addContact);
     this.selectedExtension = extension;
   }
 }

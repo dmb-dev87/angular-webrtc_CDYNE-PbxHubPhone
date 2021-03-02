@@ -6,7 +6,8 @@ import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
-import { MessageHistory, MessageRecord } from '../../models/messagehistory';
+// import { MessageHistory, MessageRecord } from '../../models/messagehistory';
+import { MessageHistory } from '../../models/messagehistory';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -48,7 +49,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   isMessage = false;
   selectedExtension = ``;
-  activeRecords: Array<MessageRecord> = [];
+  // activeRecords: Array<MessageRecord> = [];
+  messageHistories: Array<MessageHistory> = [];
 
   private endUser = null;
   private callState = false;
@@ -168,9 +170,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.pbxControlService.loadPhoneContacts();
 
       this.pbxControlService.loadMessageContacts();
-      this.pbxControlService.getMessageContacts().subscribe(contacts => {
-        this.pbxControlService.loadMessageHistories(contacts.contacts);
-      });
+      // this.pbxControlService.getMessageContacts().subscribe(contacts => {
+      //   this.pbxControlService.loadMessageHistories(contacts.contacts);
+      // });
 
       this.pbxControlService.toggleDnd().subscribe(response => {
         //call twice because status get toggled when call api
@@ -238,14 +240,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`+++++++++++++++++++++++++`, fromUser);
 
       this.selectedExtension = fromUser;
-      const receivedMsg: MessageRecord = {
-        body: messageStr,
-        datetime: new Date(),
-        messageId: 0,
-        sent: false
-      };
+      // const receivedMsg: MessageRecord = {
+      // const receivedMsg: MessageHistory = {
+      //   body: messageStr,
+      //   datetime: new Date(),
+      //   messageId: 0,
+      //   sent: false
+      // };
 
-      this.pbxControlService.addMessageRecord(this.selectedExtension, receivedMsg);
+      // this.pbxControlService.addMessageRecord(this.selectedExtension, receivedMsg);
       this.isMessage = true;
     }
   }

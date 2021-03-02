@@ -57,13 +57,13 @@
       </div>
       <div class=" row">
         <div class=" col message-box" id="message-box" #scrollMe>
-          <div *ngFor="let record of activeRecords" #messages [ngClass]="{'row':true, 'received':!record.sent, 'mb-3':true}">
+          <div *ngFor="let history of messageHistories" #messages [ngClass]="{'row':true, 'received':!history.sent, 'mb-3':true}">
             <div>
               <span class=" time-info">
-                {{record.sent?'' : curName+', '}}{{record.datetime | date:'h:mm a'}}
+                {{history.sent?'' : curName+', '}}{{history.datetime | date:'h:mm a'}}
               </span>
-              <span [ngClass]="{'received-message':!record.sent, 'sent-message':record.sent}">
-                {{record.body}}
+              <span [ngClass]="{'received-message':!history.sent, 'sent-message':history.sent}">
+                {{history.body}}
               </span>
             </div>            
           </div>

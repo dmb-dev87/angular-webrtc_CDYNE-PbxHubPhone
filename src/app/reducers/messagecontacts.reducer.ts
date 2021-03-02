@@ -47,10 +47,17 @@ export function reducer(
       };      
     }
     case fromMessageContacts.ActionTypes.DeleteMessageContactSuccess: {
+      let newContacts = Object.assign([], state.contacts);
+      const hideContact = action.payload.contact;
+      newContacts.forEach( (item, index) => {
+        if(item === hideContact.contact) {
+          newContacts.splice(index, 1);
+        }
+      });
       return {
         ...state,
         loading: false,
-        contacts: action.payload.contacts
+        contacts: newContacts
       };      
     }
     case fromMessageContacts.ActionTypes.DeleteMessageContactFailure: {
@@ -68,10 +75,13 @@ export function reducer(
       };      
     }
     case fromMessageContacts.ActionTypes.AddMessageContactSuccess: {
+      let newContacts = Object.assign([], state.contacts);
+      const addContact = action.payload.contact;
+      newContacts.push(addContact.contact);
       return {
         ...state,
         loading: false,
-        contacts: action.payload.contacts
+        contacts: newContacts
       };      
     }
     case fromMessageContacts.ActionTypes.AddMessageContactFailure: {

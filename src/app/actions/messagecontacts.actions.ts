@@ -1,6 +1,5 @@
 import { Action } from '@ngrx/store';
 import { MessageContact } from '../models/messagecontact';
-import { AddMessageRecordFailure } from './messagehistories.actions';
 
 export enum ActionTypes {
   LoadMessageContactsBegin = `[MessageContacts] Load data begin`,
@@ -39,7 +38,7 @@ export class DeleteMessageContactBegin implements Action {
 export class DeleteMessageContactSuccess implements Action {
   readonly type = ActionTypes.DeleteMessageContactSuccess;
 
-  constructor(public payload: {contacts: any}) {}
+  constructor(public payload: {contact: any}) {}
 }
 
 export class DeleteMessageContactFailure implements Action {
@@ -57,7 +56,7 @@ export class AddMessageContactBegin implements Action {
 export class AddMessageContactSuccess implements Action {
   readonly type = ActionTypes.AddMessageContactSuccess;
 
-  constructor(public payload: {contacts: any}) {}
+  constructor(public payload: {contact: any}) {}
 }
 
 export class AddMessageContactFailure implements Action {
