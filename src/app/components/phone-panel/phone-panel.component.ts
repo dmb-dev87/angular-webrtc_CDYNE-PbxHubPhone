@@ -48,7 +48,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   isMessage = false;
   selectedExtension = ``;
-  messageHistories: Array<MessageHistory> = [];
+  extensionsForReceived: Array<string> = [];
+  receivedMessages: number = 0;
 
   private endUser = null;
   private callState = false;
@@ -233,8 +234,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeMessageReceivedCallback(): () => void {
     return (fromUser?:string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
-      this.selectedExtension = fromUser;
-      this.isMessage = true;
+      // this.selectedExtension = fromUser;
+      if (this.isMessage === false) {
+        this.receivedMessages++;
+      }
+      this.extensionsForReceived.push(fromUser);
     }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -534,6 +538,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onMessageDialog(): void {
     this.isMessage = !this.isMessage;
+    this.receivedMessages = 0;
   }
 
   onClickOutsideMessage(e: Event): void {

@@ -15,6 +15,7 @@ export class MiscControlComponent implements OnInit {
   @Input() xferBtnDisabled: boolean;
   @Input() monitorBtnDisabled: boolean;
   @Input() messageBtnDisabled: boolean;
+  @Input() receivedMessages: number;
 
   constructor() { }
 

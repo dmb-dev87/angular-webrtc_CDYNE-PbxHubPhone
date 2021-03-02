@@ -26,8 +26,8 @@
       </div>
       <div class=" row contacts-pad">
         <div class=" col">
-          <div *ngFor="let contact of messageContacts;" [ngClass]="{'row':true, 'contact-item':true, 'selected':contact.extension === selectedExtension}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
-            <div class=" col">
+          <div *ngFor="let contact of messageContacts;" [ngClass]="{'row':true, 'contact-item':true, 'received':extensionsForReceived.indexOf(contact.extension) > -1}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
+            <div [ngClass]="{'col':true, 'contact-content':true, 'selected':contact.extension === selectedExtension}">
               <div class=" row">
                 <p class=" contact-name">{{contact.firstName}} {{contact.lastName}}</p>
               </div>

@@ -41,6 +41,7 @@
         [xferBtnDisabled]="xferBtnDisabled"
         [monitorBtnDisabled]="monitorBtnDisabled"
         [messageBtnDisabled]="messageBtnDisabled"
+        [receivedMessages]="receivedMessages"
         (transfer)="onMakeTransfer($event)"
         (monitor)="onDialMonitor()"
         (message)="onMessageDialog()">
@@ -52,6 +53,7 @@
 <div>
   <app-message-panel 
     *ngIf="isMessage"
+    [extensionsForReceived]="extensionsForReceived"
     [selectedExtension]="selectedExtension"
     (sendMessage)="onSendMessage($event)">
     <!-- (clickOutside)="onClickOutsideMessage($event)"> -->

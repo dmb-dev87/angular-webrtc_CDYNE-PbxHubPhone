@@ -67,14 +67,23 @@
 
   .contacts-pad {
     .contact-item { 
-      padding: 7px 15px 3px 15px;
+      padding: 0px 15px;
+      margin-top: 10px;
       margin-bottom: 10px;
       position: relative;
+    }
+
+    .contact-content {
+      padding: 5px 25px;
     }
 
     .selected {      
       background-color: #2f2f33;
       border-radius: 8px;
+    }
+
+    .received {
+      border-left: 4px solid #67e370;
     }
 
     .contact-name {
@@ -87,11 +96,10 @@
 
     .contact-menu {
       position: absolute;
-      right: -15px;
-      top: 0px;
+      right: -5px;
+      top: 4px;
       color: #ffffff;
-    }
-    
+    }    
   }
 }
 

@@ -17,13 +17,13 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
   messageContacts: Array<MessageContact> = [];
   phoneContacts: Array<PhoneContact> = [];
   searchResult: Array<PhoneContact> = [];
+  messageHistories: Array<MessageHistory> = [];
+  selectedExtension: string = undefined;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
 
-  // @Input() activeRecords: Array<MessageRecord>;
-  @Input() messageHistories: Array<MessageHistory>;
-  @Input() selectedExtension: string;
   @Input() curName: string;
+  @Input() extensionsForReceived: Array<string>;
 
   constructor(private pbxControlService: PbxControlService) { 
     this.pbxControlService.getMessageContacts().subscribe(messagecontacts => {
@@ -67,6 +67,11 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
   onSelectContact(extension: string): void {
     this.selectedExtension = extension;
     this.getMessageHistories();
+    this.extensionsForReceived.forEach((item, index) => {
+      if(item === this.selectedExtension) {
+        this.extensionsForReceived.splice(index, 1);
+      }
+    });
   }
 
   onHideContact(extension: string): void {
