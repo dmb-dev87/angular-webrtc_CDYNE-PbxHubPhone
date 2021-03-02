@@ -60,6 +60,48 @@ export function reducer(
         error: action.payload.error
       };
     }
+    case fromMessageHistories.ActionTypes.AddMessageHistoryBegin: {
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+    }
+    case fromMessageHistories.ActionTypes.AddMessageHistorySuccess: {
+      return {
+        ...state,
+        loading: false,
+        messageHistories: action.payload.histories
+      };
+    }
+    case fromMessageHistories.ActionTypes.AddMessageHistoryFailure: {
+      return {
+        ...state,
+        loading: false,
+        error: action.payload.error
+      };
+    }
+    case fromMessageHistories.ActionTypes.DeleteMessageHistoryBegin: {
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+    }
+    case fromMessageHistories.ActionTypes.DeleteMessageHistorySuccess: {
+      return {
+        ...state,
+        loading: false,
+        messageHistories: action.payload.histories
+      };
+    }
+    case fromMessageHistories.ActionTypes.DeleteMessageHistoryFailure: {
+      return {
+        ...state,
+        loading: false,
+        error: action.payload.error
+      };
+    }
     default: {
       return state;
     }

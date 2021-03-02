@@ -66,7 +66,9 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
   onHideContact(extensio: string): void {
     const hideContact = this.messageContacts.find(e => e.extension === this.selectedExtension);    
     this.pbxControlService.deleteMessageContact(hideContact);
+    this.pbxControlService.deleteMessageHistoryFromState(hideContact);
     this.selectedExtension = undefined;
+    this.curName = undefined;
   }
 
   onSendMessage(): void {
@@ -136,6 +138,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
       lastName: phoneContact.lastName
     };
     this.pbxControlService.addMessageContact(addContact);
-    this.selectedExtension = undefined;
+    this.pbxControlService.addMessageHistory(addContact);
+    this.selectedExtension = extension;
   }
 }
