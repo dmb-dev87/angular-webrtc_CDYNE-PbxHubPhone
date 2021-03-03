@@ -1,5 +1,4 @@
 import * as xml2js from 'xml2js';
-// import { MessageHistory, MessageRecord } from '../models/messagehistory';
 import { MessageHistory } from '../models/messagehistory';
 import { PhoneUser } from '../models/phoneuser';
 

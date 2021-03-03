@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, EventEmitter, Output, Input } from '@angular/core';
-import { getSpan, getAudio } from '../../utilities/ui-utils';
+import { getSpan } from '../../utilities/ui-utils';
 
 @Component({
   selector: 'app-line-info',

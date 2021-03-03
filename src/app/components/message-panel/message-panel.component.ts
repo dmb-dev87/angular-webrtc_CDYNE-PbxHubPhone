@@ -129,20 +129,5 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
     this.addMessageContact.emit(extension);
     this.selectedExtension = extension;
     this.getMessageHistories();
-    // this.addContact(extension)
-    //   .then(() => {
-    //     this.selectedExtension = extension;
-    //     this.getMessageHistories();
-    //   })
   }
-
-  // async addContact(extension: string): Promise<void> {
-  //   const phoneContact = this.phoneContacts.find(e => e.extension === extension);
-  //   const addContact: MessageContact = {
-  //     extension: phoneContact.extension,
-  //     firstName: phoneContact.firstName,
-  //     lastName: phoneContact.lastName
-  //   };
-  //   return this.pbxControlService.addMessageContact(addContact);
-  // }
 }

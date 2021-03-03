@@ -83,20 +83,6 @@ export class DialPadComponent implements OnInit, AfterViewInit {
 
     const value = getInputValue(`call-number`);
     this.changeNumberEvent.emit(value);
-
-    // if (this.callState === false || this.lineChanged === true || this.transferState === true) {
-    //   addInputValue(`call-number`, toneNum);
-
-    //   this.endUser.sendDTMF(toneNum)
-    //     .then(() => {
-    //       addInputValue(`call-number`, toneNum);
-    //     })
-    //     .catch((err: Error) => {
-    //       addInputValue(`call-number`, toneNum);
-    //       console.error(`[${this.endUser.id}] failed to send DTMF`);
-    //       console.error(err);
-    //     });
-    // }
   }
 
   onClickOutsideNumber(e: Event): void {
