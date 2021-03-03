@@ -6,7 +6,6 @@ import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
-import { MessageHistory } from '../../models/messagehistory';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -234,7 +233,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeMessageReceivedCallback(): () => void {
     return (fromUser?:string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
-      // this.selectedExtension = fromUser;
       if (this.isMessage === false) {
         this.receivedMessages++;
       }

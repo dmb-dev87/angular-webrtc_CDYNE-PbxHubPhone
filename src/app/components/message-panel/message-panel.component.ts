@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild, ContentChildren, QueryList, ViewChildren } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild, QueryList, ViewChildren, OnChanges, SimpleChanges } from '@angular/core';
 import { MessageContact } from '../../models/messagecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
 import { MessageHistory } from '../../models/messagehistory';
@@ -10,7 +10,7 @@ import { getInputValue, setInputValue } from '../../utilities/ui-utils';
   templateUrl: './message-panel.component.html',
   styleUrls: ['./message-panel.component.scss']
 })
-export class MessagePanelComponent implements OnInit, AfterViewInit  {
+export class MessagePanelComponent implements OnInit, AfterViewInit, OnChanges  {
   @ViewChildren('messages') messages: QueryList<any>;
   @ViewChild('scrollMe') scrollMe: ElementRef;
   messageStr: string;
@@ -35,17 +35,28 @@ export class MessagePanelComponent implements OnInit, AfterViewInit  {
     });
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void {}
 
+  ngOnChanges(changes: SimpleChanges) {
+    console.log(`+++++++++++++++++++`, changes);
+    const extensions = changes.extensionsForReceived.currentValue;
+    console.log(`+++++++++++++++++++++++`, extensions);
+
+    extensions.forEach((extension) => {
+      const activeContact = this.messageContacts.find(e => e.extension === extension);
+      if (activeContact === undefined) {
+        this.addContact(extension);
+      }
+    })
   }
 
   ngAfterViewInit(): void {
-    if (this.selectedExtension) {
-      const activeContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
+    this.extensionsForReceived.forEach((extension) => {
+      const activeContact = this.messageContacts.find(e => e.extension === extension);
       if (activeContact === undefined) {
-        this.addContact(this.selectedExtension);
+        this.addContact(extension);
       }
-    }
+    })
     
     this.getMessageHistories();
     this.scrollToBottom();
