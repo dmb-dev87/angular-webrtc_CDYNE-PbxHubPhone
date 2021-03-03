@@ -53,8 +53,11 @@
 <div>
   <app-message-panel 
     *ngIf="isMessage"
+    [messageContacts]="messageContacts"
+    [phoneContacts]="phoneContacts"
     [extensionsForReceived]="extensionsForReceived"
     [selectedExtension]="selectedExtension"
+    (addMessageContact)="addMessageContact($event)"
     (sendMessage)="onSendMessage($event)">
     <!-- (clickOutside)="onClickOutsideMessage($event)"> -->
   </app-message-panel>

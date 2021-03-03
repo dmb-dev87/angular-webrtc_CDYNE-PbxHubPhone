@@ -6,6 +6,8 @@ import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
+import { MessageContact } from 'src/app/models/messagecontact';
+import { PhoneContact } from 'src/app/models/phonecontact';
 
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
@@ -49,6 +51,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   selectedExtension = ``;
   extensionsForReceived: Array<string> = [];
   receivedMessages: number = 0;
+  messageContacts: Array<MessageContact> = [];
+  phoneContacts: Array<PhoneContact> = [];
 
   private endUser = null;
   private callState = false;
@@ -169,7 +173,15 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {      
       this.pbxControlService.loadPhoneContacts();
 
+      this.pbxControlService.getMessageContacts().subscribe(messagecontacts => {
+        this.messageContacts = messagecontacts.contacts;
+      });
+
       this.pbxControlService.loadMessageContacts();
+
+      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+        this.phoneContacts = phonecontacts.data;
+      });
 
       this.pbxControlService.toggleDnd().subscribe(response => {
         //call twice because status get toggled when call api
@@ -237,6 +249,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         this.receivedMessages++;
       }
       this.extensionsForReceived.push(fromUser);
+      console.log(`++++++++++++++++++++++`, this.extensionsForReceived);
+      const activeContact = this.messageContacts.find(e => e.extension === fromUser);
+      if (activeContact === undefined) {
+        this.addMessageContact(fromUser);
+      }
     }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -583,6 +600,17 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         console.error(`[${this.endUser.id}] failed to send message`);
         console.error(error);
       });
+  }
+
+  async addMessageContact(extension: string): Promise<void> {
+    console.log(`++++++++++++++++++++++`, extension);
+    const phoneContact = this.phoneContacts.find(e => e.extension === extension);
+    const addContact: MessageContact = {
+      extension: phoneContact.extension,
+      firstName: phoneContact.firstName,
+      lastName: phoneContact.lastName
+    };
+    return this.pbxControlService.addMessageContact(addContact);
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   

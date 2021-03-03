@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild, QueryList, ViewChildren, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild, QueryList, ViewChildren } from '@angular/core';
 import { MessageContact } from '../../models/messagecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
 import { MessageHistory } from '../../models/messagehistory';
@@ -10,54 +10,28 @@ import { getInputValue, setInputValue } from '../../utilities/ui-utils';
   templateUrl: './message-panel.component.html',
   styleUrls: ['./message-panel.component.scss']
 })
-export class MessagePanelComponent implements OnInit, AfterViewInit, OnChanges  {
+export class MessagePanelComponent implements OnInit, AfterViewInit {
   @ViewChildren('messages') messages: QueryList<any>;
   @ViewChild('scrollMe') scrollMe: ElementRef;
-  messageStr: string;
-  messageContacts: Array<MessageContact> = [];
-  phoneContacts: Array<PhoneContact> = [];
+  messageStr: string;  
   searchResult: Array<PhoneContact> = [];
   messageHistories: Array<MessageHistory> = [];
   selectedExtension: string = undefined;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
+  @Output() addMessageContact = new EventEmitter<string>();
 
   @Input() curName: string;
   @Input() extensionsForReceived: Array<string>;
+  @Input() messageContacts: Array<MessageContact>;
+  @Input() phoneContacts: Array<PhoneContact>;
 
   constructor(private pbxControlService: PbxControlService) { 
-    this.pbxControlService.getMessageContacts().subscribe(messagecontacts => {
-      this.messageContacts = messagecontacts.contacts;
-    });
-
-    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-      this.phoneContacts = phonecontacts.data;
-    });
   }
 
   ngOnInit(): void {}
 
-  ngOnChanges(changes: SimpleChanges) {
-    console.log(`+++++++++++++++++++`, changes);
-    const extensions = changes.extensionsForReceived.currentValue;
-    console.log(`+++++++++++++++++++++++`, extensions);
-
-    extensions.forEach((extension) => {
-      const activeContact = this.messageContacts.find(e => e.extension === extension);
-      if (activeContact === undefined) {
-        this.addContact(extension);
-      }
-    })
-  }
-
   ngAfterViewInit(): void {
-    this.extensionsForReceived.forEach((extension) => {
-      const activeContact = this.messageContacts.find(e => e.extension === extension);
-      if (activeContact === undefined) {
-        this.addContact(extension);
-      }
-    })
-    
     this.getMessageHistories();
     this.scrollToBottom();
     this.messages.changes.subscribe(this.scrollToBottom);
@@ -152,20 +126,23 @@ export class MessagePanelComponent implements OnInit, AfterViewInit, OnChanges  
 
   onAddContact(): void {
     const extension = getInputValue(`search-text`);
-    this.addContact(extension)
-      .then(() => {
-        this.selectedExtension = extension;
-        this.getMessageHistories();
-      })
+    this.addMessageContact.emit(extension);
+    this.selectedExtension = extension;
+    this.getMessageHistories();
+    // this.addContact(extension)
+    //   .then(() => {
+    //     this.selectedExtension = extension;
+    //     this.getMessageHistories();
+    //   })
   }
 
-  async addContact(extension: string): Promise<void> {
-    const phoneContact = this.phoneContacts.find(e => e.extension === extension);
-    const addContact: MessageContact = {
-      extension: phoneContact.extension,
-      firstName: phoneContact.firstName,
-      lastName: phoneContact.lastName
-    };
-    return this.pbxControlService.addMessageContact(addContact);
-  }
+  // async addContact(extension: string): Promise<void> {
+  //   const phoneContact = this.phoneContacts.find(e => e.extension === extension);
+  //   const addContact: MessageContact = {
+  //     extension: phoneContact.extension,
+  //     firstName: phoneContact.firstName,
+  //     lastName: phoneContact.lastName
+  //   };
+  //   return this.pbxControlService.addMessageContact(addContact);
+  // }
 }
