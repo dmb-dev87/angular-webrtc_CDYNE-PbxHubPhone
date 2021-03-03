@@ -8,16 +8,19 @@ import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
+import { ThisReceiver } from '@angular/compiler';
 
-const ringAudio = new Audio(`assets/sound/ring.mp3`);
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
 const userAgent = environment.userAgent;
+const monitorTarget = environment.monitorTarget;
+
+const ringAudio = new Audio(`assets/sound/ring.mp3`);
+
 const constraints = {
   audio: true,
   video: false
 };
-const monitorTarget = `*5`;
 
 @Component({
   selector: 'app-phone-panel',
@@ -42,6 +45,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   dndBtnDisabled = true;
   beginBtnDisabled = true;
   endBtnDisabled = true;
+  holdStatus = false;
+  muteStatus = false;
 
   xferBtnDisabled = true;
   monitorBtnDisabled = true;
@@ -88,9 +93,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   // EndUser Callback functions
   makeCallCreatedCallback(): () => void {
     return () => {
-      console.log(`[${this.endUser.id}] call created`);
+      console.log(`[${this.endUser.id}] call created`);      
+      
       this.callStatus = `Dialing`;
-
+      
       this.holdBtnDisabled = false;
       this.muteBtnDisabled = false;
       this.beginBtnDisabled = false;
@@ -106,6 +112,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${this.endUser.id}] call answered`);
       this.callStatus = `Connected`;
+
+      this.lineCount = this.lineCount + 1;
 
       this.holdBtnDisabled = false;
       this.muteBtnDisabled = false;
@@ -151,12 +159,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeCallHangupCallback(): () => void {
-    return () => {
+    return () => {      
       console.log(`[${this.endUser.id}] call hangup`);
-      this.selectLine === `1` ? this.lineStatusOne = `Call Ended` : this.lineStatusTwo = `Call Ended`;
+      this.selectLine === `1` ? this.lineStatusOne = `Call Ended` : this.lineStatusTwo = `Call Ended`;      
       this.callState = false;
       this.callStatus = `Call Ended`;
       this.callerId = ``;
+      this.lineCount = this.lineCount - 1;
 
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
@@ -257,6 +266,27 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
     }
   }
+
+  makeCallHoldCallback(): () => void {
+    return (held?:boolean) => {
+      console.log(`[${this.endUser.id}], [${this.selectLine}] call hold.`);
+      this.holdStatus = held;
+    }
+  }
+
+  makeLineChangedCallback(): () => void {
+    return () => {
+      console.log(`[${this.endUser.id}] line changed.`);
+      this.holdStatus = this.endUser.isHeld();
+      const sessionEstablished = this.endUser.isEstablished();
+
+      this.holdBtnDisabled = !sessionEstablished;
+      this.muteBtnDisabled = !sessionEstablished;
+      this.endBtnDisabled = !sessionEstablished;
+      this.xferBtnDisabled = !sessionEstablished;
+    }
+  }
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // UserInfo Event Emitter
@@ -314,6 +344,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       onServerConnect: this.makeServerConnectCallback(),
       onServerDisconnect: this.makeServerDisconnectCallback(),
       onMessageReceived: this.makeMessageReceivedCallback(),
+      onCallHold: this.makeCallHoldCallback(),
+      onLineChanged: this.makeLineChangedCallback(),
     };
 
     this.endUser.delegate = delegate;
@@ -363,16 +395,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
 
     if (value) {
-      this.endUser.hold().catch((error: Error) => {
-        console.error(`[${this.endUser.id}] failed to hold call`);
-        console.error(error);
-      });
+      this.endUser.hold()
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to hold call`);
+          console.error(error);
+        });
     }
     else {
-      this.endUser.unhold().catch((error: Error) => {
-        console.error(`[${this.endUser.id}] failed to unhold call`);
-        console.error(error);
-      });
+      this.endUser.unhold()
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to unhold call`);
+          console.error(error);
+        });
     }
   }
 
@@ -404,8 +438,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onHangupCall(): void {
     this.callState = false;
-    this.lineCount = this.lineCount - 1;
-
     if (this.invitationState === true) {
       ringAudio.pause();
       ringAudio.currentTime = 0;
@@ -430,10 +462,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.error(`Failed to call, have to register`);
       return;
     }
-
     this.callState = true;
-    this.lineCount = this.lineCount + 1;
-
     if (this.invitationState === true) {
       ringAudio.pause();
       ringAudio.currentTime = 0;

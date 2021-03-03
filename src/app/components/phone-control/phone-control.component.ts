@@ -6,9 +6,6 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
   styleUrls: ['./phone-control.component.scss']
 })
 export class PhoneControlComponent implements OnInit {
-  holdToggle = false;
-  muteToggle = false;
-  
   @Output() hold = new EventEmitter<boolean>();
   @Output() mute = new EventEmitter<boolean>();
   @Output() dnd = new EventEmitter();
@@ -22,6 +19,8 @@ export class PhoneControlComponent implements OnInit {
   @Input() dndBtnDisabled: boolean;
   @Input() beginBtnDisabled: boolean;
   @Input() endBtnDisabled: boolean;
+  @Input() holdToggle: boolean;
+  @Input() muteToggle: boolean;
   
   constructor() { }
 
@@ -29,13 +28,13 @@ export class PhoneControlComponent implements OnInit {
   }
 
   onHold(): void {
-    this.holdToggle = !this.holdToggle;
-    this.hold.emit(this.holdToggle);
+    // this.holdToggle = !this.holdToggle;
+    this.hold.emit(!this.holdToggle);
   }
 
   onMute(): void {
-    this.muteToggle = !this.muteToggle;
-    this.mute.emit(this.muteToggle);
+    // this.muteToggle = !this.muteToggle;
+    this.mute.emit(!this.muteToggle);
   }
 
   onDnd(): void {

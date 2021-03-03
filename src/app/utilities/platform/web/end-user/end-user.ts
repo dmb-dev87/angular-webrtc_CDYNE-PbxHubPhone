@@ -550,7 +550,9 @@ export class EndUser {
    * True if session media is on hold.
    */
   public isHeld(): boolean {
-    return this.held;
+    const line = this.getLine(this._curLineNumber);
+    return line.held;
+    // return this.held;
   }
 
   /**
@@ -1216,6 +1218,9 @@ export class EndUser {
     this.session = this.getCurLineSession();
 
     if (!this.session) {
+      if (this.delegate && this.delegate.onLineChanged) {
+        this.delegate.onLineChanged();
+      }
       return Promise.resolve();
     }
 
@@ -1223,23 +1228,13 @@ export class EndUser {
       return Promise.reject(new Error(`[${this.id}] An established session is required to hold off`));
     }
 
-    return this.setLineHold(false);
-  }
+    await this.setLineHold(false);
 
-  public setCurLine(lineNumber: number): Promise<void> {
-    this._curLineNumber = lineNumber;
-
-    this.session = this.getCurLineSession();
-
-    if (!this.session) {
-      return Promise.resolve();
+    if (this.delegate && this.delegate.onLineChanged) {
+      this.delegate.onLineChanged();
     }
 
-    if (this.session.state !== SessionState.Established) {
-      return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
-    }
-
-    return this.setLineHold(false);
+    return Promise.resolve();
   }
 
   get curLineNumber(): number {
@@ -1345,5 +1340,13 @@ export class EndUser {
       });
   }
 
-  
+  public isEstablished(): boolean {
+    const session = this.getCurLineSession();
+    
+    if (!session) {
+      return false;
+    }
+    
+    return session.state === SessionState.Established;
+  }
 }

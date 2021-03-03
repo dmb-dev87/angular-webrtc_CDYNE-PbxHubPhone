@@ -79,4 +79,6 @@ export interface EndUserDelegate {
    * @param error - An Error if server caused the disconnect. Otherwise undefined.
    */
   onServerDisconnect?(error?: Error): void;
+
+  onLineChanged?(): void;
 }
