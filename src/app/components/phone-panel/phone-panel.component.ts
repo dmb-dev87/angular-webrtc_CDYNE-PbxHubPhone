@@ -248,8 +248,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       if (this.isMessage === false) {
         this.receivedMessages++;
       }
-      this.extensionsForReceived.push(fromUser);
-      console.log(`++++++++++++++++++++++`, this.extensionsForReceived);
+      if (this.extensionsForReceived.indexOf(fromUser) === -1) {
+        this.extensionsForReceived.push(fromUser);
+      }
       const activeContact = this.messageContacts.find(e => e.extension === fromUser);
       if (activeContact === undefined) {
         this.addMessageContact(fromUser);
@@ -603,7 +604,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   async addMessageContact(extension: string): Promise<void> {
-    console.log(`++++++++++++++++++++++`, extension);
     const phoneContact = this.phoneContacts.find(e => e.extension === extension);
     const addContact: MessageContact = {
       extension: phoneContact.extension,
