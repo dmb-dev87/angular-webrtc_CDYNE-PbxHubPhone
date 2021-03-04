@@ -290,7 +290,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeLineChangedCallback(): () => void {
     return () => {
       console.log(`[${this.endUser.id}] line changed.`);
+
       this.holdStatus = this.endUser.isHeld();
+      this.muteStatus = this.endUser.isMuted();
+      
       const sessionEstablished = this.endUser.isEstablished();
 
       this.holdBtnDisabled = !sessionEstablished;
@@ -430,9 +433,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    console.log(`+++++++++++++++++++ value: `, value);
+
     if (value) {
       this.endUser.mute();
-      if (this.endUser.isMuted() === false) {
+      if (this.endUser.isMuted() === false) {        
         console.error(`[${this.endUser.id}] failed to mute call`);
       }
     }
@@ -442,6 +447,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         console.error(`[${this.endUser.id}] failed to unmute call`);
       }
     }
+    this.muteStatus = this.endUser.isMuted();
   }
 
   onDnd(): void {

@@ -51,8 +51,8 @@ export class EndUser {
   private attemptingReconnection = false;
   private connectRequested = false;
   private logger: Logger;
-  private held = false;
-  private muted = false;
+  // private held = false;
+  // private muted = false;
   private options: EndUserOptions;
   private registerer: Registerer | undefined = undefined;
   private registerRequested = false;
@@ -562,7 +562,8 @@ export class EndUser {
    */
   public mute(): void {
     this.logger.log(`[${this.id}] disabling media tracks...`);
-    this.setMute(true);
+    this.setLineMute(true);
+    // this.setMute(true);
   }
 
   /**
@@ -572,7 +573,8 @@ export class EndUser {
    */
   public unmute(): void {
     this.logger.log(`[${this.id}] enabling media tracks...`);
-    this.setMute(false);
+    this.setLineMute(false);
+    // this.setMute(false);
   }
 
   /**
@@ -581,7 +583,9 @@ export class EndUser {
    * True if sender's media track is disabled.
    */
   public isMuted(): boolean {
-    return this.muted;
+    const line = this.getLine(this._curLineNumber);
+    return line.muted;
+    // return this.muted;
   }
 
   /**
@@ -756,7 +760,7 @@ export class EndUser {
 
   /** Helper function to enable/disable media tracks. */
   private enableSenderTracks(enable: boolean): void {
-    // this.session = this.getCurLineSession();
+    this.session = this.getCurLineSession();
 
     if (!this.session) {
       throw new Error(`Session does not exist.`);
@@ -917,86 +921,86 @@ export class EndUser {
    * Puts Session on hold.
    * @param hold - Hold on if true, off if false.
    */
-  private setHold(hold: boolean): Promise<void> {
-    this.session = this.getCurLineSession();
+  // private setHold(hold: boolean): Promise<void> {
+  //   this.session = this.getCurLineSession();
 
-    if (!this.session) {
-      return Promise.reject(new Error(`Session does not exist.`));
-    }
-    const session = this.session;
+  //   if (!this.session) {
+  //     return Promise.reject(new Error(`Session does not exist.`));
+  //   }
+  //   const session = this.session;
 
-    // Just resolve if we are already in correct state
-    if (this.held === hold) {
-      return Promise.resolve();
-    }
+  //   // Just resolve if we are already in correct state
+  //   if (this.held === hold) {
+  //     return Promise.resolve();
+  //   }
 
-    const sessionDescriptionHandler = this.session.sessionDescriptionHandler;
-    if (!(sessionDescriptionHandler instanceof SessionDescriptionHandler)) {
-      throw new Error(`Session's session description handler not instance of SessionDescriptionHandler.`);
-    }
+  //   const sessionDescriptionHandler = this.session.sessionDescriptionHandler;
+  //   if (!(sessionDescriptionHandler instanceof SessionDescriptionHandler)) {
+  //     throw new Error(`Session's session description handler not instance of SessionDescriptionHandler.`);
+  //   }
 
-    const options: SessionInviteOptions = {
-      requestDelegate: {
-        onAccept: (): void => {
-          this.held = hold;
-          this.enableReceiverTracks(!this.held);
-          this.enableSenderTracks(!this.held && !this.muted);
-          if (this.delegate && this.delegate.onCallHold) {
-            this.delegate.onCallHold(this.held);
-          }
-        },
-        onReject: (): void => {
-          this.logger.warn(`[${this.id}] re-invite request was rejected`);
-          this.enableReceiverTracks(!this.held);
-          this.enableSenderTracks(!this.held && !this.muted);
-          if (this.delegate && this.delegate.onCallHold) {
-            this.delegate.onCallHold(this.held);
-          }
-        }
-      }
-    };
+  //   const options: SessionInviteOptions = {
+  //     requestDelegate: {
+  //       onAccept: (): void => {
+  //         this.held = hold;
+  //         this.enableReceiverTracks(!this.held);
+  //         this.enableSenderTracks(!this.held && !this.muted);
+  //         if (this.delegate && this.delegate.onCallHold) {
+  //           this.delegate.onCallHold(this.held);
+  //         }
+  //       },
+  //       onReject: (): void => {
+  //         this.logger.warn(`[${this.id}] re-invite request was rejected`);
+  //         this.enableReceiverTracks(!this.held);
+  //         this.enableSenderTracks(!this.held && !this.muted);
+  //         if (this.delegate && this.delegate.onCallHold) {
+  //           this.delegate.onCallHold(this.held);
+  //         }
+  //       }
+  //     }
+  //   };
 
-    const sessionDescriptionHandlerOptions = session.sessionDescriptionHandlerOptionsReInvite as SessionDescriptionHandlerOptions;
-    sessionDescriptionHandlerOptions.hold = hold;
-    session.sessionDescriptionHandlerOptionsReInvite = sessionDescriptionHandlerOptions;
+  //   const sessionDescriptionHandlerOptions = session.sessionDescriptionHandlerOptionsReInvite as SessionDescriptionHandlerOptions;
+  //   sessionDescriptionHandlerOptions.hold = hold;
+  //   session.sessionDescriptionHandlerOptionsReInvite = sessionDescriptionHandlerOptions;
 
-    // Send re-INVITE
-    return this.session
-      .invite(options)
-      .then(() => {
-        // preemptively enable/disable tracks
-        this.enableReceiverTracks(!hold);
-        this.enableSenderTracks(!hold && !this.muted);
-      })
-      .catch((error: Error) => {
-        if (error instanceof RequestPendingError) {
-          this.logger.error(`[${this.id}] A hold request is already in progress.`);
-        }
-        throw error;
-      });
-  }
+  //   // Send re-INVITE
+  //   return this.session
+  //     .invite(options)
+  //     .then(() => {
+  //       // preemptively enable/disable tracks
+  //       this.enableReceiverTracks(!hold);
+  //       this.enableSenderTracks(!hold && !this.muted);
+  //     })
+  //     .catch((error: Error) => {
+  //       if (error instanceof RequestPendingError) {
+  //         this.logger.error(`[${this.id}] A hold request is already in progress.`);
+  //       }
+  //       throw error;
+  //     });
+  // }
 
   /**
    * Puts Session on mute.
    * @param mute - Mute on if true, off if false.
    */
-  private setMute(mute: boolean): void {
-    this.session = this.getCurLineSession();
+  // private setMute(mute: boolean): void {
+  //   this.session = this.getCurLineSession();
     
-    if (!this.session) {
-      this.logger.warn(`[${this.id}] A session is required to enabled/disable media tracks`);
-      return;
-    }
+  //   if (!this.session) {
+  //     this.logger.warn(`[${this.id}] A session is required to enabled/disable media tracks`);
+  //     return;
+  //   }
 
-    if (this.session.state !== SessionState.Established) {
-      this.logger.warn(`[${this.id}] An established session is required to enable/disable media tracks`);
-      return;
-    }
+  //   if (this.session.state !== SessionState.Established) {
+  //     this.logger.warn(`[${this.id}] An established session is required to enable/disable media tracks`);
+  //     return;
+  //   }
 
-    this.muted = mute;
+  //   this.muted = mute;
 
-    this.enableSenderTracks(!this.held && !this.muted);
-  }
+  //   this.enableSenderTracks(!this.held && !this.muted);
+  // }
 
   /** Helper function to attach local media to html elements. */
   private setupLocalMedia(): void {
@@ -1269,6 +1273,23 @@ export class EndUser {
     return curLine;
   }
 
+  private setLineMute(mute: boolean): Promise<void> {
+    const lineSession = this.getCurLineSession();
+    const line = this.getLine(this._curLineNumber);
+
+    if (!lineSession) {
+      return Promise.reject(new Error(`Session does not exist.`));
+    }
+
+    if (lineSession.state !== SessionState.Established) {
+      return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
+    }
+
+    line.muted = mute;
+
+    this.enableSenderTracks(!line.held && !line.muted);
+  }
+
   private setLineHold(hold: boolean): Promise<void> {
     const lineSession = this.getCurLineSession();
 
@@ -1277,6 +1298,7 @@ export class EndUser {
     if (!lineSession) {
       return Promise.reject(new Error(`Session does not exist.`));
     }
+
     const session = lineSession;
 
     // Just resolve if we are already in correct state
