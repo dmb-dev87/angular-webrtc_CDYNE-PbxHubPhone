@@ -207,6 +207,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       ringAudio.pause();
       ringAudio.currentTime = 0;
+      this.invitationState = false;
 
       this.callStatus = `Connected`;
       this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
@@ -233,9 +234,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return (displayName?:string, target?:string, autoAnswer?: boolean) => {      
       console.log(`[${this.endUser.id}] call received`);
       this.invitationState = true;
+      this.targetNum = target;
+
       this.callerId = `${displayName} ${target}`;
       this.callStatus = `Ringing`;      
-      this.selectLine === `1` ? this.lineStatusOne = target : this.lineStatusTwo = target;
+      this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
 
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
@@ -260,6 +263,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
       ringAudio.pause();
       ringAudio.currentTime = 0;
+      this.invitationState = false;
 
       this.selectLine === `1` ? this.lineStatusOne = `CallerID Info` : this.lineStatusTwo = `CallerID Info`;
       
@@ -476,7 +480,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onHangupCall(): void {
     if (this.invitationState === true) {
-      this.invitationState = false;
       this.endUser
         .decline()
         .catch((err: Error) => {
@@ -499,7 +502,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
 
     if (this.invitationState === true) {
-      this.invitationState = false;
       this.endUser
         .answer(undefined)
         .catch( (err: Error) => {
