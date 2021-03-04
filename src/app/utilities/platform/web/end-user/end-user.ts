@@ -1120,24 +1120,32 @@ export class EndUser {
   async changeLine(lineNumber: number): Promise<void> {
     this.logger.log(`[${this.id}] Changing Lines...`);
 
+    console.log(`+++++++++++++++++++++++++ lineNumber: `, lineNumber);
+    console.log(`+++++++++++++++++++++++++ curLineNumber: `, this.curLineNumber);
+
     if (lineNumber === this.curLineNumber) {
       return Promise.resolve();
     }
 
     this.session = this.getCurLineSession();
+    console.log(`+++++++++++++++++++++++++++ curLineSession: `, this.session);
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
+        console.log(`++++++++++++++++++++++, curSessionSetHolld: `, this.curLineNumber);
         await this.setLineHold(true, this.curLineNumber);
       }
     }
 
     this.curLineNumber = lineNumber;
+    console.log(`+++++++++++++++++++++++++ changedLineNumber: `, this.curLineNumber);
 
     this.session = this.getCurLineSession();
+    console.log(`+++++++++++++++++++++++++ changedLineSession: `, this.session);
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
+        console.log(`++++++++++++++++++++++, curSessionSetHolld: `, this.curLineNumber);
         await this.setLineHold(false, this.curLineNumber);
       }
     }
