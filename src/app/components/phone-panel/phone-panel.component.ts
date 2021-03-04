@@ -303,7 +303,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallHoldCallback(): () => void {
     return (held?:boolean, lineNumber?:number) => {
       console.log(`[${this.endUser.id}], [${lineNumber+1}] call hold.`);
-      this.holdStatus = held;
+      this.holdStatus = this.endUser.isHeld();
     }
   }
 
@@ -315,6 +315,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.callStatus = this.oldCallerId;
 
       this.holdStatus = this.endUser.isHeld();
+      console.log(`+++++++++++++++ holdStatus`, this.holdStatus);
       this.muteStatus = this.endUser.isMuted();
       
       const sessionEstablished = this.endUser.isEstablished();

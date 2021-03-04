@@ -550,7 +550,9 @@ export class EndUser {
    * True if session media is on hold.
    */
   public isHeld(): boolean {
+    console.log(`+++++++++++++++++++++++ held curLineNumber`, this.curLineNumber);
     const line = this.getLine(this.curLineNumber);
+    console.log(`+++++++++++++++++++++ held line`, line);
     return line.held;
     // return this.held;
   }
