@@ -23,7 +23,7 @@ export interface EndUserDelegate {
    * Callback for handling incoming INVITE requests.
    * The callback must either accept or reject the incoming call by calling `answer()` or `decline()` respectively.
    */
-  onCallReceived?(callerId: string, autoAnswer: boolean): void;
+  onCallReceived?(displayName: string, target: string, autoAnswer: boolean): void;
 
   /**
    * Called when a call is hung up.

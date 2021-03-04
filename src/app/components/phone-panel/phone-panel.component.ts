@@ -8,6 +8,7 @@ import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
+import { ThisReceiver } from '@angular/compiler';
 
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
@@ -29,7 +30,9 @@ const constraints = {
 
 export class PhonePanelComponent implements OnInit, AfterViewInit {
   callerId = null;
+  oldCallerId = null;
   callStatus = `Unregistered`;
+  oldCallStatus = ``;
   registerStatus = false;
 
   selectLine = `1`;
@@ -195,8 +198,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.endBtnDisabled = true;
 
       this.xferBtnDisabled = true;
-
-      // this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
     };
   }
 
@@ -205,6 +206,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`[${this.endUser.id}] call answered`);
 
       this.callStatus = `Connected`;
+      this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
 
       this.holdBtnDisabled = false;
       this.muteBtnDisabled = false;
@@ -225,12 +227,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeCallReceivedCallback(): () => void {
-    return (callerId?:string, autoAnswer?: boolean) => {
+    return (displayName?:string, target?:string, autoAnswer?: boolean) => {      
       console.log(`[${this.endUser.id}] call received`);
-      this.callerId = callerId;
-      this.callStatus = `Ringing`;
       this.invitationState = true;
-      // this.selectLine === `1` ? this.lineStatusOne = `Call Received` : this.lineStatusTwo = `Call Received`;
+      this.callerId = `${displayName} ${target}`;
+      this.callStatus = `Ringing`;      
+      this.selectLine === `1` ? this.lineStatusOne = target : this.lineStatusTwo = target;
 
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
@@ -252,30 +254,39 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallHangupCallback(): () => void {
     return () => {      
       console.log(`[${this.endUser.id}] call hangup`);
-      this.callerId = ``;
-      this.callStatus = `Call Ended`;
 
-      // this.selectLine === `1` ? this.lineStatusOne = `Call Ended` : this.lineStatusTwo = `Call Ended`;      
+      this.selectLine === `1` ? this.lineStatusOne = `CallerID Info` : this.lineStatusTwo = `CallerID Info`;
+      
       this.lineCount = this.lineCount - 1;
-      console.log(`++++++++++++++++++++++++++++++ lineCount: `, this.lineCount);
 
-      this.holdBtnDisabled = this.lineCount === 0 ? true : false;
-      this.muteBtnDisabled = this.lineCount === 0 ? true : false;
-      this.beginBtnDisabled = false;
-      this.endBtnDisabled = this.lineCount === 0 ? true : false;
-
-      this.xferBtnDisabled = this.lineCount === 0 ? true : false;
-
+      console.log(`++++++++++++++++++++++++++++++ lineCount: `, this.lineCount);      
       console.log(`+++++++++++++++++++++++ transferState: `, this.transferState);
 
       if (this.lineCount > 0) {
-        const selectLine = this.selectLine === `1` ? `2` : `1`;
-        this.changeLine(selectLine);
+        this.selectLine = this.selectLine === `1` ? `2` : `1`;
+        this.endUser
+        .changeLine(this.selectLine === `1` ? 0 : 1)
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to change line`);
+          console.error(error);
+        });
+
         if (this.transferState === true) {
           this.transferState = false;
         }
-      }      
-      this.handleMeterStop();
+      } else {
+        this.callerId = ``;
+        this.callStatus = `Call Ended`;
+  
+        this.holdBtnDisabled = true;
+        this.muteBtnDisabled = true;
+        this.beginBtnDisabled = false;
+        this.endBtnDisabled = false;
+
+        this.xferBtnDisabled = true;
+
+        this.handleMeterStop();
+      }
     };
   }
 
@@ -289,6 +300,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeLineChangedCallback(): () => void {
     return () => {
       console.log(`[${this.endUser.id}] line changed.`);
+
+      this.callerId = this.oldCallerId;
+      this.callStatus = this.oldCallerId;
 
       this.holdStatus = this.endUser.isHeld();
       this.muteStatus = this.endUser.isMuted();
@@ -559,7 +573,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     else {
       this.transferState = false;
       this.selectLine = this.selectLine === `1`? `2` : `1`;
-      this.endUser.completeTransfer()
+      this.endUser
+        .completeTransfer()
         .catch((error: Error) => {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
           console.error(error);
@@ -614,6 +629,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     if (this.endUser === null) {
       return;
     }
+
+    this.oldCallerId = this.callerId;
+    this.oldCallStatus = this.callStatus;
+
     this.endUser
       .changeLine(lineNumber)
       .catch((error: Error) => {

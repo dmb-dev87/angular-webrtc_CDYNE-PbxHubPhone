@@ -201,7 +201,7 @@ export class EndUser {
 
         // Delegate
         if (this.delegate && this.delegate.onCallReceived) {
-          this.delegate.onCallReceived(`${displayName} ${uri.user}`, autoAnswer);
+          this.delegate.onCallReceived(displayName, uri.user, autoAnswer);
         } else {
           this.logger.warn(`[${this.id}] No handler available, rejecting INVITE...`);
           invitation
@@ -916,91 +916,6 @@ export class EndUser {
       this.logger.log(`[${this.id}] sent INVITE`);
     });
   }
-
-  /**
-   * Puts Session on hold.
-   * @param hold - Hold on if true, off if false.
-   */
-  // private setHold(hold: boolean): Promise<void> {
-  //   this.session = this.getCurLineSession();
-
-  //   if (!this.session) {
-  //     return Promise.reject(new Error(`Session does not exist.`));
-  //   }
-  //   const session = this.session;
-
-  //   // Just resolve if we are already in correct state
-  //   if (this.held === hold) {
-  //     return Promise.resolve();
-  //   }
-
-  //   const sessionDescriptionHandler = this.session.sessionDescriptionHandler;
-  //   if (!(sessionDescriptionHandler instanceof SessionDescriptionHandler)) {
-  //     throw new Error(`Session's session description handler not instance of SessionDescriptionHandler.`);
-  //   }
-
-  //   const options: SessionInviteOptions = {
-  //     requestDelegate: {
-  //       onAccept: (): void => {
-  //         this.held = hold;
-  //         this.enableReceiverTracks(!this.held);
-  //         this.enableSenderTracks(!this.held && !this.muted);
-  //         if (this.delegate && this.delegate.onCallHold) {
-  //           this.delegate.onCallHold(this.held);
-  //         }
-  //       },
-  //       onReject: (): void => {
-  //         this.logger.warn(`[${this.id}] re-invite request was rejected`);
-  //         this.enableReceiverTracks(!this.held);
-  //         this.enableSenderTracks(!this.held && !this.muted);
-  //         if (this.delegate && this.delegate.onCallHold) {
-  //           this.delegate.onCallHold(this.held);
-  //         }
-  //       }
-  //     }
-  //   };
-
-  //   const sessionDescriptionHandlerOptions = session.sessionDescriptionHandlerOptionsReInvite as SessionDescriptionHandlerOptions;
-  //   sessionDescriptionHandlerOptions.hold = hold;
-  //   session.sessionDescriptionHandlerOptionsReInvite = sessionDescriptionHandlerOptions;
-
-  //   // Send re-INVITE
-  //   return this.session
-  //     .invite(options)
-  //     .then(() => {
-  //       // preemptively enable/disable tracks
-  //       this.enableReceiverTracks(!hold);
-  //       this.enableSenderTracks(!hold && !this.muted);
-  //     })
-  //     .catch((error: Error) => {
-  //       if (error instanceof RequestPendingError) {
-  //         this.logger.error(`[${this.id}] A hold request is already in progress.`);
-  //       }
-  //       throw error;
-  //     });
-  // }
-
-  /**
-   * Puts Session on mute.
-   * @param mute - Mute on if true, off if false.
-   */
-  // private setMute(mute: boolean): void {
-  //   this.session = this.getCurLineSession();
-    
-  //   if (!this.session) {
-  //     this.logger.warn(`[${this.id}] A session is required to enabled/disable media tracks`);
-  //     return;
-  //   }
-
-  //   if (this.session.state !== SessionState.Established) {
-  //     this.logger.warn(`[${this.id}] An established session is required to enable/disable media tracks`);
-  //     return;
-  //   }
-
-  //   this.muted = mute;
-
-  //   this.enableSenderTracks(!this.held && !this.muted);
-  // }
 
   /** Helper function to attach local media to html elements. */
   private setupLocalMedia(): void {
