@@ -195,7 +195,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
       this.beginBtnDisabled = false;
-      this.endBtnDisabled = true;
+      this.endBtnDisabled = false;
 
       this.xferBtnDisabled = true;
     };
@@ -204,6 +204,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallAnsweredCallback(): () => void {
     return () => {
       console.log(`[${this.endUser.id}] call answered`);
+
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
 
       this.callStatus = `Connected`;
       this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
@@ -252,8 +255,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeCallHangupCallback(): () => void {
-    return () => {      
+    return () => {
       console.log(`[${this.endUser.id}] call hangup`);
+
+      ringAudio.pause();
+      ringAudio.currentTime = 0;
 
       this.selectLine === `1` ? this.lineStatusOne = `CallerID Info` : this.lineStatusTwo = `CallerID Info`;
       
@@ -281,7 +287,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         this.holdBtnDisabled = true;
         this.muteBtnDisabled = true;
         this.beginBtnDisabled = false;
-        this.endBtnDisabled = false;
+        this.endBtnDisabled = true;
 
         this.xferBtnDisabled = true;
 
@@ -470,8 +476,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   onHangupCall(): void {
     if (this.invitationState === true) {
-      ringAudio.pause();
-      ringAudio.currentTime = 0;
       this.invitationState = false;
       this.endUser
         .decline()
@@ -495,8 +499,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     }
 
     if (this.invitationState === true) {
-      ringAudio.pause();
-      ringAudio.currentTime = 0;
       this.invitationState = false;
       this.endUser
         .answer(undefined)
