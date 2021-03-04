@@ -60,7 +60,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   phoneContacts: Array<PhoneContact> = [];
 
   private endUser = null;
-  private callState = false;
   private invitationState = false;
   private targetNum = null;
   private lineCount = 0;
@@ -433,8 +432,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    console.log(`+++++++++++++++++++ value: `, value);
-
     if (value) {
       this.endUser.mute();
       if (this.endUser.isMuted() === false) {        
@@ -458,7 +455,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   onHangupCall(): void {
-    this.callState = false;
     if (this.invitationState === true) {
       ringAudio.pause();
       ringAudio.currentTime = 0;
@@ -483,7 +479,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.error(`Failed to call, have to register`);
       return;
     }
-    this.callState = true;
+
     if (this.invitationState === true) {
       ringAudio.pause();
       ringAudio.currentTime = 0;
@@ -491,7 +487,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.endUser
         .answer(undefined)
         .catch( (err: Error) => {
-          this.callState = true;
           console.error(`[${this.endUser.id}] failed to answer call`);
           console.error(err);
           return;
@@ -531,12 +526,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
                 message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
                 message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
                 console.warn(message);
-                this.callState = false;
               }
             }
           })
           .catch((err: Error) => {
-            this.callState = false;
             console.error(`Failed to place call`);
             console.error(err);
             return;
@@ -590,12 +583,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
             message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
             message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
             console.log(message);
-            this.callState = false;
           }
         }
       })
       .catch((err: Error) => {
-        this.callState = false;
         console.error(`Failed to place call`);
         console.error(err);
         return;
