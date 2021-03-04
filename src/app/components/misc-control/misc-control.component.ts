@@ -13,6 +13,7 @@ export class MiscControlComponent implements OnInit {
   @Output() message = new EventEmitter();
   
   @Input() xferBtnDisabled: boolean;
+  @Input() transferState: boolean;
   @Input() monitorBtnDisabled: boolean;
   @Input() messageBtnDisabled: boolean;
   @Input() receivedMessages: number;
@@ -26,11 +27,11 @@ export class MiscControlComponent implements OnInit {
     let completed = false;
     const btnText = getButtonText('transfer-call').toLowerCase();
     if (btnText === `x-fer`) {
-      setButtonText(`transfer-call`, `Complete X-fer`);
+      // setButtonText(`transfer-call`, `Complete X-fer`);
       completed = false;
     }
     else if (btnText === `complete x-fer`) {
-      setButtonText(`transfer-call`, 'X-fer');
+      // setButtonText(`transfer-call`, 'X-fer');
       completed = true;
     }
     this.transfer.emit(completed);   

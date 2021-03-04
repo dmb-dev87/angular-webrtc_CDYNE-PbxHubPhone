@@ -48,6 +48,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   muteStatus = false;
 
   xferBtnDisabled = true;
+  transferState = false;
   monitorBtnDisabled = true;
   messageBtnDisabled = true;
 
@@ -60,7 +61,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   private endUser = null;
   private callState = false;
-  private transferState = false;
   private invitationState = false;
   private targetNum = null;
   private lineCount = 0;
@@ -90,33 +90,126 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
   
   // EndUser Callback functions
+  makeServerConnectCallback(): () => void {
+    return () => {
+      console.log(`[${this.endUser.id}] connected`);
+      this.callStatus = "Connected to Server";
+    };
+  }
+
+  makeServerDisconnectCallback(): () => void {
+    return (err?: Error) => {
+      console.log(`[${this.endUser.id}] disconnected`);
+      this.callStatus = "Disconnected";
+      if (err) {
+        console.error(`[${this.endUser.id}] Server disconnected.\n` + err.message);
+      }
+    };
+  }
+
+  makeRegisteredCallback(): () => void {
+    return () => {
+      console.log(`[${this.endUser.id}] registered`);
+
+      this.pbxControlService.loadPhoneContacts();
+
+      this.pbxControlService.getMessageContacts().subscribe(messagecontacts => {
+        this.messageContacts = messagecontacts.contacts;
+      });
+
+      this.pbxControlService.loadMessageContacts();
+
+      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+        this.phoneContacts = phonecontacts.data;
+      });
+
+      this.pbxControlService.toggleDnd().subscribe(response => {
+        //call twice because status get toggled when call api
+        this.pbxControlService.toggleDnd().subscribe(response => {
+          const dndStatus = parseDnd(response);        
+          this.dndStatus = dndStatus === DndState.Enabled ? true : false;
+        });
+      });
+
+      this.registerStatus = true;
+      this.callStatus = `Welcome ` + this.phoneUser.displayName;
+
+      this.holdBtnDisabled = true;
+      this.muteBtnDisabled = true;
+      this.dndBtnDisabled = false;
+      this.beginBtnDisabled = false;
+      this.endBtnDisabled = true;
+
+      this.xferBtnDisabled = true;
+      this.monitorBtnDisabled = false;
+      this.messageBtnDisabled = false;
+    };
+  }
+
+  makeUnregisteredCallback(): () => void {
+    return () => {
+      console.log(`[${this.endUser.id}] unregistered`);
+
+      this.registerStatus = false;
+      this.callStatus = "Unregistered";
+
+      this.holdBtnDisabled = true;
+      this.muteBtnDisabled = true;
+      this.dndBtnDisabled = true;
+      this.beginBtnDisabled = true;
+      this.endBtnDisabled = true;
+
+      this.xferBtnDisabled = true;
+      this.monitorBtnDisabled = true;
+      this.messageBtnDisabled = true;
+    };
+  }
+
+  makeMessageReceivedCallback(): () => void {
+    return (fromUser?:string, messageStr?: string) => {
+      console.log(`[${this.endUser.id}] received message`);
+      if (this.isMessage === false) {
+        this.receivedMessages++;
+      }
+      if (this.extensionsForReceived.indexOf(fromUser) === -1) {
+        this.extensionsForReceived.push(fromUser);
+      }
+      const activeContact = this.messageContacts.find(e => e.extension === fromUser);
+      if (activeContact === undefined) {
+        this.addMessageContact(fromUser);
+      }
+    }
+  }
+
   makeCallCreatedCallback(): () => void {
     return () => {
-      console.log(`[${this.endUser.id}] call created`);      
+      console.log(`[${this.endUser.id}] call created`);
       
       this.callStatus = `Dialing`;
+
+      this.lineCount = this.lineCount + 1;
+      console.log(`++++++++++++++++++++++++++++++ lineCount: `, this.lineCount);
       
-      this.holdBtnDisabled = false;
-      this.muteBtnDisabled = false;
+      this.holdBtnDisabled = true;
+      this.muteBtnDisabled = true;
       this.beginBtnDisabled = false;
-      this.endBtnDisabled = false;
+      this.endBtnDisabled = true;
 
-      this.xferBtnDisabled = false;
+      this.xferBtnDisabled = true;
 
-      this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
+      // this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
     };
   }
 
   makeCallAnsweredCallback(): () => void {
     return () => {
       console.log(`[${this.endUser.id}] call answered`);
-      this.callStatus = `Connected`;
 
-      this.lineCount = this.lineCount + 1;
+      this.callStatus = `Connected`;
 
       this.holdBtnDisabled = false;
       this.muteBtnDisabled = false;
-      this.beginBtnDisabled = false;
+      this.beginBtnDisabled = true;
       this.endBtnDisabled = false;
 
       this.xferBtnDisabled = false;
@@ -138,10 +231,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.callerId = callerId;
       this.callStatus = `Ringing`;
       this.invitationState = true;
-      this.selectLine === `1` ? this.lineStatusOne = `Call Received` : this.lineStatusTwo = `Call Received`;
+      // this.selectLine === `1` ? this.lineStatusOne = `Call Received` : this.lineStatusTwo = `Call Received`;
 
-      this.holdBtnDisabled = false;
-      this.muteBtnDisabled = false;
+      this.holdBtnDisabled = true;
+      this.muteBtnDisabled = true;
       this.beginBtnDisabled = false;
       this.endBtnDisabled = false;
 
@@ -160,115 +253,31 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   makeCallHangupCallback(): () => void {
     return () => {      
       console.log(`[${this.endUser.id}] call hangup`);
-      this.selectLine === `1` ? this.lineStatusOne = `Call Ended` : this.lineStatusTwo = `Call Ended`;      
-      this.callState = false;
-      this.callStatus = `Call Ended`;
       this.callerId = ``;
-      this.lineCount = this.lineCount - 1;
+      this.callStatus = `Call Ended`;
 
-      this.holdBtnDisabled = true;
-      this.muteBtnDisabled = true;
+      // this.selectLine === `1` ? this.lineStatusOne = `Call Ended` : this.lineStatusTwo = `Call Ended`;      
+      this.lineCount = this.lineCount - 1;
+      console.log(`++++++++++++++++++++++++++++++ lineCount: `, this.lineCount);
+
+      this.holdBtnDisabled = this.lineCount === 0 ? true : false;
+      this.muteBtnDisabled = this.lineCount === 0 ? true : false;
       this.beginBtnDisabled = false;
       this.endBtnDisabled = this.lineCount === 0 ? true : false;
 
-      this.xferBtnDisabled = true;
+      this.xferBtnDisabled = this.lineCount === 0 ? true : false;
+
+      console.log(`+++++++++++++++++++++++ transferState: `, this.transferState);
 
       if (this.lineCount > 0) {
         const selectLine = this.selectLine === `1` ? `2` : `1`;
         this.changeLine(selectLine);
-      }
-      
+        if (this.transferState === true) {
+          this.transferState = false;
+        }
+      }      
       this.handleMeterStop();
     };
-  }
-
-  makeRegisteredCallback(): () => void {
-    return () => {      
-      this.pbxControlService.loadPhoneContacts();
-
-      this.pbxControlService.getMessageContacts().subscribe(messagecontacts => {
-        this.messageContacts = messagecontacts.contacts;
-      });
-
-      this.pbxControlService.loadMessageContacts();
-
-      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-        this.phoneContacts = phonecontacts.data;
-      });
-
-      this.pbxControlService.toggleDnd().subscribe(response => {
-        //call twice because status get toggled when call api
-        this.pbxControlService.toggleDnd().subscribe(response => {
-          const dndStatus = parseDnd(response);        
-          this.dndStatus = dndStatus === DndState.Enabled ? true : false;
-        });
-      });
-
-      console.log(`[${this.endUser.id}] registered`);
-      this.registerStatus = true;
-      this.callStatus = `Welcome ` + this.phoneUser.displayName;
-
-      this.holdBtnDisabled = true;
-      this.muteBtnDisabled = true;
-      this.dndBtnDisabled = false;
-      this.beginBtnDisabled = false;
-      this.endBtnDisabled = true;
-
-      this.xferBtnDisabled = true;
-      this.monitorBtnDisabled = false;
-      this.messageBtnDisabled = false;
-    };
-  }
-
-  makeUnregisteredCallback(): () => void {
-    return () => {
-      console.log(`[${this.endUser.id}] unregistered`);
-      this.registerStatus = false;
-      this.callStatus = "Unregistered";
-
-      this.holdBtnDisabled = true;
-      this.muteBtnDisabled = true;
-      this.dndBtnDisabled = true;
-      this.beginBtnDisabled = true;
-      this.endBtnDisabled = true;
-
-      this.xferBtnDisabled = true;
-      this.monitorBtnDisabled = true;
-      this.messageBtnDisabled = true;
-    };
-  }
-
-  makeServerConnectCallback(): () => void {
-    return () => {
-      console.log(`[${this.endUser.id}] connected`);
-      this.callStatus = "Connected to Server";
-    };
-  }
-
-  makeServerDisconnectCallback(): () => void {
-    return (err?: Error) => {
-      console.log(`[${this.endUser.id}] disconnected`);
-      this.callStatus = "Disconnected";
-      if (err) {
-        console.error(`[${this.endUser.id}] Server disconnected.\n` + err.message);
-      }
-    };
-  }
-
-  makeMessageReceivedCallback(): () => void {
-    return (fromUser?:string, messageStr?: string) => {
-      console.log(`[${this.endUser.id}] received message`);
-      if (this.isMessage === false) {
-        this.receivedMessages++;
-      }
-      if (this.extensionsForReceived.indexOf(fromUser) === -1) {
-        this.extensionsForReceived.push(fromUser);
-      }
-      const activeContact = this.messageContacts.find(e => e.extension === fromUser);
-      if (activeContact === undefined) {
-        this.addMessageContact(fromUser);
-      }
-    }
   }
 
   makeCallHoldCallback(): () => void {
@@ -287,7 +296,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.holdBtnDisabled = !sessionEstablished;
       this.muteBtnDisabled = !sessionEstablished;
       this.endBtnDisabled = !sessionEstablished;
-      this.xferBtnDisabled = !sessionEstablished;
+      this.beginBtnDisabled = sessionEstablished;
+
+      this.xferBtnDisabled = this.transferState;
     }
   }
 
@@ -535,7 +546,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       const changeLineNumber = this.selectLine === `1`? 1 : 0;
       this.selectLine = this.selectLine === `1`? `2` : `1`;
       this.endUser
-        .changeLineForTransfer(changeLineNumber)
+        .changeLine(changeLineNumber)
         .then(() => {
           this.transferState = true;
           return;

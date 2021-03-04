@@ -1161,39 +1161,39 @@ export class EndUser {
     return oldSession.refer(this.transferTarget);
   }
 
-  async changeLineForTransfer(lineNumber: number): Promise<void> {
-    this.logger.log(`[${this.id}] Changing Lines for transfer...`);
+  // async changeLineForTransfer(lineNumber: number): Promise<void> {
+  //   this.logger.log(`[${this.id}] Changing Lines for transfer...`);
 
-    if (lineNumber === this._curLineNumber) {
-      return Promise.resolve();
-    }
+  //   if (lineNumber === this._curLineNumber) {
+  //     return Promise.resolve();
+  //   }
 
-    this.session = this.getCurLineSession();
+  //   this.session = this.getCurLineSession();
 
-    if (!this.session) {
-      return Promise.reject(new Error(`Session does not exists`));
-    }
+  //   if (!this.session) {
+  //     return Promise.reject(new Error(`Session does not exists`));
+  //   }
 
-    if (this.session.state !== SessionState.Established) {
-      return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
-    }
+  //   if (this.session.state !== SessionState.Established) {
+  //     return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
+  //   }
 
-    await this.setLineHold(true);
+  //   await this.setLineHold(true);
 
-    this._curLineNumber = lineNumber;
+  //   this._curLineNumber = lineNumber;
 
-    this.session = this.getCurLineSession();
+  //   this.session = this.getCurLineSession();
 
-    if (!this.session) {
-      return Promise.resolve();
-    }
+  //   if (!this.session) {
+  //     return Promise.resolve();
+  //   }
 
-    if (this.session.state !== SessionState.Established) {
-      return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
-    }
+  //   if (this.session.state !== SessionState.Established) {
+  //     return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
+  //   }
 
-    return this.setLineHold(false);
-  }
+  //   return this.setLineHold(false);
+  // }
 
   async changeLine(lineNumber: number): Promise<void> {
     this.logger.log(`[${this.id}] Changing Lines...`);
@@ -1205,30 +1205,20 @@ export class EndUser {
     this.session = this.getCurLineSession();
 
     if (this.session) {
-      if (this.session.state === SessionState.Established) {        
+      if (this.session.state === SessionState.Established) {
         await this.setLineHold(true);
       }
-      else {
-        return Promise.reject(new Error(`[${this.id}] An established session is required to hold on`));
-      }      
     }
 
     this._curLineNumber = lineNumber;
 
     this.session = this.getCurLineSession();
 
-    if (!this.session) {
-      if (this.delegate && this.delegate.onLineChanged) {
-        this.delegate.onLineChanged();
+    if (this.session) {
+      if (this.session.state === SessionState.Established) {
+        await this.setLineHold(false);
       }
-      return Promise.resolve();
     }
-
-    if (this.session.state !== SessionState.Established) {
-      return Promise.reject(new Error(`[${this.id}] An established session is required to hold off`));
-    }
-
-    await this.setLineHold(false);
 
     if (this.delegate && this.delegate.onLineChanged) {
       this.delegate.onLineChanged();
