@@ -37,7 +37,7 @@ export interface EndUserDelegate {
    * @remarks
    * Callback for handling re-INVITE responses.
    */
-  onCallHold?(held: boolean): void;
+  onCallHold?(held: boolean, lineNumber: number): void;
 
   /**
    * Called when a call receives an incoming DTMF tone.

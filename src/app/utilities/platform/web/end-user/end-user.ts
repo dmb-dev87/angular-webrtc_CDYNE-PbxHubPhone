@@ -1237,7 +1237,7 @@ export class EndUser {
           this.enableReceiverTracks(!line.held, lineNumber);
           this.enableSenderTracks(!line.held && !line.muted, lineNumber);
           if (this.delegate && this.delegate.onCallHold) {
-            this.delegate.onCallHold(line.held);
+            this.delegate.onCallHold(line.held, lineNumber);
           }
         },
         onReject: (): void => {
@@ -1245,7 +1245,7 @@ export class EndUser {
           this.enableReceiverTracks(!line.held, lineNumber);
           this.enableSenderTracks(!line.held && !line.muted, lineNumber);
           if (this.delegate && this.delegate.onCallHold) {
-            this.delegate.onCallHold(line.held);
+            this.delegate.onCallHold(line.held, lineNumber);
           }
         }
       }
