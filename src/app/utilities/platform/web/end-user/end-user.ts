@@ -526,7 +526,7 @@ export class EndUser {
    */
   public hold(): Promise<void> {
     this.logger.log(`[${this.id}] holding session...`);
-    return this.setLineHold(true);
+    return this.setLineHold(true, this.curLineNumber);
     // return this.setHold(true);
   }
 
@@ -540,7 +540,7 @@ export class EndUser {
    */
   public unhold(): Promise<void> {
     this.logger.log(`[${this.id}] unholding session...`);
-    return this.setLineHold(false);
+    return this.setLineHold(false, this.curLineNumber);
     // return this.setHold(false);
   }
 
@@ -550,7 +550,7 @@ export class EndUser {
    * True if session media is on hold.
    */
   public isHeld(): boolean {
-    const line = this.getLine(this._curLineNumber);
+    const line = this.getLine(this.curLineNumber);
     return line.held;
     // return this.held;
   }
@@ -562,7 +562,7 @@ export class EndUser {
    */
   public mute(): void {
     this.logger.log(`[${this.id}] disabling media tracks...`);
-    this.setLineMute(true);
+    this.setLineMute(true, this.curLineNumber);
     // this.setMute(true);
   }
 
@@ -573,7 +573,7 @@ export class EndUser {
    */
   public unmute(): void {
     this.logger.log(`[${this.id}] enabling media tracks...`);
-    this.setLineMute(false);
+    this.setLineMute(false, this.curLineNumber);
     // this.setMute(false);
   }
 
@@ -583,7 +583,7 @@ export class EndUser {
    * True if sender's media track is disabled.
    */
   public isMuted(): boolean {
-    const line = this.getLine(this._curLineNumber);
+    const line = this.getLine(this.curLineNumber);
     return line.muted;
     // return this.muted;
   }
@@ -733,9 +733,10 @@ export class EndUser {
   }
 
   /** Helper function to enable/disable media tracks. */
-  private enableReceiverTracks(enable: boolean): void {
-
+  private enableReceiverTracks(enable: boolean, lineNumber: number): void {
     // this.session = this.getCurLineSession();
+    const line = this.getLine(lineNumber);
+    this.session = line.session;
 
     if (!this.session) {
       throw new Error(`Session does not exist.`);
@@ -759,8 +760,10 @@ export class EndUser {
   }
 
   /** Helper function to enable/disable media tracks. */
-  private enableSenderTracks(enable: boolean): void {
-    this.session = this.getCurLineSession();
+  private enableSenderTracks(enable: boolean, lineNumber: number): void {
+    // this.session = this.getCurLineSession();
+    const line = this.getLine(lineNumber);
+    this.session = line.session;
 
     if (!this.session) {
       throw new Error(`Session does not exist.`);
@@ -1070,7 +1073,7 @@ export class EndUser {
       return Promise.reject(new Error(`Session does not exists.`));
     }
 
-    const oldLine = this.getLine(this._curLineNumber === 0? 1:0);
+    const oldLine = this.getLine(this.curLineNumber === 0? 1:0);
     const oldSession = oldLine.session;
 
     if (!oldSession) {
@@ -1083,7 +1086,7 @@ export class EndUser {
   // async changeLineForTransfer(lineNumber: number): Promise<void> {
   //   this.logger.log(`[${this.id}] Changing Lines for transfer...`);
 
-  //   if (lineNumber === this._curLineNumber) {
+  //   if (lineNumber === this.curLineNumber) {
   //     return Promise.resolve();
   //   }
 
@@ -1099,7 +1102,7 @@ export class EndUser {
 
   //   await this.setLineHold(true);
 
-  //   this._curLineNumber = lineNumber;
+  //   this.curLineNumber = lineNumber;
 
   //   this.session = this.getCurLineSession();
 
@@ -1117,7 +1120,7 @@ export class EndUser {
   async changeLine(lineNumber: number): Promise<void> {
     this.logger.log(`[${this.id}] Changing Lines...`);
 
-    if (lineNumber === this._curLineNumber) {
+    if (lineNumber === this.curLineNumber) {
       return Promise.resolve();
     }
 
@@ -1125,17 +1128,17 @@ export class EndUser {
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
-        await this.setLineHold(true);
+        await this.setLineHold(true, this.curLineNumber);
       }
     }
 
-    this._curLineNumber = lineNumber;
+    this.curLineNumber = lineNumber;
 
     this.session = this.getCurLineSession();
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
-        await this.setLineHold(false);
+        await this.setLineHold(false, this.curLineNumber);
       }
     }
 
@@ -1155,17 +1158,17 @@ export class EndUser {
   }
 
   private getCurLineSession(): Session {
-    if (this._curLineNumber > 1 || this._curLineNumber < 0) {
+    if (this.curLineNumber > 1 || this.curLineNumber < 0) {
       return undefined;
     }
 
-    const curLineSession: LineSession = this.lineSessions[this._curLineNumber];
+    const curLineSession: LineSession = this.lineSessions[this.curLineNumber];
     
     return curLineSession.session;
   }
 
   private setCurLineSession(session: Session, held: boolean, muted: boolean): void {
-    if (this._curLineNumber > 1 || this._curLineNumber < 0) {
+    if (this.curLineNumber > 1 || this.curLineNumber < 0) {
       return
     }
 
@@ -1175,7 +1178,7 @@ export class EndUser {
       muted: muted
     };
 
-    this.lineSessions[this._curLineNumber] = curLineSession;
+    this.lineSessions[this.curLineNumber] = curLineSession;
   }
 
   private getLine(lineId: number): LineSession {
@@ -1188,9 +1191,10 @@ export class EndUser {
     return curLine;
   }
 
-  private setLineMute(mute: boolean): Promise<void> {
-    const lineSession = this.getCurLineSession();
-    const line = this.getLine(this._curLineNumber);
+  private setLineMute(mute: boolean, lineNumber: number): Promise<void> {
+    // const lineSession = this.getCurLineSession();
+    const line = this.getLine(lineNumber);
+    const lineSession = line.session;
 
     if (!lineSession) {
       return Promise.reject(new Error(`Session does not exist.`));
@@ -1202,13 +1206,13 @@ export class EndUser {
 
     line.muted = mute;
 
-    this.enableSenderTracks(!line.held && !line.muted);
+    this.enableSenderTracks(!line.held && !line.muted, lineNumber);
   }
 
-  private setLineHold(hold: boolean): Promise<void> {
-    const lineSession = this.getCurLineSession();
-
-    const line = this.getLine(this._curLineNumber);
+  private setLineHold(hold: boolean, lineNumber: number): Promise<void> {
+    // const lineSession = this.getCurLineSession();
+    const line = this.getLine(lineNumber);
+    const lineSession = line.session;
 
     if (!lineSession) {
       return Promise.reject(new Error(`Session does not exist.`));
@@ -1230,16 +1234,16 @@ export class EndUser {
       requestDelegate: {
         onAccept: (): void => {
           line.held = hold;
-          this.enableReceiverTracks(!line.held);
-          this.enableSenderTracks(!line.held && !line.muted);
+          this.enableReceiverTracks(!line.held, lineNumber);
+          this.enableSenderTracks(!line.held && !line.muted, lineNumber);
           if (this.delegate && this.delegate.onCallHold) {
             this.delegate.onCallHold(line.held);
           }
         },
         onReject: (): void => {
           this.logger.warn(`[${this.id}] re-invite request was rejected`);
-          this.enableReceiverTracks(!line.held);
-          this.enableSenderTracks(!line.held && !line.muted);
+          this.enableReceiverTracks(!line.held, lineNumber);
+          this.enableSenderTracks(!line.held && !line.muted, lineNumber);
           if (this.delegate && this.delegate.onCallHold) {
             this.delegate.onCallHold(line.held);
           }
@@ -1256,8 +1260,8 @@ export class EndUser {
       .invite(options)
       .then(() => {
         // preemptively enable/disable tracks
-        this.enableReceiverTracks(!hold);
-        this.enableSenderTracks(!hold && !line.muted);
+        this.enableReceiverTracks(!hold, lineNumber);
+        this.enableSenderTracks(!hold && !line.muted, lineNumber);
       })
       .catch((error: Error) => {
         if (error instanceof RequestPendingError) {
