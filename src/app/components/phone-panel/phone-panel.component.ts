@@ -8,7 +8,6 @@ import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
-import { ThisReceiver } from '@angular/compiler';
 
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
@@ -173,6 +172,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.endBtnDisabled = this.lineCount === 0 ? true : false;
 
       this.xferBtnDisabled = true;
+
+      if (this.lineCount > 0) {
+        const selectLine = this.selectLine === `1` ? `2` : `1`;
+        this.changeLine(selectLine);
+      }
       
       this.handleMeterStop();
     };
