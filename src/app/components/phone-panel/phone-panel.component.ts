@@ -113,10 +113,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`[${this.endUser.id}] registered`);
 
       setInterval(() => {
-        console.log(`+++++++++++++++++++++ GetPhoneContacts`);
         this.pbxControlService.loadPhoneContacts();
         this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-          this.phoneContacts = phonecontacts.data;
+          this.phoneContacts = phonecontacts.contacts;
         });
       }, 3000);
 
@@ -328,8 +327,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
 
   // UserInfo Event Emitter
   onRegister(email: string): void {
-    this.pbxControlService.webRtcDemo(email).subscribe(response => {
-      this.phoneUser = parseWebRtcDemo(response);
+    this.pbxControlService.loadPhoneUser(email);
+
+    this.pbxControlService.getPhoneUser().subscribe(userState => {
+      this.phoneUser = userState.user;
       if (this.phoneUser) {
         // set user information to localstorage
         localStorage.setItem(`user_name`, this.phoneUser.authName);

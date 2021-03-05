@@ -20,7 +20,8 @@ export function parseContact(data: any): any {
 			arr.push({
 				extension: item['a:Extension'][0],
 				firstName: item['a:FirstName'][0],
-				lastName: item['a:LastName'][0]
+				lastName: item['a:LastName'][0],
+        state: item['a:State'][0]
 			});
 		}
 	});

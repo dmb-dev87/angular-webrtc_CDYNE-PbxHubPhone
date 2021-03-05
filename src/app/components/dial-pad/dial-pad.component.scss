@@ -62,9 +62,36 @@
     border-top: none;
     width: 170px;
 
+    .col-4 {
+      padding: 0px 5px;
+    }
+
     p {
       text-align: left;
       color: #ffffff;
     }
+
+    p.Offline {
+      border-right: 4px solid grey;
+    }
+    
+    p.Idle {
+      border-right: 4px solid blue;
+    }
+
+    p.Talk {
+      border-right: 4px solid green;
+    }
+
+    p.Wrap {
+      border-right: 4px solid yellow;
+    }
+
+    p.Dnd {
+      border-right: 4px solid red;
+    }
   }
 }
+
+
+

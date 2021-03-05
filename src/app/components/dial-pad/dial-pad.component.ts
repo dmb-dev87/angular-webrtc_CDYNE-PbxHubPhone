@@ -24,16 +24,18 @@ export class DialPadComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     const numberToggle = getButton(`number-toggle`);
+
+    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+      this.phoneContacts = phonecontacts.contacts;
+    })
+
     numberToggle.addEventListener(`click`, () => {
       this.numberBtnToggle = !this.numberBtnToggle;
       this.searchBtnToggle = false;
     });
 
     const searchBtn = getButton(`search-toggle`);
-    searchBtn.addEventListener(`click`, () => {
-      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-        this.phoneContacts = phonecontacts.data;
-      })
+    searchBtn.addEventListener(`click`, () => {      
       this.searchResult = this.phoneContacts;
       this.searchBtnToggle = !this.searchBtnToggle;
       this.numberBtnToggle = false;      
@@ -43,10 +45,6 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   searchContact(): void {
     const searchWord = getInputValue(`call-number`);
     this.changeNumberEvent.emit(searchWord);
-
-    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-      this.phoneContacts = phonecontacts.data;
-    });
 
     if (searchWord) {
       this.searchBtnToggle = true;
