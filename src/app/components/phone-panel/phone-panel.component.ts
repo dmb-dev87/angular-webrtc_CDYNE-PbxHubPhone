@@ -8,7 +8,6 @@ import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
-import { ThisReceiver } from '@angular/compiler';
 
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
@@ -276,10 +275,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
         });
-
-        if (this.transferState === true) {
-          this.transferState = false;
-        }
       } else {
         this.callerId = ``;
         this.callStatus = `Call Ended`;
@@ -573,6 +568,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     else {
       this.transferState = false;
       this.selectLine = this.selectLine === `1`? `2` : `1`;
+      this.lineCount = this.lineCount - 1;
       this.endUser
         .completeTransfer()
         .catch((error: Error) => {
