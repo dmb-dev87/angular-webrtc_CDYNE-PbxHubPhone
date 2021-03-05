@@ -112,16 +112,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${this.endUser.id}] registered`);
 
-      this.pbxControlService.loadPhoneContacts();
-
-      this.pbxControlService.getMessageContacts().subscribe(messagecontacts => {
-        this.messageContacts = messagecontacts.contacts;
-      });
+      setInterval(() => {
+        console.log(`+++++++++++++++++++++ GetPhoneContacts`);
+        this.pbxControlService.loadPhoneContacts();
+        this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+          this.phoneContacts = phonecontacts.data;
+        });
+      }, 3000);
 
       this.pbxControlService.loadMessageContacts();
 
-      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-        this.phoneContacts = phonecontacts.data;
+      this.pbxControlService.getMessageContacts().subscribe(messagecontacts => {
+        this.messageContacts = messagecontacts.contacts;
       });
 
       this.pbxControlService.toggleDnd().subscribe(response => {

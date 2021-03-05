@@ -1,5 +1,6 @@
 import * as xml2js from 'xml2js';
 import { MessageHistory } from '../models/messagehistory';
+import { PhoneState } from '../models/phonestate';
 import { PhoneUser } from '../models/phoneuser';
 
 export function parseContact(data: any): any {
@@ -24,6 +25,28 @@ export function parseContact(data: any): any {
 		}
 	});
 	return arr;
+}
+
+export function parseState(data: any): any {
+	let phoneState: PhoneState = new PhoneState;
+  const parser = new xml2js.Parser({
+    time: true,
+    explicitArray: true
+  });
+
+  parser.parseString(data, (err, result) => {
+    const envelope = result['s:Envelope'];
+    const body = envelope['s:Body'];
+    const response = body[0].User_GetStateResponse;
+    const res = response[0].User_GetStateResult;
+    const stateData = res[0];
+    phoneState.extension = stateData['a:Extension'][0];
+    phoneState.firstName = stateData['a:FirstName'][0];
+    phoneState.lastName = stateData['a:LastName'][0];
+    phoneState.state = stateData['a:State'][0];
+  })
+
+  return phoneState;
 }
 
 export function parseDnd(data: any): any {

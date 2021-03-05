@@ -9,8 +9,15 @@ import * as PhoneContacsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
 import * as MessageContactsActions from '../actions/messagecontacts.actions';
+import * as PhoneStateActions from '../actions/phonestate.actions';
 
-import { parseContact, parseWebRtcDemo, parseMessageContact, parseMessageHistories } from '../utilities/parse-utils';
+import {
+  parseContact,
+  parseWebRtcDemo,
+  parseMessageContact,
+  parseMessageHistories,
+  parseState
+} from '../utilities/parse-utils';
 
 @Injectable()
 
@@ -24,7 +31,7 @@ export class PbxControlEffects {
       return this.pbxControlService.userGetDirecotry().pipe(
         map(data => {
           const items = parseContact(data);
-          return new PhoneContacsActions.LoadPhoneContactsSuccess({data: items});
+          return new PhoneContacsActions.LoadPhoneContactsSuccess({contacts: items});
         }),
         catchError(error =>
           of(new PhoneContacsActions.LoadPhoneContactsFailer({ error }))
@@ -34,13 +41,29 @@ export class PbxControlEffects {
   );
 
   @Effect()
+  userGetState = this.actions.pipe(
+    ofType(PhoneStateActions.ActionTypes.LoadPhoneStateBegin),
+    switchMap((action: PhoneStateActions.LoadPhoneStateBegin) => {
+      return this.pbxControlService.userGetState(action.payload.extension).pipe(
+        map(data => {
+          const state = parseState(data);
+          return new PhoneStateActions.LoadPhoneStateSuccess({phoneState: state});
+        }),
+        catchError(error =>
+          of(new PhoneStateActions.LoadPhoneStateFailure({ error }))
+        )
+      );
+    })
+  );
+
+  @Effect()
   webRtcDemo = this.actions.pipe(
     ofType(PhoneUserActions.ActionTypes.LoadPhoneUserBegin),
     switchMap((action: PhoneUserActions.LoadPhoneUserBegin) => {
-      return this.pbxControlService.webRtcDemo(action.email).pipe(
+      return this.pbxControlService.webRtcDemo(action.payload.email).pipe(
         map(data => {
           const phoneUser = parseWebRtcDemo(data);
-          return new PhoneUserActions.LoadPhoneUserSuccess({data: phoneUser});
+          return new PhoneUserActions.LoadPhoneUserSuccess({user: phoneUser});
         }),
         catchError(error =>
           of(new PhoneUserActions.LoadPhoneUserFailure({ error }))

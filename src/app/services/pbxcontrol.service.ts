@@ -6,8 +6,17 @@ import * as PhoneContactsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
 import * as MessageContactsActions from '../actions/messagecontacts.actions';
+import * as PhoneStateActions from '../actions/phonestate.actions';
 
-import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUserState, getMessageContactsState } from '../reducers';
+import {
+  AppState,
+  getMessageHistoriesState,
+  getPhoneContactsState,
+  getPhoneUserState,
+  getMessageContactsState,
+  getPhoneStateState
+} from '../reducers';
+
 import { MessageContact } from '../models/messagecontact';
 
 export enum DndState {
@@ -24,8 +33,35 @@ const baseURL = `https://orfpbx3.cdyne.net/pbxcontrol.svc/REST`;
 export class PbxControlService {  
   constructor(private store: Store<AppState>, private http: HttpClient) {}
 
+  loadPhoneState(extension: string): void {
+    this.store.dispatch(new PhoneStateActions.LoadPhoneStateBegin({extension: extension}));
+  }
+
+  userGetState(extension: string): any {
+    const user_name = localStorage.getItem(`user_name`);
+
+    const soapAction = `"http://tempuri.org/IPBXControl/User_GetState"`;
+
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetState xmlns="http://tempuri.org/"><Username>${user_name}</Username><Extension>${extension}</Extension></User_GetState></s:Body></s:Envelope>`;
+
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    });
+  }
+
+  getPhoneState(): any {
+    return this.store.select(getPhoneStateState);
+  }
+
   loadPhoneUser(email: string): void {
-    this.store.dispatch(new PhoneUserActions.LoadPhoneUserBegin(email));
+    this.store.dispatch(new PhoneUserActions.LoadPhoneUserBegin({email: email}));
   }
 
   webRtcDemo(email: string): any {

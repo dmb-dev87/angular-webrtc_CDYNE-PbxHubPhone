@@ -2,13 +2,13 @@ import * as fromPhoneUser from './../actions/phoneuser.actions';
 import { PhoneUser } from '../models/phoneuser';
 
 export interface PhoneUserState {
-  data: PhoneUser;
+  user: PhoneUser;
   loading: boolean;
   error: any;
 }
 
 export const initialState: PhoneUserState = {
-  data: null,
+  user: null,
   loading: false,
   error: null
 };
@@ -29,7 +29,7 @@ export function reducer(
       return {
         ...state,
         loading: false,
-        data: action.payload.data
+        user: action.payload.user
       };
     }
     case fromPhoneUser.ActionTypes.LoadPhoneUserFailer: {
@@ -45,4 +45,4 @@ export function reducer(
   }
 }
 
-export const getPhoneUser = (state: PhoneUserState) => state.data;
+export const getPhoneUser = (state: PhoneUserState) => state.user;
