@@ -275,6 +275,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
         });
+        if (this.transferState === true) {
+          this.transferState = false;
+        }
       } else {
         this.callerId = ``;
         this.callStatus = `Call Ended`;
