@@ -550,9 +550,7 @@ export class EndUser {
    * True if session media is on hold.
    */
   public isHeld(): boolean {
-    console.log(`+++++++++++++++++++++++ held curLineNumber`, this.curLineNumber);
     const line = this.getLine(this.curLineNumber);
-    console.log(`+++++++++++++++++++++ held line`, line);
     return line.held;
     // return this.held;
   }
@@ -824,11 +822,11 @@ export class EndUser {
         // fall through
         case SessionState.Terminated:
           this.session = undefined;
+          // this.setCurLineSession(undefined, false, false);
           this.cleanupMedia();
           if (this.delegate && this.delegate.onCallHangup) {
             this.delegate.onCallHangup();
-          }
-          this.setCurLineSession(undefined, false, false);
+          }          
           break;
         default:
           throw new Error(`Unknown session state.`);
@@ -989,6 +987,8 @@ export class EndUser {
 
     this.session = this.getCurLineSession();
 
+    this.setCurLineSession(undefined, false, false);
+
     if (!this.session) {
       return Promise.reject(new Error(`Session does not exist.`));
     }
@@ -1029,7 +1029,6 @@ export class EndUser {
       default:
         throw new Error(`Unknown state`);
     }
-
     this.logger.log(`[${this.id}] Terminating in state ${this.session.state}, no action taken`);
     return Promise.resolve();
   }
@@ -1122,32 +1121,24 @@ export class EndUser {
   async changeLine(lineNumber: number): Promise<void> {
     this.logger.log(`[${this.id}] Changing Lines...`);
 
-    console.log(`+++++++++++++++++++++++++ lineNumber: `, lineNumber);
-    console.log(`+++++++++++++++++++++++++ curLineNumber: `, this.curLineNumber);
-
     if (lineNumber === this.curLineNumber) {
       return Promise.resolve();
     }
 
     this.session = this.getCurLineSession();
-    console.log(`+++++++++++++++++++++++++++ curLineSession: `, this.session);
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
-        console.log(`++++++++++++++++++++++, curSessionSetHolld: `, this.curLineNumber);
         await this.setLineHold(true, this.curLineNumber);
       }
     }
 
     this.curLineNumber = lineNumber;
-    console.log(`+++++++++++++++++++++++++ changedLineNumber: `, this.curLineNumber);
 
     this.session = this.getCurLineSession();
-    console.log(`+++++++++++++++++++++++++ changedLineSession: `, this.session);
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
-        console.log(`++++++++++++++++++++++, curSessionSetHolld: `, this.curLineNumber);
         await this.setLineHold(false, this.curLineNumber);
       }
     }

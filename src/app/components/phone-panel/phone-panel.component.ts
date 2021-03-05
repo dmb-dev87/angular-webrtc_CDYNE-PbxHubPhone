@@ -190,7 +190,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.callStatus = `Dialing`;
 
       this.lineCount = this.lineCount + 1;
-      console.log(`++++++++++++++++++++++++++++++ lineCount: `, this.lineCount);
       
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
@@ -269,9 +268,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       
       this.lineCount = this.lineCount - 1;
 
-      console.log(`++++++++++++++++++++++++++++++ lineCount: `, this.lineCount);      
-      console.log(`+++++++++++++++++++++++ transferState: `, this.transferState);
-
       if (this.lineCount > 0) {
         this.selectLine = this.selectLine === `1` ? `2` : `1`;
         this.endUser
@@ -315,7 +311,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       this.callStatus = this.oldCallerId;
 
       this.holdStatus = this.endUser.isHeld();
-      console.log(`+++++++++++++++ holdStatus`, this.holdStatus);
       this.muteStatus = this.endUser.isMuted();
       
       const sessionEstablished = this.endUser.isEstablished();
