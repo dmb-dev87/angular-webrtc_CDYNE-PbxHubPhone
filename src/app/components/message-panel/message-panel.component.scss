@@ -145,6 +145,20 @@ button:focus {
     overflow-y: auto;
     color: #ffffff;
 
+    .date-info {      
+      border-bottom: 1px solid;
+      position: relative;
+      margin: 30px 0px;
+
+      span {
+        position: absolute;
+        top: -9px;
+        left: calc(50% - 50px);
+        background: #1d1d1d;
+        padding: 0px 10px;
+      }
+    }
+
     .time-info {
       font-size: 0.6rem;
       height: 26px;

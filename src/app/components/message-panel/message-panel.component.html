@@ -57,15 +57,22 @@
       </div>
       <div class=" row">
         <div class=" col message-box" id="message-box" #scrollMe>
-          <div *ngFor="let history of messageHistories" #messages [ngClass]="{'row':true, 'received':!history.sent, 'mb-3':true}">
-            <div>
-              <span class=" time-info">
-                {{history.sent?'' : curName+', '}}{{history.datetime | date:'h:mm a'}}
+          <div *ngFor="let group of groupedMessages">
+            <div class=" date-info">
+              <span>
+                {{group.actualDay.toString() === todayDate.toString() ? 'Today' : group.actualDay | date:'EEEE, MMMM d, yyyy'}}
               </span>
-              <span [ngClass]="{'received-message':!history.sent, 'sent-message':history.sent}">
-                {{history.body}}
-              </span>
-            </div>            
+            </div>
+            <div *ngFor="let history of group.messages" #messages [ngClass]="{'row':true, 'received':!history.sent, 'mb-3':true}">
+              <div>
+                <span class=" time-info">
+                  {{history.sent?'' : curName+', '}}{{history.datetime | date:'h:mm a'}}
+                </span>
+                <span [ngClass]="{'received-message':!history.sent, 'sent-message':history.sent}">
+                  {{history.body}}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

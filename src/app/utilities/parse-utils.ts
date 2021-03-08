@@ -9,7 +9,7 @@ export function parseContact(data: any): any {
 		trim: true,
 		explicitArray: true
 	});
-	parser.parseString(data, (err, result) => {
+	parser.parseString(data, (err, result: string) => {
 		const envelope = result['s:Envelope'];
 		const body = envelope['s:Body'];
 		const dirRes = body[0].User_GetDirectoryResponse;
@@ -35,7 +35,7 @@ export function parseState(data: any): any {
     explicitArray: true
   });
 
-  parser.parseString(data, (err, result) => {
+  parser.parseString(data, (err, result: string) => {
     const envelope = result['s:Envelope'];
     const body = envelope['s:Body'];
     const response = body[0].User_GetStateResponse;
@@ -57,7 +57,7 @@ export function parseDnd(data: any): any {
 		explicitArray: true
 	});
 
-	parser.parseString(data, (err, result) => {
+	parser.parseString(data, (err, result: string) => {
 		const envelope = result['s:Envelope'];
 		const body = envelope['s:Body'];
 		const dndRes = body[0].ToggleDndResponse;
@@ -92,12 +92,13 @@ export function parseWebRtcDemo(data: any): any {
 }
 
 export function parseMessageHistories(data: any): Array<MessageHistory> {
+	const offset = new Date().getTimezoneOffset();
 	const histories: Array<MessageHistory> = [];
 	const parser = new xml2js.Parser({
 		trim: true,
 		explicitArray: true
 	});
-	parser.parseString(data, (err, result) => {
+	parser.parseString(data, (err, result: string) => {
 		const envelope = result['s:Envelope'];
 		const body = envelope['s:Body'];
 		const dirRes = body[0].Message_GetMessagesResponse;
@@ -105,9 +106,11 @@ export function parseMessageHistories(data: any): Array<MessageHistory> {
 		const aMessageList = dirResult[0]['a:SipMessage'] !== undefined? dirResult[0]['a:SipMessage'] : [];
 		for(const k in aMessageList) {
 			const item = aMessageList[k];
+			const datetime =new Date(item['a:Entrydate'][0]);
+			datetime.setTime(datetime.getTime() - 60000 * (datetime.getTimezoneOffset()));
 			histories.push({
 				body: item['a:Body'][0],
-				datetime: new Date(item['a:Entrydate'][0]),
+				datetime: datetime,
 				messageId: item['a:messageid'][0],
 				sent: item['a:sent'][0] === 'true'
 			});
@@ -122,7 +125,7 @@ export function parseMessageContact(data: any): any {
 		trim: true,
 		explicitArray: true
 	});
-	parser.parseString(data, (err, result) => {
+	parser.parseString(data, (err, result: string) => {
 		const envelope = result['s:Envelope'];
 		const body = envelope['s:Body'];
 		const dirRes = body[0].Message_GetActiveConversationsResponse;

@@ -13,10 +13,13 @@ import { getInputValue, setInputValue } from '../../utilities/ui-utils';
 export class MessagePanelComponent implements OnInit, AfterViewInit {
   @ViewChildren('messages') messages: QueryList<any>;
   @ViewChild('scrollMe') scrollMe: ElementRef;
+  
   messageStr: string;  
   searchResult: Array<PhoneContact> = [];
   messageHistories: Array<MessageHistory> = [];
   selectedExtension: string = undefined;
+  groupedMessages: Array<any> = [];
+  todayDate: Date = null;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
 
@@ -25,10 +28,13 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   @Input() messageContacts: Array<MessageContact>;
   @Input() phoneContacts: Array<PhoneContact>;
 
-  constructor(private pbxControlService: PbxControlService) { 
+  constructor(private pbxControlService: PbxControlService) {
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    const today = new Date();
+    this.todayDate = new Date(today.getTime() - (today.getTime() % 86400000) + today.getTimezoneOffset() * 60000);
+  }
 
   ngAfterViewInit(): void {
     this.getMessageHistories();
@@ -40,11 +46,36 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
     if (this.selectedExtension) {
       this.pbxControlService.loadMessageHistories(this.selectedExtension);
       this.pbxControlService.getMessageHistories().subscribe(historiesState => {
-        this.messageHistories = historiesState.histories;        
+        this.messageHistories = historiesState.histories;
+        this.groupedMessages = this.groupByDate(this.messageHistories);
       });
+
       const activeContact = this.phoneContacts.find(e => e.extension === this.selectedExtension);
-      this.curName = activeContact.firstName + ` ` + activeContact.lastName;
+      if (activeContact === undefined) {
+        this.curName = ``;
+      } else {
+        this.curName = activeContact.firstName + ` ` + activeContact.lastName;
+      }
     }    
+  }
+
+  groupByDate(messages: Array<MessageHistory>): Array<any> {
+    const grouped = [];
+    messages.forEach((msg, index) => {
+      const actualDay = new Date(msg.datetime.getTime() - (msg.datetime.getTime() % 86400000) + msg.datetime.getTimezoneOffset() * 60000);
+      let group = grouped.find(e => e.actualDay.toString() === actualDay.toString());
+      const messages = [];
+      messages.push(msg);
+      if (group === undefined) {
+        grouped.push({
+          actualDay: actualDay,
+          messages: messages
+        });        
+      } else {
+        group.messages.push(msg);
+      }
+    });
+    return grouped;
   }
 
   onSelectContact(extension: string): void {
