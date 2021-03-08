@@ -61,6 +61,7 @@
     [phoneContacts]="phoneContacts"
     [extensionsForReceived]="extensionsForReceived"
     [selectedExtension]="selectedExtension"
+    (changeSelExtension)="onChangeSelExtension($event)"
     (sendMessage)="onSendMessage($event)">
     <!-- (clickOutside)="onClickOutsideMessage($event)"> -->
   </app-message-panel>

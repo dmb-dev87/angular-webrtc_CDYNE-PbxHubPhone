@@ -22,6 +22,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   todayDate: Date = null;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
+  @Output() changeSelExtension = new EventEmitter<string>();
 
   @Input() curName: string;
   @Input() extensionsForReceived: Array<string>;
@@ -87,6 +88,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
         this.extensionsForReceived.splice(index, 1);
       }
     });
+    this.changeSelExtension.emit(extension);
   }
 
   onHideContact(extension: string): void {

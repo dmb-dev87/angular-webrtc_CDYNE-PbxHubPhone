@@ -8,6 +8,7 @@ import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
+import { from } from 'rxjs';
 
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
@@ -173,9 +174,18 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       if (this.isMessage === false) {
         this.receivedMessages++;
       }
-      if (this.extensionsForReceived.indexOf(fromUser) === -1) {
+
+      if (this.extensionsForReceived.indexOf(fromUser) === -1 && this.selectedExtension !== fromUser) {
         this.extensionsForReceived.push(fromUser);
+      } else if (this.selectedExtension === fromUser) {
+        this.pbxControlService.addMessageHistory({
+          body: messageStr,
+          datetime: new Date(),
+          messageId: 0,
+          sent: false
+        });
       }
+
       const activeContact = this.messageContacts.find(e => e.extension === fromUser);
       if (activeContact === undefined) {
         const phoneContact = this.phoneContacts.find(e => e.extension === fromUser);
@@ -669,6 +679,10 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         console.error(`[${this.endUser.id}] failed to send message`);
         console.error(error);
       });
+  }
+
+  onChangeSelExtension(extension: string) {
+    this.selectedExtension = extension;
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
