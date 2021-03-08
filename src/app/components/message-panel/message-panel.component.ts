@@ -19,7 +19,6 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   selectedExtension: string = undefined;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
-  @Output() addMessageContact = new EventEmitter<string>();
 
   @Input() curName: string;
   @Input() extensionsForReceived: Array<string>;
@@ -41,15 +40,15 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
     if (this.selectedExtension) {
       this.pbxControlService.loadMessageHistories(this.selectedExtension);
       this.pbxControlService.getMessageHistories().subscribe(historiesState => {
-        this.messageHistories = historiesState.histories;
-      })
-      const activeContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
+        this.messageHistories = historiesState.histories;        
+      });
+      const activeContact = this.phoneContacts.find(e => e.extension === this.selectedExtension);
       this.curName = activeContact.firstName + ` ` + activeContact.lastName;
     }    
-    return;
   }
 
   onSelectContact(extension: string): void {
+    this.messageHistories = [];
     this.selectedExtension = extension;
     this.getMessageHistories();
     this.extensionsForReceived.forEach((item, index) => {
@@ -61,7 +60,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
 
   onHideContact(extension: string): void {
     this.selectedExtension = extension;
-    const hideContact = this.messageContacts.find(e => e.extension === this.selectedExtension);    
+    const hideContact = this.messageContacts.find(e => e.extension === this.selectedExtension);
     this.pbxControlService.deleteMessageContact(hideContact);
     this.pbxControlService.updateMessageHistories([]);
     this.selectedExtension = undefined;
@@ -94,10 +93,6 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   searchContact(): void {
     const searchWord = getInputValue(`search-text`);
 
-    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-      this.phoneContacts = phonecontacts.data;
-    });
-
     if (searchWord) {
       this.searchResult = this.phoneContacts.filter((ele, i, array) => {
         const eleStr = ele.extension + ele.firstName + ele.lastName;
@@ -126,7 +121,15 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
 
   onAddContact(): void {
     const extension = getInputValue(`search-text`);
-    this.addMessageContact.emit(extension);
+    if (this.messageContacts.findIndex(e => e.extension === extension) === -1) {
+      const phoneContact = this.phoneContacts.find(e => e.extension === extension);
+      const addContact: MessageContact = {
+        extension: phoneContact.extension,
+        firstName: phoneContact.firstName,
+        lastName: phoneContact.lastName
+      };
+      this.pbxControlService.addMessageContact(addContact);
+    }
     this.selectedExtension = extension;
     this.getMessageHistories();
   }

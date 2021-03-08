@@ -1,3 +1,7 @@
+button:focus {
+  outline: none;
+}
+
 .message-panel {
   position: fixed;
   top: 50%;
@@ -37,7 +41,7 @@
 
     .plus-btn {
       font-size: 20px;
-      border-radius: 50%;
+      // border-radius: 50%;
       background-color: #06002f;
     }
   }
@@ -46,9 +50,8 @@
     margin: 0px 0px;
     position: absolute;
     z-index: 9999;
-    width: 60%;
     top: 60px;
-    left: 20px;
+    left: 50px;
     background-color: transparent;
   
     .search-result-list {
@@ -57,10 +60,34 @@
       border: 2px solid #75757a;
       border-top: none;
       width: 170px;
+
+      .col-4 {
+        padding: 0px 5px;
+      }
   
       p {
         text-align: left;
         color: #ffffff;
+      }
+
+      p.Offline {
+        border-right: 4px solid grey;
+      }
+      
+      p.Idle {
+        border-right: 4px solid blue;
+      }
+  
+      p.Talk {
+        border-right: 4px solid green;
+      }
+  
+      p.Wrap {
+        border-right: 4px solid yellow;
+      }
+  
+      p.Dnd {
+        border-right: 4px solid red;
       }
     }
   }
@@ -96,7 +123,7 @@
 
     .contact-menu {
       position: absolute;
-      right: -5px;
+      right: 0px;
       top: 4px;
       color: #ffffff;
     }    

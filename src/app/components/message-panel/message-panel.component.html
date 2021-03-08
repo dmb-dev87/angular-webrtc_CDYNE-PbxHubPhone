@@ -3,7 +3,7 @@
     <div class=" col-4 contact-list">
       <div class=" row search-pad">
         <div class=" col">
-          <form class="form-inline search-form">
+          <form class="form-inline search-form" autocomplete="off">
             <mat-icon>search</mat-icon>
             <input class="form-control" type="text" placeholder="Find people and conversations." id="search-text" (input)="searchContact()">
           </form>
@@ -19,7 +19,7 @@
               <p>{{item.firstName}} {{item.lastName}}</p>
             </div>
             <div class=" col-4">
-              <p>{{item.extension}}</p>
+              <p [ngClass]="item.state">{{item.extension}}</p>
             </div>
           </div>
         </div>

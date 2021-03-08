@@ -178,7 +178,13 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       }
       const activeContact = this.messageContacts.find(e => e.extension === fromUser);
       if (activeContact === undefined) {
-        this.addMessageContact(fromUser);
+        const phoneContact = this.phoneContacts.find(e => e.extension === fromUser);
+        const addContact: MessageContact = {
+          extension: phoneContact.extension,
+          firstName: phoneContact.firstName,
+          lastName: phoneContact.lastName
+        };
+        this.pbxControlService.addMessageContact(addContact);
       }
     }
   }
@@ -665,15 +671,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       });
   }
 
-  async addMessageContact(extension: string): Promise<void> {
-    const phoneContact = this.phoneContacts.find(e => e.extension === extension);
-    const addContact: MessageContact = {
-      extension: phoneContact.extension,
-      firstName: phoneContact.firstName,
-      lastName: phoneContact.lastName
-    };
-    return this.pbxControlService.addMessageContact(addContact);
-  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   handleMeterLocal(stream: any): void {

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Output, EventEmitter, Input } from '@angular/core';
 import { getButton, getInputValue, setInputValue, delInputValue, addInputValue } from '../../utilities/ui-utils';
 import { PhoneContact } from '../../models/phonecontact';
 import { PbxControlService } from '../../services/pbxcontrol.service';
@@ -13,9 +13,9 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   searchBtnToggle = false;
   searchResult = [];
 
-  private phoneContacts: Array<PhoneContact> = [];
-
   @Output() changeNumberEvent = new EventEmitter<string>();
+
+  @Input() phoneContacts: Array<PhoneContact>;
   
   constructor(private pbxControlService: PbxControlService) { }
 
@@ -24,10 +24,6 @@ export class DialPadComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     const numberToggle = getButton(`number-toggle`);
-
-    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-      this.phoneContacts = phonecontacts.contacts;
-    })
 
     numberToggle.addEventListener(`click`, () => {
       this.numberBtnToggle = !this.numberBtnToggle;

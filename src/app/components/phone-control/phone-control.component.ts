@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { PhoneContact } from 'src/app/models/phonecontact';
 
 @Component({
   selector: 'app-phone-control',
@@ -21,6 +22,7 @@ export class PhoneControlComponent implements OnInit {
   @Input() endBtnDisabled: boolean;
   @Input() holdToggle: boolean;
   @Input() muteToggle: boolean;
+  @Input() phoneContacts: Array<PhoneContact>;
   
   constructor() { }
 

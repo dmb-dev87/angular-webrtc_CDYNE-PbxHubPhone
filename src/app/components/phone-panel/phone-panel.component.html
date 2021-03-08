@@ -30,6 +30,7 @@
         [dndStatus]="dndStatus"
         [holdToggle]="holdStatus"
         [muteToggle]="muteStatus"
+        [phoneContacts]="phoneContacts"
         (changeNumber)="onChangeNumber($event)"
         (hold)="onHold($event)"
         (mute)="onMute($event)"
@@ -60,7 +61,6 @@
     [phoneContacts]="phoneContacts"
     [extensionsForReceived]="extensionsForReceived"
     [selectedExtension]="selectedExtension"
-    (addMessageContact)="addMessageContact($event)"
     (sendMessage)="onSendMessage($event)">
     <!-- (clickOutside)="onClickOutsideMessage($event)"> -->
   </app-message-panel>
