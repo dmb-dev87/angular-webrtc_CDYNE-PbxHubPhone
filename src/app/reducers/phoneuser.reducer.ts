@@ -39,6 +39,13 @@ export function reducer(
         error: action.payload.error
       };
     }
+    case fromPhoneUser.ActionTypes.UpdatePhoneUserBegin: {
+      return {
+        ...state,
+        loading: false,
+        user: action.payload.user
+      }
+    }
     default: {
       return state;
     }

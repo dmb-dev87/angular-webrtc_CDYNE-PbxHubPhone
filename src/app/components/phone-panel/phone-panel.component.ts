@@ -8,7 +8,6 @@ import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
-import { from } from 'rxjs';
 
 const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
@@ -71,9 +70,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   
   private micMeterRefresh = null;
   private receiverMeterRefresh = null;
+  private userGetRefresh = null;
   private localSoundMeter: LocalSoundMeter = undefined;
   private remoteSoundMeter: RemoteSoundMeter = undefined;
   private audioContext = undefined;
+  private phoneUserSubscribe = null;
 
   constructor(private pbxControlService: PbxControlService) {}
 
@@ -100,11 +101,11 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   makeServerDisconnectCallback(): () => void {
-    return (err?: Error) => {
+    return (error?: Error) => {
       console.log(`[${this.endUser.id}] disconnected`);
       this.callStatus = "Disconnected";
-      if (err) {
-        console.error(`[${this.endUser.id}] Server disconnected.\n` + err.message);
+      if (error) {
+        console.error(`[${this.endUser.id}] Server disconnected.\n` + error.message);
       }
     };
   }
@@ -113,7 +114,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${this.endUser.id}] registered`);
 
-      setInterval(() => {
+      this.userGetRefresh = setInterval(() => {
         this.pbxControlService.loadPhoneContacts();
         this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
           this.phoneContacts = phonecontacts.contacts;
@@ -153,8 +154,17 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     return () => {
       console.log(`[${this.endUser.id}] unregistered`);
 
-      this.registerStatus = false;
+      clearInterval(this.userGetRefresh);
+      localStorage.removeItem(`user_name`);
+      localStorage.removeItem(`user_id`);
+      
+      this.pbxControlService.updatePhoneUser(null);
+      this.phoneUser = null;
+
+      this.disconnect();
+
       this.callStatus = "Unregistered";
+      this.registerStatus = false;
 
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
@@ -344,8 +354,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   // UserInfo Event Emitter
   onRegister(email: string): void {
     this.pbxControlService.loadPhoneUser(email);
-
-    this.pbxControlService.getPhoneUser().subscribe(userState => {
+    this.phoneUserSubscribe = this.pbxControlService.getPhoneUser().subscribe(userState => {
       this.phoneUser = userState.user;
       if (this.phoneUser) {
         // set user information to localstorage
@@ -357,10 +366,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   onUnregister(): void {
+    this.phoneUserSubscribe.unsubscribe();
     this.unregister();
-    this.phoneUser = undefined;
-    localStorage.removeItem(`user_name`);
-    localStorage.removeItem(`user_id`);
   }
 
   connect(): void {
@@ -429,12 +436,23 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   unregister(): void {
     this.endUser
       .unregister()
-      .then(() => {
+      .then(() => {        
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to unregister`);
         console.error(error);
       });
+  }
+
+  disconnect(): void {
+    this.endUser
+      .disconnect()
+      .then(() => {        
+      })
+      .catch((error: Error) => {
+        console.error(`[${this.endUser.id}] failed to disconnect`);
+        console.error(error);
+      })
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

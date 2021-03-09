@@ -18,6 +18,7 @@ import {
 } from '../reducers';
 
 import { MessageContact } from '../models/messagecontact';
+import { PhoneUser } from '../models/phoneuser';
 
 export enum DndState {
   Enabled = `DND Enabled`,
@@ -58,6 +59,10 @@ export class PbxControlService {
 
   getPhoneState(): any {
     return this.store.select(getPhoneStateState);
+  }
+
+  updatePhoneUser(phoneUser: PhoneUser): void {
+    this.store.dispatch(new PhoneUserActions.UpdatePhoneUserBegin({user: phoneUser}));
   }
 
   loadPhoneUser(email: string): void {
