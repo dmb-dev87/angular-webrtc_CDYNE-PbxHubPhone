@@ -822,7 +822,7 @@ export class EndUser {
         // fall through
         case SessionState.Terminated:
           this.session = undefined;
-          // this.setCurLineSession(undefined, false, false);
+          this.setCurLineSession(undefined, false, false);
           this.cleanupMedia();
           if (this.delegate && this.delegate.onCallHangup) {
             this.delegate.onCallHangup();
