@@ -44,7 +44,7 @@ export function reducer(
         ...state,
         loading: true,
         error: null
-      };      
+      };
     }
     case fromMessageContacts.ActionTypes.DeleteMessageContactSuccess: {
       let newContacts = Object.assign([], state.contacts);
@@ -58,7 +58,7 @@ export function reducer(
         ...state,
         loading: false,
         contacts: newContacts
-      };      
+      };
     }
     case fromMessageContacts.ActionTypes.DeleteMessageContactFailure: {
       return {
@@ -72,7 +72,7 @@ export function reducer(
         ...state,
         loading: true,
         error: null
-      };      
+      };
     }
     case fromMessageContacts.ActionTypes.AddMessageContactSuccess: {
       let newContacts = Object.assign([], state.contacts);
@@ -82,7 +82,7 @@ export function reducer(
         ...state,
         loading: false,
         contacts: newContacts
-      };      
+      };
     }
     case fromMessageContacts.ActionTypes.AddMessageContactFailure: {
       return {

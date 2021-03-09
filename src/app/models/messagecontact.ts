@@ -3,4 +3,3 @@ export class MessageContact {
   firstName: string;
   lastName: string;
 }
-  

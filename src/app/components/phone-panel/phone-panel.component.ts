@@ -1,10 +1,10 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { getAudio } from '../../utilities/ui-utils';
 import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
-import { parseDnd, parseWebRtcDemo } from '../../utilities/parse-utils';
+import { parseDnd } from '../../utilities/parse-utils';
 import { LocalSoundMeter, RemoteSoundMeter } from '../../utilities/sound-meter';
 import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
@@ -13,9 +13,7 @@ const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
 const userAgent = environment.userAgent;
 const monitorTarget = environment.monitorTarget;
-
 const ringAudio = new Audio(`assets/sound/ring.mp3`);
-
 const constraints = {
   audio: true,
   video: false
@@ -26,8 +24,7 @@ const constraints = {
   templateUrl: './phone-panel.component.html',
   styleUrls: ['./phone-panel.component.scss']
 })
-
-export class PhonePanelComponent implements OnInit, AfterViewInit {
+export class PhonePanelComponent implements OnInit {
   callerId = null;
   oldCallerId = null;
   callStatus = `Unregistered`;
@@ -86,12 +83,8 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this._phoneUser = phoneUser;
   }
 
-  ngOnInit(): void {    
-  }
+  ngOnInit(): void {}
 
-  ngAfterViewInit(): void {
-  }
-  
   // EndUser Callback functions
   makeServerConnectCallback(): () => void {
     return () => {
@@ -650,13 +643,6 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
     this.receivedMessages = 0;
   }
 
-  onClickOutsideMessage(e: Event): void {
-    const targetText = (e.target as Element).textContent.toLowerCase();
-    
-    if (targetText !== `message` && targetText !== `send`) {
-      this.isMessage = false;
-    }
-  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Line Info Events

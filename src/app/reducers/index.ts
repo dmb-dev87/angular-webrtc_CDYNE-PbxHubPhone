@@ -1,8 +1,4 @@
-import {
-  ActionReducerMap,
-  MetaReducer
-} from '@ngrx/store';
-
+import { ActionReducerMap, MetaReducer } from '@ngrx/store';
 import { environment } from '../../environments/environment';
 import * as fromPhoneUser from './phoneuser.reducer';
 import * as fromPhoneContacts from './phonecontacts.reducer';

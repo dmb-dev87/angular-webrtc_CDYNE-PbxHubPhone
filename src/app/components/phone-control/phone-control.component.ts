@@ -24,18 +24,15 @@ export class PhoneControlComponent implements OnInit {
   @Input() muteToggle: boolean;
   @Input() phoneContacts: Array<PhoneContact>;
   
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   onHold(): void {
-    // this.holdToggle = !this.holdToggle;
     this.hold.emit(!this.holdToggle);
   }
 
   onMute(): void {
-    // this.muteToggle = !this.muteToggle;
     this.mute.emit(!this.muteToggle);
   }
 

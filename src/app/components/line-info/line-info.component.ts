@@ -21,10 +21,9 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
   @Input() lineStatusOne: string;
   @Input() lineStatusTwo: string;
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     const receiverSpan = getSpan(`receiver-control`);

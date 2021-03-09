@@ -11,15 +11,15 @@ import { getInputValue, setInputValue } from '../../utilities/ui-utils';
   styleUrls: ['./message-panel.component.scss']
 })
 export class MessagePanelComponent implements OnInit, AfterViewInit {
-  @ViewChildren('messages') messages: QueryList<any>;
-  @ViewChild('scrollMe') scrollMe: ElementRef;
-  
-  messageStr: string;  
+  messageStr: string;
   searchResult: Array<PhoneContact> = [];
   messageHistories: Array<MessageHistory> = [];
   selectedExtension: string = undefined;
   groupedMessages: Array<any> = [];
   todayDate: Date = null;
+
+  @ViewChildren('messages') messages: QueryList<any>;
+  @ViewChild('scrollMe') scrollMe: ElementRef;
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
   @Output() changeSelExtension = new EventEmitter<string>();
@@ -29,8 +29,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
   @Input() messageContacts: Array<MessageContact>;
   @Input() phoneContacts: Array<PhoneContact>;
 
-  constructor(private pbxControlService: PbxControlService) {
-  }
+  constructor(private pbxControlService: PbxControlService) {}
 
   ngOnInit(): void {
     const today = new Date();

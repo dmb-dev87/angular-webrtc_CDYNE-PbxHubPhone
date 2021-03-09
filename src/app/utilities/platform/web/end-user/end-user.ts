@@ -23,7 +23,6 @@ import {
   UserAgentState
 } from 'sip.js';
 import {Logger, OutgoingReferRequest} from 'sip.js/lib/core';
-// import {SessionDescriptionHandler, SessionDescriptionHandlerOptions} from '../session-description-handler';
 import {SessionDescriptionHandler, SessionDescriptionHandlerOptions} from 'sip.js/lib/platform/web/session-description-handler';
 import {Transport} from '../transport';
 import {EndUserDelegate} from './end-user-delegate';
@@ -51,8 +50,6 @@ export class EndUser {
   private attemptingReconnection = false;
   private connectRequested = false;
   private logger: Logger;
-  // private held = false;
-  // private muted = false;
   private options: EndUserOptions;
   private registerer: Registerer | undefined = undefined;
   private registerRequested = false;
@@ -527,7 +524,6 @@ export class EndUser {
   public hold(): Promise<void> {
     this.logger.log(`[${this.id}] holding session...`);
     return this.setLineHold(true, this.curLineNumber);
-    // return this.setHold(true);
   }
 
   /**
@@ -541,7 +537,6 @@ export class EndUser {
   public unhold(): Promise<void> {
     this.logger.log(`[${this.id}] unholding session...`);
     return this.setLineHold(false, this.curLineNumber);
-    // return this.setHold(false);
   }
 
   /**
@@ -552,7 +547,6 @@ export class EndUser {
   public isHeld(): boolean {
     const line = this.getLine(this.curLineNumber);
     return line.held;
-    // return this.held;
   }
 
   /**
@@ -563,7 +557,6 @@ export class EndUser {
   public mute(): void {
     this.logger.log(`[${this.id}] disabling media tracks...`);
     this.setLineMute(true, this.curLineNumber);
-    // this.setMute(true);
   }
 
   /**
@@ -574,7 +567,6 @@ export class EndUser {
   public unmute(): void {
     this.logger.log(`[${this.id}] enabling media tracks...`);
     this.setLineMute(false, this.curLineNumber);
-    // this.setMute(false);
   }
 
   /**
@@ -585,7 +577,6 @@ export class EndUser {
   public isMuted(): boolean {
     const line = this.getLine(this.curLineNumber);
     return line.muted;
-    // return this.muted;
   }
 
   /**
@@ -1083,40 +1074,6 @@ export class EndUser {
 
     return oldSession.refer(this.transferTarget);
   }
-
-  // async changeLineForTransfer(lineNumber: number): Promise<void> {
-  //   this.logger.log(`[${this.id}] Changing Lines for transfer...`);
-
-  //   if (lineNumber === this.curLineNumber) {
-  //     return Promise.resolve();
-  //   }
-
-  //   this.session = this.getCurLineSession();
-
-  //   if (!this.session) {
-  //     return Promise.reject(new Error(`Session does not exists`));
-  //   }
-
-  //   if (this.session.state !== SessionState.Established) {
-  //     return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
-  //   }
-
-  //   await this.setLineHold(true);
-
-  //   this.curLineNumber = lineNumber;
-
-  //   this.session = this.getCurLineSession();
-
-  //   if (!this.session) {
-  //     return Promise.resolve();
-  //   }
-
-  //   if (this.session.state !== SessionState.Established) {
-  //     return Promise.reject(new Error(`[${this.id}] An established session is required to enable/disable media tracks`));
-  //   }
-
-  //   return this.setLineHold(false);
-  // }
 
   async changeLine(lineNumber: number): Promise<void> {
     this.logger.log(`[${this.id}] Changing Lines...`);

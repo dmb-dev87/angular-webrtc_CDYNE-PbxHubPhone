@@ -2,15 +2,12 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-
 import { PbxControlService } from '../services/pbxcontrol.service';
-
 import * as PhoneContacsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
 import * as MessageContactsActions from '../actions/messagecontacts.actions';
 import * as PhoneStateActions from '../actions/phonestate.actions';
-
 import {
   parseContact,
   parseWebRtcDemo,

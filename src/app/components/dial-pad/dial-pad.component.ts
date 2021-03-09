@@ -19,8 +19,7 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   
   constructor(private pbxControlService: PbxControlService) { }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     const numberToggle = getButton(`number-toggle`);

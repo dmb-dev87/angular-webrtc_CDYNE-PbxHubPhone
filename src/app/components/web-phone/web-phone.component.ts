@@ -46,9 +46,7 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
   private xferButton = null;
   private dndButton = null;
 
-  constructor(private pbxControlService: PbxControlService) {
-    
-  }
+  constructor(private pbxControlService: PbxControlService) {}
 
   get phoneUser(): PhoneUser {
     return this._phoneUser;
