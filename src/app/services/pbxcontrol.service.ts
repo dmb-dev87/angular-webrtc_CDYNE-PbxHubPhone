@@ -117,7 +117,7 @@ export class PbxControlService {
     return this.store.select(getPhoneContactsState);
   }
 
-  toggleDnd(): any {
+  toggleDnd(): Promise<any> {
     const user_name = localStorage.getItem(`user_name`);
     const user_id = localStorage.getItem(`user_id`);
 
@@ -134,7 +134,7 @@ export class PbxControlService {
         .append('Content-Encoding', 'gzip, deflate, br')
         .append('SOAPAction', soapAction),
       responseType: 'text'
-    });
+    }).toPromise();
   }
 
   loadMessageContacts(): void {
@@ -168,7 +168,7 @@ export class PbxControlService {
     this.store.dispatch(new MessageContactsActions.AddMessageContactBegin({contact: contact}));
   }
 
-  messageActivateConversation(addContact: MessageContact) {
+  messageActivateConversation(addContact: MessageContact): any {
     const user_name = localStorage.getItem(`user_name`);
 
     const soapAction = `"http://tempuri.org/IPBXControl/Message_ActivateConversation"`;

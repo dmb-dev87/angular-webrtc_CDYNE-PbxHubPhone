@@ -115,11 +115,12 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
       console.log(`[${this.endUser.id}] registered`);
 
       this.userGetRefresh = setInterval(() => {
-        this.pbxControlService.loadPhoneContacts();
-        this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-          this.phoneContacts = phonecontacts.contacts;
-        });
+        this.pbxControlService.loadPhoneContacts();        
       }, 3000);
+
+      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
+        this.phoneContacts = phonecontacts.contacts;
+      });
 
       this.pbxControlService.loadMessageContacts();
 
@@ -127,9 +128,9 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
         this.messageContacts = messagecontacts.contacts;
       });
 
-      this.pbxControlService.toggleDnd().subscribe(response => {
+      this.pbxControlService.toggleDnd().then(response => {
         //call twice because status get toggled when call api
-        this.pbxControlService.toggleDnd().subscribe(response => {
+        this.pbxControlService.toggleDnd().then(response => {
           const dndStatus = parseDnd(response);        
           this.dndStatus = dndStatus === DndState.Enabled ? true : false;
         });
@@ -503,7 +504,7 @@ export class PhonePanelComponent implements OnInit, AfterViewInit {
   }
 
   onDnd(): void {
-    this.pbxControlService.toggleDnd().subscribe(response => {
+    this.pbxControlService.toggleDnd().then(response => {
       const dndStatus = parseDnd(response);
       this.dndStatus = dndStatus === DndState.Enabled ? true : false;
     });

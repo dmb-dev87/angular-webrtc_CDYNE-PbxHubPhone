@@ -392,7 +392,7 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
   }
 
   onDnd(): void {
-    this.pbxControlService.toggleDnd().subscribe(response => {
+    this.pbxControlService.toggleDnd().then(response => {
       const dndStatus = parseDnd(response);
       this.dndToggle = dndStatus === DndState.Enabled ? true : false;
     });
@@ -444,9 +444,9 @@ export class WebPhoneComponent implements OnInit, AfterViewInit {
 
   makeRegisteredCallback(user: EndUser): () => void {
     return () => {
-      this.pbxControlService.toggleDnd().subscribe(response => {
+      this.pbxControlService.toggleDnd().then(response => {
         //call twice because status get toggled when call api
-        this.pbxControlService.toggleDnd().subscribe(response => {
+        this.pbxControlService.toggleDnd().then(response => {
           const dndStatus = parseDnd(response);        
           this.dndToggle = dndStatus === DndState.Enabled ? true : false;
         });
