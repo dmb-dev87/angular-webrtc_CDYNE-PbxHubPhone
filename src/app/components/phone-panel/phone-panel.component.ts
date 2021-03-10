@@ -348,6 +348,7 @@ export class PhonePanelComponent implements OnInit {
 
   // UserInfo Event Emitter
   onRegister(email: string): void {
+    this.callStatus = "Registering";
     this.pbxControlService.loadPhoneUser(email);
     this.phoneUserSubscribe = this.pbxControlService.getPhoneUser().subscribe(userState => {
       this.phoneUser = userState.user;
@@ -361,6 +362,7 @@ export class PhonePanelComponent implements OnInit {
   }
 
   onUnregister(): void {
+    this.callStatus = "Unregistering";
     this.phoneUserSubscribe.unsubscribe();
     this.unregister();
   }
