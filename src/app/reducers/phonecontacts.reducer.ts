@@ -2,13 +2,13 @@ import * as fromPhoneContacts from './../actions/phonecontacts.actions';
 import { PhoneContact } from '../models/phonecontact';
 
 export interface PhoneContactsState {
-  data: PhoneContact[];
+  contacts: PhoneContact[];
   loading: boolean;
   error: any;
 }
 
 export const initialState: PhoneContactsState = {
-  data: [],
+  contacts: [],
   loading: false,
   error: null
 };
@@ -29,7 +29,7 @@ export function reducer(
       return {
         ...state,
         loading: false,
-        data: action.payload.data
+        contacts: action.payload.contacts
       };
     }
     case fromPhoneContacts.ActionTypes.LoadPhoneContactsFailer: {
@@ -45,4 +45,4 @@ export function reducer(
   }
 }
 
-export const getPhoneContacts = (state: PhoneContactsState) => state.data;
+export const getPhoneContacts = (state: PhoneContactsState) => state.contacts;

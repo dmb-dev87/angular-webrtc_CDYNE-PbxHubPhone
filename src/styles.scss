@@ -71,6 +71,20 @@ label {
   background: #1d1d1d !important;
 }
 
+.mat-menu-panel {
+  min-height: 0px !important;
+  background-color: #1d1d1d !important;
+}
+
+.mat-menu-item {
+  color: #ffffff;
+}
+
+.mat-menu-content:not(:empty) {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
 ::-webkit-scrollbar {
   width: 2px;
 }

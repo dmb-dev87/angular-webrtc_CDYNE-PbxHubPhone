@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { PhoneContact } from 'src/app/models/phonecontact';
 
 @Component({
   selector: 'app-phone-control',
@@ -6,15 +7,14 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
   styleUrls: ['./phone-control.component.scss']
 })
 export class PhoneControlComponent implements OnInit {
-  holdToggle = false;
-  muteToggle = false;
-  
+
   @Output() hold = new EventEmitter<boolean>();
   @Output() mute = new EventEmitter<boolean>();
   @Output() dnd = new EventEmitter();
   @Output() hangupCall = new EventEmitter();
   @Output() makeCall = new EventEmitter();
   @Output() changeNumber = new EventEmitter<string>();
+  @Output() clickNumber = new EventEmitter<string>();
 
   @Input() dndStatus: boolean;
   @Input() holdBtnDisabled: boolean;
@@ -22,20 +22,20 @@ export class PhoneControlComponent implements OnInit {
   @Input() dndBtnDisabled: boolean;
   @Input() beginBtnDisabled: boolean;
   @Input() endBtnDisabled: boolean;
+  @Input() holdToggle: boolean;
+  @Input() muteToggle: boolean;
+  @Input() phoneContacts: Array<PhoneContact>;
   
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   onHold(): void {
-    this.holdToggle = !this.holdToggle;
-    this.hold.emit(this.holdToggle);
+    this.hold.emit(!this.holdToggle);
   }
 
   onMute(): void {
-    this.muteToggle = !this.muteToggle;
-    this.mute.emit(this.muteToggle);
+    this.mute.emit(!this.muteToggle);
   }
 
   onDnd(): void {
@@ -52,5 +52,9 @@ export class PhoneControlComponent implements OnInit {
 
   onChangeNumber(value: string): void {
     this.changeNumber.emit(value);
+  }
+
+  onClickNumber(toneNum: string): void {
+    this.clickNumber.emit(toneNum);
   }
 }

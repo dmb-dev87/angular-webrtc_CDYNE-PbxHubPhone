@@ -1,26 +1,48 @@
 <div class=" col-lg-6 col-md-12 col-sm-12 message-panel">
   <div class=" row">
     <div class=" col-4 contact-list">
-      <div class=" row">
-        <div class=" col search-pad">
-          <form class="form-inline search-form">
+      <div class=" row search-pad">
+        <div class=" col">
+          <form class="form-inline search-form" autocomplete="off">
             <mat-icon>search</mat-icon>
-            <input class="form-control" type="text" placeholder="Find people and conversations." aria-label="Search">
+            <input class="form-control" type="text" placeholder="Find people and conversations." id="search-text" (input)="searchContact()">
           </form>
         </div>
       </div>
       <div class=" row plus-pad">
-        <button mat-button matSuffix mat-icon-button class="plus-btn">+</button>
+        <button mat-button matSuffix mat-icon-button class="plus-btn" (click)="onAddContact()">+</button>
       </div>
-      <div class=" row">
-        <div class=" col contacts-pad">
-          <div *ngFor="let contact of phoneContacts;" [ngClass]="{'row':true, 'contact-item':true, 'selected':contact.extension === selectedExtension}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
-            <div class=" col">
+      <div class=" row search-result-pad" *ngIf="searchResult.length > 0">
+        <div class=" col search-result-list" (clickOutside)="onClickOutsideSearch($event)">
+          <div class=" row" *ngFor="let item of searchResult;" (click)="clickSearchList(item.extension)">
+            <div class=" col-8">
+              <p>{{item.firstName}} {{item.lastName}}</p>
+            </div>
+            <div class=" col-4">
+              <p [ngClass]="item.state">{{item.extension}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class=" row contacts-pad">
+        <div class=" col">
+          <div *ngFor="let contact of messageContacts;" [ngClass]="{'row':true, 'contact-item':true, 'received':extensionsForReceived.indexOf(contact.extension) > -1}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
+            <div [ngClass]="{'col':true, 'contact-content':true, 'selected':contact.extension === selectedExtension}">
               <div class=" row">
                 <p class=" contact-name">{{contact.firstName}} {{contact.lastName}}</p>
               </div>
               <div class=" row">
                 <p class=" contact-number">{{contact.extension}}</p>
+              </div>
+              <div *ngIf="contact.extension === selectedExtension" class=" contact-menu">
+                <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu" xPosition="before" yPosition="below">
+                  <button mat-menu-item (click)="onHideContact(contact.extension)">
+                    <span>Hide</span>
+                  </button>
+                </mat-menu>
               </div>
             </div>
           </div>
@@ -35,15 +57,22 @@
       </div>
       <div class=" row">
         <div class=" col message-box" id="message-box" #scrollMe>
-          <div *ngFor="let record of activeRecords" #messages [ngClass]="{'row':true, 'received':!record.sent, 'mb-3':true}">
-            <div>
-              <span class=" time-info">
-                {{record.sent?'' : curName+', '}}{{record.datetime | date:'h:mm a'}}
+          <div *ngFor="let group of groupedMessages">
+            <div class=" date-info">
+              <span>
+                {{group.actualDay.toString() === todayDate.toString() ? 'Today' : group.actualDay | date:'EEEE, MMMM d, yyyy'}}
               </span>
-              <span [ngClass]="{'received-message':!record.sent, 'sent-message':record.sent}">
-                {{record.body}}
-              </span>
-            </div>            
+            </div>
+            <div *ngFor="let history of group.messages" #messages [ngClass]="{'row':true, 'received':!history.sent, 'mb-3':true}">
+              <div>
+                <span class=" time-info">
+                  {{history.sent?'' : curName+', '}}{{history.datetime | date:'h:mm a'}}
+                </span>
+                <span [ngClass]="{'received-message':!history.sent, 'sent-message':history.sent}">
+                  {{history.body}}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

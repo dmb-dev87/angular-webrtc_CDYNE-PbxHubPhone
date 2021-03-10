@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, EventEmitter, Output, Input } from '@angular/core';
-import { getSpan, getAudio } from '../../utilities/ui-utils';
+import { getSpan } from '../../utilities/ui-utils';
 
 @Component({
   selector: 'app-line-info',
@@ -21,10 +21,9 @@ export class LineInfoComponent implements OnInit, AfterViewInit {
   @Input() lineStatusOne: string;
   @Input() lineStatusTwo: string;
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     const receiverSpan = getSpan(`receiver-control`);

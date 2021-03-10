@@ -13,7 +13,7 @@ export class LoadPhoneContactsBegin implements Action {
 export class LoadPhoneContactsSuccess implements Action {
   readonly type = ActionTypes.LoadPhoneContactsSuccess;
 
-  constructor(public payload: {data: any}) {}
+  constructor(public payload: {contacts: any}) {}
 }
 
 export class LoadPhoneContactsFailer implements Action {

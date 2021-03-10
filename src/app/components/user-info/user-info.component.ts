@@ -16,9 +16,7 @@ export class UserInfoComponent implements OnInit {
 
   constructor() {}
 
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
 
   onRegister(email: string): void {    
     if (email === ``) {

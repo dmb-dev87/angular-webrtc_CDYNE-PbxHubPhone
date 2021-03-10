@@ -1,7 +1,6 @@
-import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Output, EventEmitter, Input } from '@angular/core';
 import { getButton, getInputValue, setInputValue, delInputValue, addInputValue } from '../../utilities/ui-utils';
 import { PhoneContact } from '../../models/phonecontact';
-import { PbxControlService } from '../../services/pbxcontrol.service';
 
 @Component({
   selector: 'app-dial-pad',
@@ -13,27 +12,25 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   searchBtnToggle = false;
   searchResult = [];
 
-  private phoneContacts: Array<PhoneContact> = [];
-
   @Output() changeNumberEvent = new EventEmitter<string>();
-  
-  constructor(private pbxControlService: PbxControlService) { }
+  @Output() clickNumberEvent = new EventEmitter<string>();
 
-  ngOnInit(): void {
-  }
+  @Input() phoneContacts: Array<PhoneContact>;
+  
+  constructor() {}
+
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    const numberToggle = getButton(`number-toggle`);
-    numberToggle.addEventListener(`click`, () => {
+    const numberBtn = getButton(`number-toggle`);
+    numberBtn.addEventListener(`click`, () => {
+      setInputValue(`call-number`, ``);
       this.numberBtnToggle = !this.numberBtnToggle;
       this.searchBtnToggle = false;
     });
 
     const searchBtn = getButton(`search-toggle`);
-    searchBtn.addEventListener(`click`, () => {
-      this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-        this.phoneContacts = phonecontacts.data;
-      })
+    searchBtn.addEventListener(`click`, () => {      
       this.searchResult = this.phoneContacts;
       this.searchBtnToggle = !this.searchBtnToggle;
       this.numberBtnToggle = false;      
@@ -43,10 +40,6 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   searchContact(): void {
     const searchWord = getInputValue(`call-number`);
     this.changeNumberEvent.emit(searchWord);
-
-    this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
-      this.phoneContacts = phonecontacts.data;
-    });
 
     if (searchWord) {
       this.searchBtnToggle = true;
@@ -76,27 +69,14 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   clickNumber(toneNum: string): void {
     if (toneNum === "clear") {
       delInputValue(`call-number`);
-      return;
+    } 
+    else {
+      addInputValue(`call-number`, toneNum);
+      this.clickNumberEvent.emit(toneNum);
     }
 
-    addInputValue(`call-number`, toneNum);
-
     const value = getInputValue(`call-number`);
-    this.changeNumberEvent.emit(value);
-
-    // if (this.callState === false || this.lineChanged === true || this.transferState === true) {
-    //   addInputValue(`call-number`, toneNum);
-
-    //   this.endUser.sendDTMF(toneNum)
-    //     .then(() => {
-    //       addInputValue(`call-number`, toneNum);
-    //     })
-    //     .catch((err: Error) => {
-    //       addInputValue(`call-number`, toneNum);
-    //       console.error(`[${this.endUser.id}] failed to send DTMF`);
-    //       console.error(err);
-    //     });
-    // }
+    this.changeNumberEvent.emit(value);    
   }
 
   onClickOutsideNumber(e: Event): void {

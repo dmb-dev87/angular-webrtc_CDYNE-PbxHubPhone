@@ -29,7 +29,7 @@
         <p>{{item.firstName}} {{item.lastName}}</p>
       </div>
       <div class=" col-4">
-        <p>{{item.extension}}</p>
+        <p [ngClass]="item.state">{{item.extension}}</p>
       </div>
     </div>
   </div>

@@ -1,7 +1,7 @@
 <div class=" container-fluid">
   <div class=" row phone-panel">
     <div class=" col-lg-3 col-md-6 col-sm-12">
-      <app-user-info        
+      <app-user-info
         [callerId]="callerId"
         [callStatus]="callStatus"
         [registerStatus]="registerStatus"
@@ -28,6 +28,10 @@
         [beginBtnDisabled]="beginBtnDisabled"
         [endBtnDisabled]="endBtnDisabled"
         [dndStatus]="dndStatus"
+        [holdToggle]="holdStatus"
+        [muteToggle]="muteStatus"
+        [phoneContacts]="phoneContacts"
+        (clickNumber)="onClickNumber($event)"
         (changeNumber)="onChangeNumber($event)"
         (hold)="onHold($event)"
         (mute)="onMute($event)"
@@ -38,9 +42,11 @@
     </div>
     <div class=" col-lg-3 col-md-6 col-sm-12 control-pad">
       <app-misc-control
+        [transferState]="transferState"
         [xferBtnDisabled]="xferBtnDisabled"
         [monitorBtnDisabled]="monitorBtnDisabled"
         [messageBtnDisabled]="messageBtnDisabled"
+        [receivedMessages]="receivedMessages"
         (transfer)="onMakeTransfer($event)"
         (monitor)="onDialMonitor()"
         (message)="onMessageDialog()">
@@ -52,9 +58,12 @@
 <div>
   <app-message-panel 
     *ngIf="isMessage"
+    [messageContacts]="messageContacts"
+    [phoneContacts]="phoneContacts"
+    [extensionsForReceived]="extensionsForReceived"
     [selectedExtension]="selectedExtension"
-    (sendMessage)="onSendMessage($event)"
-    (clickOutside)="onClickOutsideMessage($event)">
+    (changeSelExtension)="onChangeSelExtension($event)"
+    (sendMessage)="onSendMessage($event)">
   </app-message-panel>
 </div>
 

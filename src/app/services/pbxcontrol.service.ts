@@ -1,18 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Store } from '@ngrx/store';
-
 import * as PhoneContactsActions from '../actions/phonecontacts.actions';
 import * as PhoneUserActions from '../actions/phoneuser.actions';
 import * as MessageHistoriesActions from '../actions/messagehistories.actions';
-
-import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUserState } from '../reducers';
-import { PhoneContact } from '../models/phonecontact';
-
-import { parseMessageRecords } from './../utilities/parse-utils';
-import { MessageHistory, MessageRecord } from '../models/messagehistory';
-import { Messager } from 'sip.js';
-import { Observable, of } from 'rxjs';
+import * as MessageContactsActions from '../actions/messagecontacts.actions';
+import * as PhoneStateActions from '../actions/phonestate.actions';
+import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUserState, getMessageContactsState, getPhoneStateState } from '../reducers';
+import { environment } from '../../environments/environment';
+import { MessageContact } from '../models/messagecontact';
+import { PhoneUser } from '../models/phoneuser';
 
 export enum DndState {
   Enabled = `DND Enabled`,
@@ -20,63 +17,24 @@ export enum DndState {
   NotAllowed = `DND Not Allowed`
 }
 
-const baseURL = `https://orfpbx3.cdyne.net/pbxcontrol.svc/REST`;
+const baseURL = environment.pbxServiceBaseURL;
 
 @Injectable({
   providedIn: 'root'
 })
-export class PbxControlService {
-  user_id: string;
-  user_name: string;
-  message: string;
-  
+export class PbxControlService {  
   constructor(private store: Store<AppState>, private http: HttpClient) {}
 
-  addMessageRecord(extension: string, messageRecord: MessageRecord): void {
-    this.store.dispatch(new MessageHistoriesActions.AddMessageRecordBegin({extension: extension, messageRecord: messageRecord}));
+  loadPhoneState(extension: string): void {
+    this.store.dispatch(new PhoneStateActions.LoadPhoneStateBegin({extension: extension}));
   }
 
-  async addMessageRecordToHistory(payload: any) {
-    var records: Array<MessageRecord> = [];
-    var messageHistories: Array<MessageHistory> = [];
+  userGetState(extension: string): any {
+    const user_name = localStorage.getItem(`user_name`);
+    const soapAction = `"http://tempuri.org/IPBXControl/User_GetState"`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetState xmlns="http://tempuri.org/"><Username>${user_name}</Username><Extension>${extension}</Extension></User_GetState></s:Body></s:Envelope>`;
 
-    this.getMessageHistories().subscribe(histories => {
-      messageHistories = histories.messageHistories;
-      let activeHistory: MessageHistory = messageHistories.find(e => e.extension === payload.extension);
-      let index = messageHistories.indexOf(activeHistory);
-      records = Object.assign([], activeHistory.records);
-      records.push(payload.messageRecord);
-      messageHistories = Object.assign([], messageHistories);
-      messageHistories[index] = {extension:payload.extension, records: records};      
-    });
-    return messageHistories;
-  }
-
-  loadMessageHistories(contacts: Array<PhoneContact>): void {
-    this.user_name = localStorage.getItem(`user_name`);
-    this.store.dispatch(new MessageHistoriesActions.LoadMessageHistoriesBegin(contacts));
-  }
-
-  async getHistories(phoneContacts: Array<PhoneContact>) {
-    let messageHistories: Array<MessageHistory> = [];
-    await Promise.all(phoneContacts.map(async (contact) => {
-      await this.getMessages(contact.extension).then(res => {
-        messageHistories.push({
-          extension: contact.extension,
-          records: res
-        });
-      });      
-    }));
-    return messageHistories;
-  }
-
-  async getMessages(extension: string, messageId: number = 0) {
-    let records: Array<MessageRecord> = [];
-    const soapAction = `"http://tempuri.org/IPBXControl/GetMessages"`;
-
-    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><GetMessages xmlns="http://tempuri.org/"><Username>${this.user_name}</Username><Extension>${extension}</Extension><messageid>${messageId}</messageid></GetMessages></s:Body></s:Envelope>`;
-
-    let res: string = await this.http.post(baseURL, body, {
+    return this.http.post(baseURL, body, {
       headers: new HttpHeaders()
         .set('Content-Type', 'text/xml; charset=utf-8')
         .append('Accept', '*/*')
@@ -85,24 +43,23 @@ export class PbxControlService {
         .append('Content-Encoding', 'gzip, deflate, br')
         .append('SOAPAction', soapAction),
       responseType: 'text'
-    }).toPromise()
-
-    records = parseMessageRecords(res);
-
-    return records;
+    });
   }
 
-  getMessageHistories(): any {
-    return this.store.select(getMessageHistoriesState);
+  getPhoneState(): any {
+    return this.store.select(getPhoneStateState);
+  }
+
+  updatePhoneUser(phoneUser: PhoneUser): void {
+    this.store.dispatch(new PhoneUserActions.UpdatePhoneUserBegin({user: phoneUser}));
   }
 
   loadPhoneUser(email: string): void {
-    this.store.dispatch(new PhoneUserActions.LoadPhoneUserBegin(email));
+    this.store.dispatch(new PhoneUserActions.LoadPhoneUserBegin({email: email}));
   }
 
   webRtcDemo(email: string): any {
     const soapAction = `"http://tempuri.org/IPBXControl/WebRtcDemo"`;
-
     const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><WebRtcDemo xmlns="http://tempuri.org/"><Email>${email}</Email></WebRtcDemo></s:Body></s:Envelope>`
 
     return this.http.post(baseURL, body, {
@@ -122,15 +79,13 @@ export class PbxControlService {
   }
 
   loadPhoneContacts(): void {
-    this.user_id = localStorage.getItem(`user_id`);
-    this.user_name = localStorage.getItem(`user_name`);
     this.store.dispatch(new PhoneContactsActions.LoadPhoneContactsBegin());
   }
 
   userGetDirecotry(): any {
+    const user_name = localStorage.getItem(`user_name`);    
     const soapAction = `"http://tempuri.org/IPBXControl/User_GetDirectory"`;
-
-    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetDirectory xmlns="http://tempuri.org/"><UserKey>${this.user_name}</UserKey></User_GetDirectory></s:Body></s:Envelope>`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetDirectory xmlns="http://tempuri.org/"><UserKey>${user_name}</UserKey></User_GetDirectory></s:Body></s:Envelope>`;
 
     return this.http.post(baseURL, body, {
       headers: new HttpHeaders()
@@ -148,10 +103,32 @@ export class PbxControlService {
     return this.store.select(getPhoneContactsState);
   }
 
-  toggleDnd(): any {
+  toggleDnd(): Promise<any> {
+    const user_name = localStorage.getItem(`user_name`);
+    const user_id = localStorage.getItem(`user_id`);
     const soapAction = `"http://tempuri.org/IPBXControl/ToggleDnd"`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><ToggleDnd xmlns="http://tempuri.org/"><ClientID>${user_id}</ClientID><UserID>${user_name}</UserID></ToggleDnd></s:Body></s:Envelope> `;
 
-    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><ToggleDnd xmlns="http://tempuri.org/"><ClientID>${this.user_id}</ClientID><UserID>${this.user_name}</UserID></ToggleDnd></s:Body></s:Envelope> `;
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    }).toPromise();
+  }
+
+  loadMessageContacts(): void {
+    this.store.dispatch(new MessageContactsActions.LoadMessageContactsBegin());
+  }
+
+  messageGetActiveConversations(): any {
+    const user_name = localStorage.getItem(`user_name`);
+    const soapAction = `"http://tempuri.org/IPBXControl/Message_GetActiveConversations"`;
+    const body =`<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><Message_GetActiveConversations xmlns="http://tempuri.org/"><UserKey>${user_name}</UserKey></Message_GetActiveConversations></s:Body></s:Envelope>`;
 
     return this.http.post(baseURL, body, {
       headers: new HttpHeaders()
@@ -163,5 +140,84 @@ export class PbxControlService {
         .append('SOAPAction', soapAction),
       responseType: 'text'
     });
+  }
+
+  getMessageContacts(): any {
+    return this.store.select(getMessageContactsState);
+  }
+
+  addMessageContact(contact: any) {
+    this.store.dispatch(new MessageContactsActions.AddMessageContactBegin({contact: contact}));
+  }
+
+  messageActivateConversation(addContact: MessageContact): any {
+    const user_name = localStorage.getItem(`user_name`);
+    const soapAction = `"http://tempuri.org/IPBXControl/Message_ActivateConversation"`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><Message_ActivateConversation xmlns="http://tempuri.org/"><Username>${user_name}</Username><Extension>${addContact.extension}</Extension></Message_ActivateConversation></s:Body></s:Envelope>`;
+
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    });
+  }
+
+  deleteMessageContact(contact: any) {
+    this.store.dispatch(new MessageContactsActions.DeleteMessageContactBegin({contact: contact}));
+  }
+
+  messageHideConversation(hideContact: MessageContact) {
+    const user_name = localStorage.getItem(`user_name`);
+    const soapAction = `"http://tempuri.org/IPBXControl/Message_HideConversation"`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><Message_HideConversation xmlns="http://tempuri.org/"><Username>${user_name}</Username><Extension>${hideContact.extension}</Extension></Message_HideConversation></s:Body></s:Envelope>`;
+
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    });
+  }
+
+  loadMessageHistories(extension: string): void {
+    this.store.dispatch(new MessageHistoriesActions.LoadMessageHistoriesBegin({extension: extension, messageId: 0}));
+  }
+
+  messageGetMessages(payload: any): any {
+    const user_name = localStorage.getItem(`user_name`);
+    const soapAction = `"http://tempuri.org/IPBXControl/Message_GetMessages"`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><Message_GetMessages xmlns="http://tempuri.org/"><Username>${user_name}</Username><Extension>${payload.extension}</Extension><messageid>${payload.messageId}</messageid></Message_GetMessages></s:Body></s:Envelope>`;
+
+    return this.http.post(baseURL, body, {
+      headers: new HttpHeaders()
+        .set('Content-Type', 'text/xml; charset=utf-8')
+        .append('Accept', '*/*')
+        .append('Access-Control-Allow-Methods', 'GET,POST')
+        .append('Access-Control-Allow-Origin', '*')
+        .append('Content-Encoding', 'gzip, deflate, br')
+        .append('SOAPAction', soapAction),
+      responseType: 'text'
+    });
+  }
+
+  getMessageHistories(): any {
+    return this.store.select(getMessageHistoriesState);
+  }
+
+  updateMessageHistories(histories: any): void {
+    this.store.dispatch(new MessageHistoriesActions.UpdateMessageHistories({histories: histories}));
+  }
+
+  addMessageHistory(history: any): void {
+    this.store.dispatch(new MessageHistoriesActions.AddMessageHistory({history: history}));
   }
 }

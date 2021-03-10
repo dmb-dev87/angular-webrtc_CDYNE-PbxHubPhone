@@ -68,7 +68,7 @@ export class RemoteSoundMeter {
         this._audioAnalyser[i].maxDecibels = 0;
         this._audioAnalyser[i].smoothingTimeConstant = 0.8;
         this._audioAnalyser[i].fftSize = 32;
-        this._freqs[i] = new Uint8Array(this._audioAnalyser[i].frequencyBinCount);    
+        this._freqs[i] = new Uint8Array(this._audioAnalyser[i].frequencyBinCount);
         this._audioChannelSplitter.connect(this._audioAnalyser[i], i, 0);
       }
 

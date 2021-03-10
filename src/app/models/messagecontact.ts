@@ -1,6 +1,5 @@
-export class PhoneContact {
+export class MessageContact {
   extension: string;
   firstName: string;
   lastName: string;
-  state: string;
 }

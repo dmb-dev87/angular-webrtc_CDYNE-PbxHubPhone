@@ -1,20 +1,17 @@
 import { Action } from '@ngrx/store';
-import { MessageRecord } from '../models/messagehistory';
-import { PhoneContact } from '../models/phonecontact';
 
 export enum ActionTypes {
   LoadMessageHistoriesBegin = `[MessageHistories] Load data begin`,
-  LoadMessageHistoriesSuccess = `[MessageHitories] Load data success`,
-  LoadMessageHistoriesFailure = `[MessageHitories] Load data failure`,
-  AddMessageRecordBegin = `[MessageRecord] Add data begin`,
-  AddMessageRecordSuccess = `[MessageRecord] Add data success`,
-  AddMessageRecordFailure = `[MessageRecord] Add data failure`,
+  LoadMessageHistoriesSuccess = `[MessageHistories] Load data success`,
+  LoadMessageHistoriesFailure = `[MessageHistories] Load data failure`,
+  UpdateMessageHistories = `[MessageHistories] Update data`,
+  AddMessageHistory = `[MessageHistories] Add data`,
 }
 
 export class LoadMessageHistoriesBegin implements Action {
   readonly type = ActionTypes.LoadMessageHistoriesBegin;
 
-  constructor(public phoneContacts: Array<PhoneContact>) {}
+  constructor(public payload: {extension: string, messageId: number}) {}
 }
 
 export class LoadMessageHistoriesSuccess implements Action {
@@ -29,23 +26,17 @@ export class LoadMessageHistoriesFailure implements Action {
   constructor(public payload: {error: any}) {}
 }
 
-export class AddMessageRecordBegin implements Action {
-  readonly type = ActionTypes.AddMessageRecordBegin;
-
-  constructor(public payload: {extension: string, messageRecord: MessageRecord}) {}
-}
-
-export class AddMessageRecordSuccess implements Action {
-  readonly type = ActionTypes.AddMessageRecordSuccess;
+export class UpdateMessageHistories implements Action {
+  readonly type = ActionTypes.UpdateMessageHistories;
 
   constructor(public payload: {histories: any}) {}
 }
 
-export class AddMessageRecordFailure implements Action {
-  readonly type = ActionTypes.AddMessageRecordFailure;
+export class AddMessageHistory implements Action {
+  readonly type = ActionTypes.AddMessageHistory;
 
-  constructor(public payload: {error: any}) {}
+  constructor(public payload: {history: any}) {}
 }
 
-export type ActionsUnion = LoadMessageHistoriesBegin | LoadMessageHistoriesSuccess | LoadMessageHistoriesFailure |
-                            AddMessageRecordBegin | AddMessageRecordSuccess | AddMessageRecordFailure;
+export type ActionsUnion = LoadMessageHistoriesBegin | LoadMessageHistoriesSuccess | LoadMessageHistoriesFailure 
+                          | UpdateMessageHistories | AddMessageHistory;

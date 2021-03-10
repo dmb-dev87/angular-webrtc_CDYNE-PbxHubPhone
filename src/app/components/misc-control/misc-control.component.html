@@ -1,7 +1,10 @@
 <div class=" row">
   <div class=" btns-panel">
-    <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="onMakeTransfer()" [disabled]="xferBtnDisabled">X-fer</button>
+    <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="onMakeTransfer()" [disabled]="xferBtnDisabled">{{transferState?"Complete X-fer":"X-fer"}}</button>
     <button class=" btn btn-fill btn-normal phone-ctrlbtn" (click)="onDialMonitor()" [disabled]="monitorBtnDisabled">Monitor</button>
     <button class=" btn btn-fill btn-normal phone-ctrlbtn" (click)="onMessage()" [disabled]="messageBtnDisabled">Message</button>
+  </div>
+  <div *ngIf="receivedMessages > 0" class=" received-number">
+    <span>{{receivedMessages}}</span>
   </div>
 </div>

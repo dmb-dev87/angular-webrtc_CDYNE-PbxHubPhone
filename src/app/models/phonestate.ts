@@ -1,6 +1,6 @@
-export class PhoneContact {
+export class PhoneState {
   extension: string;
   firstName: string;
   lastName: string;
-  state: string;
+  state: string;  
 }

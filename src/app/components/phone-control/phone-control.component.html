@@ -8,6 +8,8 @@
     <button class=" btn btn-fill btn-danger call-btn" id="end-call" (click)="onHangupCall()" [disabled]="endBtnDisabled"><i class="fas fa-phone-slash"></i></button>
   </div>
   <app-dial-pad
+    [phoneContacts]="phoneContacts"
+    (clickNumberEvent)="onClickNumber($event)"
     (changeNumberEvent)="onChangeNumber($event)">
   </app-dial-pad>
   <div class=" btns-panel">

@@ -23,7 +23,7 @@ export interface EndUserDelegate {
    * Callback for handling incoming INVITE requests.
    * The callback must either accept or reject the incoming call by calling `answer()` or `decline()` respectively.
    */
-  onCallReceived?(callerId: string, autoAnswer: boolean): void;
+  onCallReceived?(displayName: string, target: string, autoAnswer: boolean): void;
 
   /**
    * Called when a call is hung up.
@@ -37,7 +37,7 @@ export interface EndUserDelegate {
    * @remarks
    * Callback for handling re-INVITE responses.
    */
-  onCallHold?(held: boolean): void;
+  onCallHold?(held: boolean, lineNumber: number): void;
 
   /**
    * Called when a call receives an incoming DTMF tone.
@@ -79,4 +79,6 @@ export interface EndUserDelegate {
    * @param error - An Error if server caused the disconnect. Otherwise undefined.
    */
   onServerDisconnect?(error?: Error): void;
+
+  onLineChanged?(): void;
 }

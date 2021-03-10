@@ -2,15 +2,15 @@ import * as fromMessageHistories from './../actions/messagehistories.actions';
 import { MessageHistory } from './../models/messagehistory';
 
 export interface MessageHistoriesState {
-  messageHistories: MessageHistory[];
+  histories: MessageHistory[];
   loading: boolean;
   error: any;
 }
 
 export const initialState: MessageHistoriesState = {
-  messageHistories: [],
+  histories: [],
   loading: false,
-  error: null  
+  error: null
 };
 
 export function reducer(
@@ -29,7 +29,7 @@ export function reducer(
       return {
         ...state,
         loading: false,
-        messageHistories: action.payload.histories
+        histories: action.payload.histories
       };
     }
     case fromMessageHistories.ActionTypes.LoadMessageHistoriesFailure: {
@@ -37,27 +37,24 @@ export function reducer(
         ...state,
         loading: false,
         error: action.payload.error
-      };
+      }
     }
-    case fromMessageHistories.ActionTypes.AddMessageRecordBegin: {
+    case fromMessageHistories.ActionTypes.UpdateMessageHistories: {      
       return {
         ...state,
-        loading: true,
+        loading: false,
+        histories: action.payload.histories,
         error: null
       };
     }
-    case fromMessageHistories.ActionTypes.AddMessageRecordSuccess: {
+    case fromMessageHistories.ActionTypes.AddMessageHistory: {
+      let newHistories = Object.assign([], state.histories);
+      newHistories.push(action.payload.history);
       return {
         ...state,
         loading: false,
-        messageHistories: action.payload.histories
-      };
-    }
-    case fromMessageHistories.ActionTypes.AddMessageRecordFailure: {
-      return {
-        ...state,
-        loading: false,
-        error: action.payload.error
+        histories: newHistories,
+        error: null
       };
     }
     default: {
@@ -66,4 +63,4 @@ export function reducer(
   }
 }
 
-export const getMessageHistories = (state: MessageHistoriesState) => state.messageHistories;
+export const getMessageHistories = (state: MessageHistoriesState) => state.histories;
