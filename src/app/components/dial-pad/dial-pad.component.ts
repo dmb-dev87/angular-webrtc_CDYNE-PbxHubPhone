@@ -1,7 +1,6 @@
 import { Component, OnInit, AfterViewInit, Output, EventEmitter, Input } from '@angular/core';
 import { getButton, getInputValue, setInputValue, delInputValue, addInputValue } from '../../utilities/ui-utils';
 import { PhoneContact } from '../../models/phonecontact';
-import { PbxControlService } from '../../services/pbxcontrol.service';
 
 @Component({
   selector: 'app-dial-pad',
@@ -14,17 +13,18 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   searchResult = [];
 
   @Output() changeNumberEvent = new EventEmitter<string>();
+  @Output() clickNumberEvent = new EventEmitter<string>();
 
   @Input() phoneContacts: Array<PhoneContact>;
   
-  constructor(private pbxControlService: PbxControlService) { }
+  constructor() {}
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    const numberToggle = getButton(`number-toggle`);
-
-    numberToggle.addEventListener(`click`, () => {
+    const numberBtn = getButton(`number-toggle`);
+    numberBtn.addEventListener(`click`, () => {
+      setInputValue(`call-number`, ``);
       this.numberBtnToggle = !this.numberBtnToggle;
       this.searchBtnToggle = false;
     });
@@ -69,13 +69,14 @@ export class DialPadComponent implements OnInit, AfterViewInit {
   clickNumber(toneNum: string): void {
     if (toneNum === "clear") {
       delInputValue(`call-number`);
-      return;
+    } 
+    else {
+      addInputValue(`call-number`, toneNum);
+      this.clickNumberEvent.emit(toneNum);
     }
 
-    addInputValue(`call-number`, toneNum);
-
     const value = getInputValue(`call-number`);
-    this.changeNumberEvent.emit(value);
+    this.changeNumberEvent.emit(value);    
   }
 
   onClickOutsideNumber(e: Event): void {

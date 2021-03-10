@@ -725,7 +725,6 @@ export class EndUser {
 
   /** Helper function to enable/disable media tracks. */
   private enableReceiverTracks(enable: boolean, lineNumber: number): void {
-    // this.session = this.getCurLineSession();
     const line = this.getLine(lineNumber);
     this.session = line.session;
 
@@ -814,7 +813,9 @@ export class EndUser {
         case SessionState.Terminated:
           this.session = undefined;
           this.setCurLineSession(undefined, false, false);
-          this.cleanupMedia();
+          if (!this.isExistSession()) {
+            this.cleanupMedia();
+          }          
           if (this.delegate && this.delegate.onCallHangup) {
             this.delegate.onCallHangup();
           }          
@@ -1237,5 +1238,14 @@ export class EndUser {
     }
     
     return session.state === SessionState.Established;
+  }
+
+  public isExistSession(): boolean {
+    this.lineSessions.forEach((item, index) => {
+      if (item.session !== undefined) {
+        return false;
+      }
+    })
+    return true;
   }
 }

@@ -208,6 +208,7 @@ export class PhonePanelComponent implements OnInit {
       console.log(`[${this.endUser.id}] call created`);
       
       this.callStatus = `Dialing`;
+      this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
 
       this.lineCount = this.lineCount + 1;
       
@@ -327,7 +328,7 @@ export class PhonePanelComponent implements OnInit {
       console.log(`[${this.endUser.id}] line changed.`);
 
       this.callerId = this.oldCallerId;
-      this.callStatus = this.oldCallerId;
+      this.callStatus = this.oldCallStatus;
 
       this.holdStatus = this.endUser.isHeld();
       this.muteStatus = this.endUser.isMuted();
@@ -453,6 +454,19 @@ export class PhonePanelComponent implements OnInit {
   // Phone Control Events Emitter
   onChangeNumber(value: string): void {
     this.targetNum = value;
+  }
+
+  onClickNumber(toneNum: string): void {
+    if (toneNum && this.endUser.isEstablished()) {
+      this.endUser
+        .sendDTMF(toneNum)
+        .then(() => {          
+        })
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to send DTMF`);
+          console.error(error);
+        })
+    }
   }
 
   onHold(value: boolean): void {

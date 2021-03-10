@@ -7,12 +7,14 @@ import { PhoneContact } from 'src/app/models/phonecontact';
   styleUrls: ['./phone-control.component.scss']
 })
 export class PhoneControlComponent implements OnInit {
+
   @Output() hold = new EventEmitter<boolean>();
   @Output() mute = new EventEmitter<boolean>();
   @Output() dnd = new EventEmitter();
   @Output() hangupCall = new EventEmitter();
   @Output() makeCall = new EventEmitter();
   @Output() changeNumber = new EventEmitter<string>();
+  @Output() clickNumber = new EventEmitter<string>();
 
   @Input() dndStatus: boolean;
   @Input() holdBtnDisabled: boolean;
@@ -50,5 +52,9 @@ export class PhoneControlComponent implements OnInit {
 
   onChangeNumber(value: string): void {
     this.changeNumber.emit(value);
+  }
+
+  onClickNumber(toneNum: string): void {
+    this.clickNumber.emit(toneNum);
   }
 }
