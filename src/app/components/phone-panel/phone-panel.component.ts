@@ -303,6 +303,9 @@ export class PhonePanelComponent implements OnInit {
       } else {
         this.callerId = ``;
         this.callStatus = `Call Ended`;
+
+        this.holdStatus = false;
+        this.muteStatus = false;
   
         this.holdBtnDisabled = true;
         this.muteBtnDisabled = true;
