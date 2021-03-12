@@ -1169,7 +1169,6 @@ export class EndUser {
   }
 
   private setLineHold(hold: boolean, lineNumber: number): Promise<void> {
-    // const lineSession = this.getCurLineSession();
     const line = this.getLine(lineNumber);
     const lineSession = line.session;
 
