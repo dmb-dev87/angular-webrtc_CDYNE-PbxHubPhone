@@ -12,22 +12,19 @@ index 18b4257..1f143b1 100644
                  }
              }
 diff --git a/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js b/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js
-index 2ab1320..f16d30b 100644
+index 2ab1320..82e5354 100644
 --- a/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js
 +++ b/node_modules/sip.js/lib/platform/web/session-description-handler/peer-connection-configuration-default.js
-@@ -7,10 +7,10 @@ export function defaultPeerConnectionConfiguration() {
+@@ -7,7 +7,8 @@ export function defaultPeerConnectionConfiguration() {
          bundlePolicy: "balanced",
          certificates: undefined,
          iceCandidatePoolSize: 0,
 -        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun.voiparound.com:3478" }, { urls: "stun:orfpbx3.cdyne.com"}],
++        // iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
++        iceServers: [{"url":"stun:stun.l.google.com:19302"},{"url":"stun:stun.counterpath.net:3478"},{"url":"stun:numb.viagenie.ca:3478"}],
          iceTransportPolicy: "all",
          peerIdentity: undefined,
--        rtcpMuxPolicy: "require"
-+        rtcpMuxPolicy: "negotiate"
-     };
-     return configuration;
- }
+         rtcpMuxPolicy: "require"
 diff --git a/node_modules/sip.js/lib/platform/web/session-description-handler/session-description-handler-factory-default.js b/node_modules/sip.js/lib/platform/web/session-description-handler/session-description-handler-factory-default.js
 index cf2bd48..a628957 100644
 --- a/node_modules/sip.js/lib/platform/web/session-description-handler/session-description-handler-factory-default.js
