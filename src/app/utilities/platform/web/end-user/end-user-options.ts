@@ -17,10 +17,14 @@ export interface EndUserMedia {
   constraints?: EndUserMediaConstraints;
 
   /** HTML elements for local media streams. */
-  local?: EndUserMediaLocal;
+  local1?: EndUserMediaLocal;
+
+  local2?: EndUserMediaLocal;
 
   /** Local HTML media elements. */
-  remote?: EndUserMediaRemote;
+  remote1?: EndUserMediaRemote;
+
+  remote2?: EndUserMediaRemote;
 }
 
 /**

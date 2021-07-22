@@ -50,6 +50,8 @@ export class PhonePanelComponent implements OnInit {
   transferState = false;
   monitorBtnDisabled = true;
   messageBtnDisabled = true;
+  confState = false;
+  confBtnDisabled = true;
 
   isMessage = false;
   selectedExtension = ``;
@@ -141,6 +143,7 @@ export class PhonePanelComponent implements OnInit {
       this.xferBtnDisabled = true;
       this.monitorBtnDisabled = false;
       this.messageBtnDisabled = false;
+      this.confBtnDisabled = true;
     };
   }
 
@@ -169,6 +172,7 @@ export class PhonePanelComponent implements OnInit {
       this.xferBtnDisabled = true;
       this.monitorBtnDisabled = true;
       this.messageBtnDisabled = true;
+      this.confBtnDisabled = true;
     };
   }
 
@@ -218,6 +222,7 @@ export class PhonePanelComponent implements OnInit {
       this.endBtnDisabled = false;
 
       this.xferBtnDisabled = true;
+      this.confBtnDisabled = true;
     };
   }
 
@@ -238,6 +243,7 @@ export class PhonePanelComponent implements OnInit {
       this.endBtnDisabled = false;
 
       this.xferBtnDisabled = false;
+      this.confBtnDisabled = false;
 
       var AudioContext = window.AudioContext;
       this.audioContext = new AudioContext();
@@ -266,6 +272,7 @@ export class PhonePanelComponent implements OnInit {
       this.endBtnDisabled = false;
 
       this.xferBtnDisabled = true;
+      this.confBtnDisabled = true;
 
       if (autoAnswer == true) {
         this.onMakeCall();
@@ -289,16 +296,17 @@ export class PhonePanelComponent implements OnInit {
       
       this.lineCount = this.lineCount - 1;
 
-      if (this.lineCount > 0) {
+      if (this.lineCount > 0) {        
         this.selectLine = this.selectLine === `1` ? `2` : `1`;
-        this.endUser
-        .changeLine(this.selectLine === `1` ? 0 : 1)
-        .catch((error: Error) => {
-          console.error(`[${this.endUser.id}] failed to change line`);
-          console.error(error);
-        });
+        this.changeLine(this.selectLine);
         if (this.transferState === true) {
           this.transferState = false;
+        }
+        if (this.confState === true) {
+          this.endUser.hangup().catch((err: Error) => {
+            console.error(`Failed to hangup call`);
+            console.error(err);
+          });
         }
       } else {
         this.callerId = ``;
@@ -313,6 +321,7 @@ export class PhonePanelComponent implements OnInit {
         this.endBtnDisabled = true;
 
         this.xferBtnDisabled = true;
+        this.confBtnDisabled = true;
 
         this.handleMeterStop();
       }
@@ -323,6 +332,19 @@ export class PhonePanelComponent implements OnInit {
     return (held?:boolean, lineNumber?:number) => {
       console.log(`[${this.endUser.id}], [${lineNumber+1}] call hold.`);
       this.holdStatus = this.endUser.isHeld();
+      if (held == false) {
+        var AudioContext = window.AudioContext;
+        this.audioContext = new AudioContext();
+        if (this.endUser.localMediaStream !== undefined) {
+          this.handleMeterLocal(this.endUser.localMediaStream);
+        }
+        if (this.endUser.remoteMediaStream !== undefined) {
+          this.handleMeterRemote(this.endUser.remoteMediaStream);
+        }
+      }
+      else {
+        this.handleMeterStop();
+      }
     }
   }
 
@@ -344,6 +366,7 @@ export class PhonePanelComponent implements OnInit {
       this.beginBtnDisabled = sessionEstablished;
 
       this.xferBtnDisabled = this.transferState;
+      this.confBtnDisabled = this.confState;
     }
   }
 
@@ -371,16 +394,24 @@ export class PhonePanelComponent implements OnInit {
   }
 
   connect(): void {
-    const remoteAudio = getAudio(`remoteAudio`);
-    const localAudio = getAudio(`localAudio`);
+    const remoteAudio1 = getAudio(`remoteAudio1`);
+    const remoteAudio2 = getAudio(`remoteAudio2`);
+    const localAudio1 = getAudio(`localAudio1`);
+    const localAudio2 = getAudio(`localAudio2`);
     const endUserOptions: EndUserOptions = {
       media: {
         constraints: constraints,
-        local: {
-          audio: localAudio
+        local1: {
+          audio: localAudio1
         },
-        remote: {
-          audio: remoteAudio
+        local2: {
+          audio: localAudio2
+        },
+        remote1: {
+          audio: remoteAudio1
+        },
+        remote2: {
+          audio: remoteAudio2
         }
       },
       userAgentOptions: {
@@ -577,6 +608,27 @@ export class PhonePanelComponent implements OnInit {
             return;
           });
       }
+      else if (this.confState === true) {
+        this.endUser
+          .makeConference(target, undefined, {
+            requestDelegate: {
+              onReject: (response) => {
+                console.warn(`[${this.endUser.id}] INVITE rejected`);
+                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
+                message += `Reason: ${response.message.reasonPhrase}\n`;
+                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+                console.warn(message);
+                this.confState = false;
+              }
+            }
+          })
+          .catch((error: Error) => {
+            console.error(`[${this.endUser.id}] failed to conference call`);
+            console.error(error);
+            return;
+          })
+      }
       else {
         this.endUser
           .call(target, undefined, {
@@ -607,7 +659,7 @@ export class PhonePanelComponent implements OnInit {
       const changeLineNumber = this.selectLine === `1`? 1 : 0;
       this.selectLine = this.selectLine === `1`? `2` : `1`;
       this.endUser
-        .changeLine(changeLineNumber)
+        .initTransfer(changeLineNumber)
         .then(() => {
           this.transferState = true;
           return;
@@ -628,6 +680,31 @@ export class PhonePanelComponent implements OnInit {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
           console.error(error);
         });
+    }
+    return;
+  }
+
+  onMakeConference(completed: boolean): void {
+    if (completed === false) {
+      const changeLineNumber = this.selectLine === `1`? 1 : 0;
+      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      this.endUser
+        .initConference(changeLineNumber)
+        .then(() => {
+          this.confState = true;
+          return;
+        })
+        .catch((error: Error) => {
+          this.transferState = false;
+          console.error(`[${this.endUser.id}] failed to change line`);
+          console.error(error);
+        });
+    }
+    else {
+      this.endUser.hangup().catch((err: Error) => {
+        console.error(`Failed to hangup call`);
+        console.error(err);
+      });
     }
     return;
   }

@@ -46,14 +46,12 @@ interface LineSession {
 export class EndUser {
   /** Delegate. */
   public delegate: EndUserDelegate | undefined;
-
   private attemptingReconnection = false;
   private connectRequested = false;
   private logger: Logger;
   private options: EndUserOptions;
   private registerer: Registerer | undefined = undefined;
   private registerRequested = false;
-  private session: Session | undefined = undefined;
   private userAgent: UserAgent;
   private transferTarget: URI | undefined = undefined;
   private lineSessions: Array<LineSession> = [
@@ -128,6 +126,7 @@ export class EndUser {
         if (this.delegate && this.delegate.onServerDisconnect) {
           this.delegate.onServerDisconnect(error);
         }
+
         if (this.session) {
           this.logger.log(`[${this.id}] Hanging up...`);
           this.hangup() // cleanup hung calls
@@ -145,10 +144,6 @@ export class EndUser {
               this.logger.error(e.toString());
             });
         }
-        // Only attempt to reconnect if network/server dropped the connection.
-        if (error) {
-          this.attemptReconnection();
-        }
       },
       // Handle incoming invitations
       onInvite: (invitation: Invitation): void => {
@@ -157,20 +152,25 @@ export class EndUser {
         // Guard against a pre-existing session. This implementation only supports one session at a time.
         // However an incoming INVITE request may be received at any time and/or while in the process
         // of sending an outgoing INVITE request. So we reject any incoming INVITE in those cases.
-        this.session = this.getCurLineSession();
-
         if (this.session) {
-          this.logger.warn(`[${this.id}] Session already in progress, rejecting INVITE...`);
-          invitation
-            .reject()
-            .then(() => {
-              this.logger.log(`[${this.id}] Rejected INVITE`);
-            })
-            .catch((error: Error) => {
-              this.logger.error(`[${this.id}] Failed to reject INVITE`);
-              this.logger.error(error.toString());
-            });
-          return;
+          const line = this.getLine(this.curLineNumber == 0? 1 : 0);
+          if (line.session) {
+            this.logger.warn(`[${this.id}] Session already in progress, rejecting INVITE...`);
+            invitation
+              .reject()
+              .then(() => {
+                this.logger.log(`[${this.id}] Rejected INVITE`);
+              })
+              .catch((error: Error) => {
+                this.logger.error(`[${this.id}] Failed to reject INVITE`);
+                this.logger.error(error.toString());
+              });
+            return;
+          }
+          this.curLineNumber = this.curLineNumber == 0? 1 : 0;
+          if (this.delegate && this.delegate.onLineChanged) {
+            this.delegate.onLineChanged();
+          }
         }
 
         // Use our configured constraints as options for any Inviter created as result of a REFER
@@ -180,8 +180,6 @@ export class EndUser {
 
         // Initialize our session
         this.initSession(invitation, referralInviterOptions);
-
-        this.setCurLineSession(this.session, false, false);
 
         const uri = this.session.remoteIdentity.uri;
         const displayName = this.session.remoteIdentity.displayName;
@@ -245,7 +243,6 @@ export class EndUser {
 
   /** The local media stream. Undefined if call not answered. */
   get localMediaStream(): MediaStream | undefined {
-    this.session = this.getCurLineSession();
     const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
@@ -258,7 +255,6 @@ export class EndUser {
 
   /** The remote media stream. Undefined if call not answered. */
   get remoteMediaStream(): MediaStream | undefined {
-    this.session = this.getCurLineSession();
     const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
@@ -412,8 +408,6 @@ export class EndUser {
   ): Promise<void> {
     this.logger.log(`[${this.id}] Beginning Session...`);
 
-    this.session = this.getCurLineSession();
-
     if (this.session) {
       return Promise.reject(new Error(`Session already exists.`));
     }
@@ -466,8 +460,6 @@ export class EndUser {
   public answer(invitationAcceptOptions?: InvitationAcceptOptions): Promise<void> {
     this.logger.log(`[${this.id}] Accepting Invitation...`);
 
-    this.session = this.getCurLineSession();
-
     if (!this.session) {
       return Promise.reject(new Error(`Session does not exist.`));
     }
@@ -499,8 +491,6 @@ export class EndUser {
    */
   public decline(): Promise<void> {
     this.logger.log(`[${this.id}] rejecting Invitation...`);
-
-    this.session = this.getCurLineSession();
 
     if (!this.session) {
       return Promise.reject(new Error(`Session does not exist.`));
@@ -592,8 +582,6 @@ export class EndUser {
     if (!/^[0-9A-D#*,]$/.exec(tone)) {
       return Promise.reject(new Error(`Invalid DTMF tone.`));
     }
-
-    this.session = this.getCurLineSession();
 
     if (!this.session) {
       return Promise.reject(new Error(`Session does not exist.`));
@@ -704,20 +692,36 @@ export class EndUser {
   /** Helper function to remove media from html elements. */
   private cleanupMedia(): void {
     if (this.options.media) {
-      if (this.options.media.local) {
-        if (this.options.media.local.video) {
-          this.options.media.local.video.srcObject = null;
-          this.options.media.local.video.pause();
+      if (this.options.media.local1) {
+        if (this.options.media.local1.video) {
+          this.options.media.local1.video.srcObject = null;
+          this.options.media.local1.video.pause();
         }
       }
-      if (this.options.media.remote) {
-        if (this.options.media.remote.audio) {
-          this.options.media.remote.audio.srcObject = null;
-          this.options.media.remote.audio.pause();
+      if (this.options.media.remote1) {
+        if (this.options.media.remote1.audio) {
+          this.options.media.remote1.audio.srcObject = null;
+          this.options.media.remote1.audio.pause();
         }
-        if (this.options.media.remote.video) {
-          this.options.media.remote.video.srcObject = null;
-          this.options.media.remote.video.pause();
+        if (this.options.media.remote1.video) {
+          this.options.media.remote1.video.srcObject = null;
+          this.options.media.remote1.video.pause();
+        }
+      }
+      if (this.options.media.local2) {
+        if (this.options.media.local2.video) {
+          this.options.media.local2.video.srcObject = null;
+          this.options.media.local2.video.pause();
+        }
+      }
+      if (this.options.media.remote2) {
+        if (this.options.media.remote2.audio) {
+          this.options.media.remote2.audio.srcObject = null;
+          this.options.media.remote2.audio.pause();
+        }
+        if (this.options.media.remote2.video) {
+          this.options.media.remote2.video.srcObject = null;
+          this.options.media.remote2.video.pause();
         }
       }
     }
@@ -726,13 +730,13 @@ export class EndUser {
   /** Helper function to enable/disable media tracks. */
   private enableReceiverTracks(enable: boolean, lineNumber: number): void {
     const line = this.getLine(lineNumber);
-    this.session = line.session;
+    const session : Session = line.session;
 
-    if (!this.session) {
+    if (!session) {
       throw new Error(`Session does not exist.`);
     }
 
-    const sessionDescriptionHandler = this.session.sessionDescriptionHandler;
+    const sessionDescriptionHandler = session.sessionDescriptionHandler;
     if (!(sessionDescriptionHandler instanceof SessionDescriptionHandler)) {
       throw new Error(`Session's session description handler not instance of SessionDescriptionHandler.`);
     }
@@ -742,7 +746,7 @@ export class EndUser {
       throw new Error(`Peer connection closed.`);
     }
 
-    peerConnection.getReceivers().forEach((receiver) => {
+    peerConnection.getReceivers().forEach((receiver) => {      
       if (receiver.track) {
         receiver.track.enabled = enable;
       }
@@ -751,15 +755,14 @@ export class EndUser {
 
   /** Helper function to enable/disable media tracks. */
   private enableSenderTracks(enable: boolean, lineNumber: number): void {
-    // this.session = this.getCurLineSession();
     const line = this.getLine(lineNumber);
-    this.session = line.session;
+    const session : Session = line.session;
 
-    if (!this.session) {
+    if (!session) {
       throw new Error(`Session does not exist.`);
     }
 
-    const sessionDescriptionHandler = this.session.sessionDescriptionHandler;
+    const sessionDescriptionHandler = session.sessionDescriptionHandler;
     if (!(sessionDescriptionHandler instanceof SessionDescriptionHandler)) {
       throw new Error(`Session's session description handler not instance of SessionDescriptionHandler.`);
     }
@@ -812,10 +815,9 @@ export class EndUser {
         // fall through
         case SessionState.Terminated:
           this.session = undefined;
-          this.setCurLineSession(undefined, false, false);
           if (!this.isExistSession()) {
             this.cleanupMedia();
-          }          
+          }
           if (this.delegate && this.delegate.onCallHangup) {
             this.delegate.onCallHangup();
           }          
@@ -904,8 +906,6 @@ export class EndUser {
     // Initialize our session
     this.initSession(inviter, inviterOptions);
 
-    this.setCurLineSession(this.session, false, false);
-
     // Send the INVITE
     return inviter.invite(inviterInviteOptions).then(() => {
       this.logger.log(`[${this.id}] sent INVITE`);
@@ -914,13 +914,19 @@ export class EndUser {
 
   /** Helper function to attach local media to html elements. */
   private setupLocalMedia(): void {
-    this.session = this.getCurLineSession();
-
     if (!this.session) {
       throw new Error(`Session does not exist.`);
     }
 
-    const mediaElement = this.options.media?.local?.video;
+    let mediaElement;
+
+    if  (this.curLineNumber == 0) {
+      mediaElement = this.options.media?.local1?.video;
+    } 
+    else {
+      mediaElement = this.options.media?.local2?.video;
+    }
+
     if (mediaElement) {
       const localStream = this.localMediaStream;
       if (!localStream) {
@@ -936,14 +942,19 @@ export class EndUser {
   }
 
   /** Helper function to attach remote media to html elements. */
-  private setupRemoteMedia(): void {
-    this.session = this.getCurLineSession();
-
+  private setupRemoteMedia(): void {    
     if (!this.session) {
       throw new Error(`Session does not exist.`);
     }
 
-    const mediaElement = this.options.media?.remote?.video || this.options.media?.remote?.audio;
+    let mediaElement;
+
+    if (this.curLineNumber == 0) {
+      mediaElement = this.options.media?.remote1?.video || this.options.media?.remote1?.audio;
+    }
+    else {
+      mediaElement = this.options.media?.remote2?.video || this.options.media?.remote2?.audio;
+    }
 
     if (mediaElement) {
       const remoteStream = this.remoteMediaStream;
@@ -976,10 +987,6 @@ export class EndUser {
    */
   private terminate(): Promise<void> {
     this.logger.log(`[${this.id}] Terminating...`);
-
-    this.session = this.getCurLineSession();
-
-    this.setCurLineSession(undefined, false, false);
 
     if (!this.session) {
       return Promise.reject(new Error(`Session does not exist.`));
@@ -1025,14 +1032,40 @@ export class EndUser {
     return Promise.resolve();
   }
 
+  async initTransfer(lineNumber: number): Promise<void> {
+    this.logger.log(`[${this.id}] Changing Lines...`);
+
+    if (lineNumber === this.curLineNumber) {
+      return Promise.resolve();
+    }
+
+    if (this.session) {
+      if (this.session.state === SessionState.Established) {
+        await this.setLineHold(true, this.curLineNumber);
+      }
+    }
+
+    this.curLineNumber = lineNumber;
+
+    if (this.session) {
+      if (this.session.state === SessionState.Established) {
+        await this.setLineHold(false, this.curLineNumber);
+      }
+    }
+
+    if (this.delegate && this.delegate.onLineChanged) {
+      this.delegate.onLineChanged();
+    }
+
+    return Promise.resolve();
+  }
+
   public makeTransfer(
     destination: string,
     inviterOptions?: InviterOptions,
     inviterInviteOptions?: InviterInviteOptions
   ): Promise<void> {
     this.logger.log(`[${this.id}] Beginning Transfer...`);
-
-    this.session = this.getCurLineSession();
 
     this.transferTarget = UserAgent.makeURI(destination);
 
@@ -1060,8 +1093,6 @@ export class EndUser {
   public completeTransfer(): Promise<OutgoingReferRequest> {
     this.logger.log(`[${this.id}] Completing Transfer...`);
 
-    this.session = this.getCurLineSession();
-
     if (!this.session && this.session.state !== SessionState.Established) {
       return Promise.reject(new Error(`Session does not exists.`));
     }
@@ -1076,14 +1107,58 @@ export class EndUser {
     return oldSession.refer(this.transferTarget);
   }
 
+  async initConference(lineNumber: number): Promise<void> {
+    this.logger.log(`[${this.id}] Changing Lines for conference...`);
+
+    if (lineNumber === this.curLineNumber) {
+      return Promise.resolve();
+    }
+
+    this.curLineNumber = lineNumber;
+
+    if (this.delegate && this.delegate.onLineChanged) {
+      this.delegate.onLineChanged();
+    }
+
+    return Promise.resolve();
+  }
+
+  public makeConference(
+    destination: string,
+    inviterOptions?: InviterOptions,
+    inviterInviteOptions?: InviterInviteOptions
+  ): Promise<void> {
+    this.logger.log(`[${this.id}] Beginning Conference...`);
+
+    this.transferTarget = UserAgent.makeURI(destination);
+
+    if (!this.transferTarget) {
+      return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
+    }
+
+    if (!inviterOptions) {
+      inviterOptions = {};
+    }
+    if (!inviterOptions.sessionDescriptionHandlerOptions) {
+      inviterOptions.sessionDescriptionHandlerOptions = {};
+    }
+    if (!inviterOptions.sessionDescriptionHandlerOptions.constraints) {
+      inviterOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
+    }
+
+    const confInviter = new Inviter(this.userAgent, this.transferTarget, inviterOptions);
+
+    return this.sendInvite(confInviter, inviterOptions, inviterInviteOptions).then(() => {
+      return;
+    });
+  }
+
   async changeLine(lineNumber: number): Promise<void> {
     this.logger.log(`[${this.id}] Changing Lines...`);
 
     if (lineNumber === this.curLineNumber) {
       return Promise.resolve();
     }
-
-    this.session = this.getCurLineSession();
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
@@ -1092,8 +1167,6 @@ export class EndUser {
     }
 
     this.curLineNumber = lineNumber;
-
-    this.session = this.getCurLineSession();
 
     if (this.session) {
       if (this.session.state === SessionState.Established) {
@@ -1116,7 +1189,7 @@ export class EndUser {
     this._curLineNumber = value;
   }
 
-  private getCurLineSession(): Session {
+  get session(): Session {
     if (this.curLineNumber > 1 || this.curLineNumber < 0) {
       return undefined;
     }
@@ -1126,18 +1199,12 @@ export class EndUser {
     return curLineSession.session;
   }
 
-  private setCurLineSession(session: Session, held: boolean, muted: boolean): void {
+  set session(curSession: Session) {
     if (this.curLineNumber > 1 || this.curLineNumber < 0) {
       return
     }
 
-    const curLineSession = {
-      session: session,
-      held: held,
-      muted: muted
-    };
-
-    this.lineSessions[this.curLineNumber] = curLineSession;
+    this.lineSessions[this.curLineNumber].session = curSession;
   }
 
   private getLine(lineId: number): LineSession {
@@ -1151,7 +1218,6 @@ export class EndUser {
   }
 
   private setLineMute(mute: boolean, lineNumber: number): Promise<void> {
-    // const lineSession = this.getCurLineSession();
     const line = this.getLine(lineNumber);
     const lineSession = line.session;
 
@@ -1218,6 +1284,7 @@ export class EndUser {
       .invite(options)
       .then(() => {
         // preemptively enable/disable tracks
+        this.setupRemoteMedia();
         this.enableReceiverTracks(!hold, lineNumber);
         this.enableSenderTracks(!hold && !line.muted, lineNumber);
       })
@@ -1230,13 +1297,11 @@ export class EndUser {
   }
 
   public isEstablished(): boolean {
-    const session = this.getCurLineSession();
-    
-    if (!session) {
+    if (!this.session) {
       return false;
     }
     
-    return session.state === SessionState.Established;
+    return this.session.state === SessionState.Established;
   }
 
   public isExistSession(): boolean {

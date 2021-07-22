@@ -14,7 +14,6 @@ import { MaterialModule } from './material.module';
 import { ClickOutsideModule } from 'ng-click-outside';
 
 import { PhonePanelComponent } from './components/phone-panel/phone-panel.component';
-import { WebPhoneComponent } from './components/web-phone/web-phone.component';
 import { LineInfoComponent } from './components/line-info/line-info.component';
 import { PhoneControlComponent } from './components/phone-control/phone-control.component';
 import { UserInfoComponent } from './components/user-info/user-info.component';
@@ -26,7 +25,6 @@ import { MessagePanelComponent } from './components/message-panel/message-panel.
   declarations: [
     AppComponent,
     PhonePanelComponent,
-    WebPhoneComponent,
     LineInfoComponent,
     PhoneControlComponent,
     UserInfoComponent,
