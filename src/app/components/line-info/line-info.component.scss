@@ -2,10 +2,13 @@
   padding: 14px 0px 2px 0px;
   color: #ffffff;
   font-size: 1rem;
+  display: inline-block;
+  margin-right: 15px;
   
   .mic-panel {
     padding: 0px 2px;
     position: relative;
+    display: inline-block;
 
     .mic-control {
       margin: 0px 5px;
@@ -15,7 +18,7 @@
       margin: 0px 0px;
       position: absolute;
       z-index: 9999;
-      top: 29px;
+      top: 28px;
       left: -4px;
       background-color: transparent;
     }
@@ -24,6 +27,7 @@
   .receiver-panel {
     padding: 0px 2px;
     position: relative;
+    display: inline-block;
 
     .receiver-control {
       margin: 0px 5px;
@@ -34,15 +38,15 @@
       position: absolute;
       z-index: 9999;
       top: 28px;
-      left: -2px;
+      left: -16px;
       background-color: transparent;
     }
   }   
 }
 
 .line-panel {
-  margin: 0px 20px;
   font-size: 0.6rem;
+  display: inline-block;
 
   span {
     color: #ffffff;
@@ -55,8 +59,6 @@
   padding: 5px 5px;
   align-items: center;
   background-color: #1d1d1d;
-  border: 2px solid #c5c5c5;
-  border-top: none;
 
   .mat-slider-track-background {
     background-color: #ffffff;

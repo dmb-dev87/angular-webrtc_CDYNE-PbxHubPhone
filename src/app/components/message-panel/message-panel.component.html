@@ -1,17 +1,14 @@
-<div class=" col-lg-6 col-md-12 col-sm-12 message-panel">
-  <div class=" row">
-    <div class=" col-4 contact-list">
-      <div class=" row search-pad">
-        <div class=" col">
-          <form class="form-inline search-form" autocomplete="off">
-            <mat-icon>search</mat-icon>
-            <input class="form-control" type="text" placeholder="Find people and conversations." id="search-text" (input)="searchContact()">
-          </form>
-        </div>
-      </div>
-      <div class=" row plus-pad">
-        <button mat-button matSuffix mat-icon-button class="plus-btn" (click)="onAddContact()">+</button>
-      </div>
+<div class=" message-panel">
+  <div class=" row search-pad">
+    <div class=" col">
+      <div class=" row">
+        <form class="form-inline search-form" autocomplete="off">          
+          <input class="form-control" type="text" placeholder="Find people and conversations." id="search-text" (input)="searchContact()">          
+          <button mat-button matSuffix mat-icon-button (click)="onAddContact()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </form>
+      </div>      
       <div class=" row search-result-pad" *ngIf="searchResult.length > 0">
         <div class=" col search-result-list" (clickOutside)="onClickOutsideSearch($event)">
           <div class=" row" *ngFor="let item of searchResult;" (click)="clickSearchList(item.extension)">
@@ -24,13 +21,17 @@
           </div>
         </div>
       </div>
+    </div>
+    <button mat-button matSuffix mat-icon-button (click)="onHidePanel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class=" row">
+    <div class=" col-4 contact-list">
       <div class=" row contacts-pad">
         <div class=" col">
           <div *ngFor="let contact of messageContacts;" [ngClass]="{'row':true, 'contact-item':true, 'received':extensionsForReceived.indexOf(contact.extension) > -1}" [id]="contact.extension" (click)="onSelectContact(contact.extension)">
             <div [ngClass]="{'col':true, 'contact-content':true, 'selected':contact.extension === selectedExtension}">
-              <div class=" row">
-                <p class=" contact-name">{{contact.firstName}} {{contact.lastName}}</p>
-              </div>
               <div class=" row">
                 <p class=" contact-number">{{contact.extension}}</p>
               </div>
@@ -63,7 +64,7 @@
                 {{group.actualDay.toString() === todayDate.toString() ? 'Today' : group.actualDay | date:'EEEE, MMMM d, yyyy'}}
               </span>
             </div>
-            <div *ngFor="let history of group.messages" #messages [ngClass]="{'row':true, 'received':!history.sent, 'mb-3':true}">
+            <div *ngFor="let history of group.messages" #messages [ngClass]="{'row':true, 'sent':history.sent, 'received':!history.sent, 'mb-3':true}">
               <div>
                 <span class=" time-info">
                   {{history.sent?'' : curName+', '}}{{history.datetime | date:'h:mm a'}}
@@ -75,17 +76,17 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class=" row">
-        <div class=" col">
-          <form class="form-inline message-form">
-            <input class="form-control" type="text" placeholder="Type Message" [(ngModel)]="messageStr" name="message">
-            <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="onSendMessage()">
-              <mat-icon>send</mat-icon>
-            </button>
-          </form>
-        </div>
-      </div>
+      </div>      
+    </div>
+  </div>
+  <div class=" row">
+    <div class=" col">
+      <form class="form-inline message-form">
+        <input class="form-control" type="text" placeholder="Type Message" [(ngModel)]="messageStr" name="message">
+        <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="onSendMessage()">
+          <mat-icon>send</mat-icon>
+        </button>
+      </form>
     </div>
   </div>
 </div>

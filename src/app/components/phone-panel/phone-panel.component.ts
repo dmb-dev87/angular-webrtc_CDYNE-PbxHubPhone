@@ -302,12 +302,6 @@ export class PhonePanelComponent implements OnInit {
         if (this.transferState === true) {
           this.transferState = false;
         }
-        if (this.confState === true) {
-          this.endUser.hangup().catch((err: Error) => {
-            console.error(`Failed to hangup call`);
-            console.error(err);
-          });
-        }
       } else {
         this.callerId = ``;
         this.callStatus = `Call Ended`;
@@ -701,10 +695,14 @@ export class PhonePanelComponent implements OnInit {
         });
     }
     else {
-      this.endUser.hangup().catch((err: Error) => {
-        console.error(`Failed to hangup call`);
-        console.error(err);
-      });
+      this.confState = false;
+      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      this.endUser
+        .completeConference()
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to complete transfer call`);
+          console.error(error);
+        });
     }
     return;
   }

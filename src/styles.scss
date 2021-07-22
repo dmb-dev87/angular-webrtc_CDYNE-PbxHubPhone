@@ -32,10 +32,17 @@ label {
 
 .btns-panel {
   padding: 5px 0px;
+  justify-content: center;
 
   input {
     width: 120px;
   }
+}
+
+.row {
+  justify-content: center;
+  margin-left: 0px;
+  margin-right: 0px;
 }
 
 .main-panel {

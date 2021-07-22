@@ -1,6 +1,8 @@
 .info-pad {
   font-size: 0.75rem;
   position: relative;
+  justify-content: flex-start;
+  
   .logo {
     padding: 6px 0px;
     text-align: center;
@@ -17,27 +19,22 @@
   }
 
   .user-name {
-    padding: 12px 4px;
+    padding: 12px 10px;
     color: #6bb04c;
   }
 }
 
 .login-pad {
   margin: 0px 0px;
-  position: absolute;
-  z-index: 9999;
-  top: 42px;
-  left: -2px;
   width: 100%;
   background-color: transparent;
   font-size: 0.6rem;
+  justify-content: center;
 
   .login-panel {
     padding: 5px 5px;
     align-items: center;
     background-color: #1d1d1d;
-    border: 2px solid #c5c5c5;
-    border-top: none;
   }
 
   .login-btn {

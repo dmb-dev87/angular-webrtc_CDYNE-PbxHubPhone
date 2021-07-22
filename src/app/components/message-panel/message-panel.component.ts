@@ -23,6 +23,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
 
   @Output() sendMessage = new EventEmitter<{extension: string, message: string}>();
   @Output() changeSelExtension = new EventEmitter<string>();
+  @Output() hidePanel = new EventEmitter();
 
   @Input() curName: string;
   @Input() extensionsForReceived: Array<string>;
@@ -114,6 +115,10 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
       sent: true
     };
     this.pbxControlService.addMessageHistory(newMessage);
+  }
+
+  onHidePanel(): void {
+    this.hidePanel.emit();
   }
 
   scrollToBottom = () => {

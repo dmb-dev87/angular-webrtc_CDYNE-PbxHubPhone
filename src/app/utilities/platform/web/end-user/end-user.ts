@@ -46,6 +46,7 @@ interface LineSession {
 export class EndUser {
   /** Delegate. */
   public delegate: EndUserDelegate | undefined;
+
   private attemptingReconnection = false;
   private connectRequested = false;
   private logger: Logger;
@@ -1151,6 +1152,11 @@ export class EndUser {
     return this.sendInvite(confInviter, inviterOptions, inviterInviteOptions).then(() => {
       return;
     });
+  }
+
+  public completeConference(): Promise<string> {
+    this.logger.log(`[${this.id}] Completing Conference...`);
+    return Promise.resolve(`Completing Conference`);
   }
 
   async changeLine(lineNumber: number): Promise<void> {

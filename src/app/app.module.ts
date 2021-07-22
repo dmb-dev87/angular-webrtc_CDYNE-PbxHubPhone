@@ -20,6 +20,7 @@ import { UserInfoComponent } from './components/user-info/user-info.component';
 import { DialPadComponent } from './components/dial-pad/dial-pad.component';
 import { MiscControlComponent } from './components/misc-control/misc-control.component';
 import { MessagePanelComponent } from './components/message-panel/message-panel.component';
+import { PopupPhoneComponent } from './components/popup-phone/popup-phone.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import { MessagePanelComponent } from './components/message-panel/message-panel.
     DialPadComponent,
     MiscControlComponent,
     MessagePanelComponent,
+    PopupPhoneComponent,
   ],
   imports: [
     BrowserModule,

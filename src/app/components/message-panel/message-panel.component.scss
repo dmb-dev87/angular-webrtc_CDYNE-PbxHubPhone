@@ -4,7 +4,9 @@ button:focus {
 
 .message-panel {
   position: fixed;
-  top: 50%;
+  width: 300px;
+  height: 400px;
+  top: 215px;
   left: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
@@ -12,37 +14,19 @@ button:focus {
   border-radius: 15px;
 }
 
-.contact-list {
-  border-right: 2px solid #75757a;
-  padding: 20px 15px;
-  overflow-y: auto;
+.search-pad {
+  margin-bottom: 10px;
+  color: #ffffff;
+  position: relative;
 
-  .search-pad {
-    margin-bottom: 50px;
-    color: #ffffff;
-    position: relative;
+  .search-form {
+    background-color: #2f2f33;
+    border-radius: 7px;
+    padding: 2px 4px;
 
-    .search-form {
-      background-color: #2f2f33;
-      border-radius: 7px;
-      padding: 2px 4px;
-
-      input {
-        border: none;
-        width: calc(100% - 24px);
-      }
-    }
-  }
-
-  .plus-pad {
-    position: absolute;
-    top: 45px;
-    right: 45px;
-
-    .plus-btn {
-      font-size: 20px;
-      // border-radius: 50%;
-      background-color: #06002f;
+    input {
+      border: none;
+      width: calc(100% - 40px);
     }
   }
 
@@ -50,16 +34,16 @@ button:focus {
     margin: 0px 0px;
     position: absolute;
     z-index: 9999;
-    top: 60px;
-    left: 50px;
+    top: 42px;
+    left: 36px;
     background-color: transparent;
   
     .search-result-list {
-      padding: 8px 20px;
+      padding: 8px 0px;
       background-color: #1d1d1d;
       border: 2px solid #75757a;
       border-top: none;
-      width: 170px;
+      width: 190px;
 
       .col-4 {
         padding: 0px 5px;
@@ -91,17 +75,20 @@ button:focus {
       }
     }
   }
+}
+
+.contact-list {
+  border-right: 2px solid #75757a;
+  overflow-y: auto;
 
   .contacts-pad {
     .contact-item { 
-      padding: 0px 15px;
-      margin-top: 10px;
       margin-bottom: 10px;
       position: relative;
     }
 
     .contact-content {
-      padding: 5px 25px;
+      padding: 5px 45px;
     }
 
     .selected {      
@@ -113,47 +100,40 @@ button:focus {
       border-left: 4px solid #67e370;
     }
 
-    .contact-name {
-      font-size: 0.8rem;
-    }
-
     .contact-number {
-      font-size: 0.5rem;
+      font-size: 0.8rem;
     }
 
     .contact-menu {
       position: absolute;
-      right: 0px;
-      top: 4px;
+      right: -4px;
+      top: -4px;
       color: #ffffff;
-    }    
+    }
   }
 }
 
 .message-list {
-  padding: 20px 30px;
+  height: 290px;
+  overflow-y: auto;
 
   .current-name {
     padding: 10px 10px 15px 10px;
     border-bottom: 2px solid #75757a;
   }
 
-  .message-box {
-    height: 500px;
-    padding: 10px 20px 30px 20px;
-    border-bottom: 2px solid #75757a;
-    overflow-y: auto;
+  .message-box {    
     color: #ffffff;
 
     .date-info {      
       border-bottom: 1px solid;
       position: relative;
-      margin: 30px 0px;
+      margin: 10px 0px;
 
       span {
         position: absolute;
         top: -9px;
-        left: calc(50% - 50px);
+        left: calc(50% - 25px);
         background: #1d1d1d;
         padding: 0px 10px;
       }
@@ -172,6 +152,10 @@ button:focus {
       margin-bottom: 20px;
     }
 
+    .sent {
+      justify-content: flex-start;
+    }
+
     .received {
       justify-content: flex-end;
     }
@@ -182,24 +166,24 @@ button:focus {
       border-radius: 8px;
       margin-bottom: 20px;
     }
+  }  
+}
+
+.message-form {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  color: white;
+  background-color: #2f2f33;
+  border-radius: 7px;
+  padding: 2px 4px;
+
+  input {      
+    border: none;
+    width: calc(100% - 40px);
   }
-
-  .message-form {
-    margin-top: 10px;
-    font-size: 0.75rem;
-    color: white;
-    background-color: #2f2f33;
-    border-radius: 7px;
-    padding: 2px 4px;
-
-    input {      
-      border: none;
-      width: calc(100% - 40px);
-    }
-    
-    .mat-focused .mat-form-field-underline {
-      display: none;
-    }
+  
+  .mat-focused .mat-form-field-underline {
+    display: none;
   }
 }
 

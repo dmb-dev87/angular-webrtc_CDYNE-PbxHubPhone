@@ -3,7 +3,7 @@
   <input type="text" id="call-number" (input)="searchContact()">
   <button id="number-toggle"><i class="fas fa-bars"></i></button>
 </div>
-<div class=" row number-pad" *ngIf="this.numberBtnToggle && !this.searchBtnToggle">
+<div class=" row number-pad">
   <div class=" number-group" (clickOutside)="onClickOutsideNumber($event)">
     <div class=" row">
       <button *ngFor="let n of ['1', '2', '3'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>

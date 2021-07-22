@@ -19,11 +19,13 @@ export interface EndUserMedia {
   /** HTML elements for local media streams. */
   local1?: EndUserMediaLocal;
 
+  /** HTML elements for local media streams. */
   local2?: EndUserMediaLocal;
 
   /** Local HTML media elements. */
   remote1?: EndUserMediaRemote;
 
+  /** Local HTML media elements. */
   remote2?: EndUserMediaRemote;
 }
 
