@@ -1,5 +1,6 @@
 import {
   Info,
+  Bye,
   Invitation,
   InvitationAcceptOptions,
   Inviter,
@@ -22,27 +23,22 @@ import {
   UserAgentOptions,
   UserAgentState
 } from 'sip.js';
-import {Logger, OutgoingReferRequest} from 'sip.js/lib/core';
-import {SessionDescriptionHandler, SessionDescriptionHandlerOptions} from 'sip.js/lib/platform/web/session-description-handler';
-import {Transport} from '../transport';
-import {EndUserDelegate} from './end-user-delegate';
-import {EndUserOptions} from './end-user-options';
+import { Logger, OutgoingReferRequest } from 'sip.js/lib/core';
+import {
+  SessionDescriptionHandler,
+  SessionDescriptionHandlerOptions
+} from 'sip.js/lib/platform/web/session-description-handler';
+import { Transport } from '../transport';
+import { EndUserDelegate } from './end-user-delegate';
+import { EndUserOptions } from './end-user-options';
 
 interface LineSession {
+  target: URI;
   session: Session;
   held: boolean;
   muted: boolean;
 }
 
-/**
- * A simple SIP user class.
- * @remarks
- * While this class is completely functional for simple use cases, it is not intended
- * to provide an interface which is suitable for most (must less all) applications.
- * While this class has many limitations (for example, it only handles a single concurrent session),
- * it is, however, intended to serve as a simple example of using the SIP.js API.
- * @public
- */
 export class EndUser {
   /** Delegate. */
   public delegate: EndUserDelegate | undefined;
@@ -53,45 +49,37 @@ export class EndUser {
   private registerer: Registerer | undefined = undefined;
   private registerRequested = false;
   private userAgent: UserAgent;
-  private transferTarget: URI | undefined = undefined;
+  private confTarget: URI | undefined = undefined;
   private lineSessions: Array<LineSession> = [
-    {session: undefined, held: false, muted: false}, 
-    {session: undefined, held: false, muted: false}
+    { target: undefined, session: undefined, held: false, muted: false },
+    { target: undefined, session: undefined, held: false, muted: false },
+    { target: undefined, session: undefined, held: false, muted: false }
   ];
   private _curLineNumber: number = 0;
+  private _firstLineNumber: number = 0;
+  private _secondLineNumber: number = 0;
 
-  /**
-   * Constructs a new instance of the `EndUser` class.
-   * @param server - SIP WebSocket Server URL.
-   * @param options - Options bucket. See {@link EndUserOptions} for details.
-   */
   constructor(server: string, options: EndUserOptions = {}) {
-    // Delegate
+
     this.delegate = options.delegate;
 
-    // Copy options
     this.options = { ...options };
 
-    // UserAgentOptions
     const userAgentOptions: UserAgentOptions = {
       ...options.userAgentOptions
     };
 
-    // Transport
     if (!userAgentOptions.transportConstructor) {
       userAgentOptions.transportConstructor = Transport;
     }
 
-    // TransportOptions
     if (!userAgentOptions.transportOptions) {
       userAgentOptions.transportOptions = {
         server
       };
     }
 
-    // URI
     if (!userAgentOptions.uri) {
-      // If an AOR was provided, convert it to a URI
       if (options.aor) {
         const uri = UserAgent.makeURI(options.aor);
         if (!uri) {
@@ -101,12 +89,9 @@ export class EndUser {
       }
     }
 
-    // UserAgent
     this.userAgent = new UserAgent(userAgentOptions);
 
-    // UserAgent's delegate
     this.userAgent.delegate = {
-      // Handle connection with server established
       onConnect: (): void => {
         this.logger.log(`[${this.id}] Connected`);
         if (this.delegate && this.delegate.onServerConnect) {
@@ -120,13 +105,11 @@ export class EndUser {
           });
         }
       },
-      // Handle connection with server lost
       onDisconnect: (error?: Error): void => {
         this.logger.log(`[${this.id}] Disconnected`);
         if (this.delegate && this.delegate.onServerDisconnect) {
           this.delegate.onServerDisconnect(error);
         }
-
         if (this.session) {
           this.logger.log(`[${this.id}] Hanging up...`);
           this.hangup() // cleanup hung calls
@@ -138,22 +121,17 @@ export class EndUser {
         if (this.registerer) {
           this.logger.log(`[${this.id}] Unregistering...`);
           this.registerer
-            .unregister() // cleanup invalid registrations
+            .unregister()
             .catch((e: Error) => {
               this.logger.error(`[${this.id}] Error occurred unregistering after connection with server was lost.`);
               this.logger.error(e.toString());
             });
         }
       },
-      // Handle incoming invitations
       onInvite: (invitation: Invitation): void => {
         this.logger.log(`[${this.id}] Received INVITE`);
-
-        // Guard against a pre-existing session. This implementation only supports one session at a time.
-        // However an incoming INVITE request may be received at any time and/or while in the process
-        // of sending an outgoing INVITE request. So we reject any incoming INVITE in those cases.
         if (this.session) {
-          const line = this.getLine(this.curLineNumber == 0? 1 : 0);
+          const line = this.getLine(this.curLineNumber == 0 ? 1 : 0);
           if (line.session) {
             this.logger.warn(`[${this.id}] Session already in progress, rejecting INVITE...`);
             invitation
@@ -167,18 +145,16 @@ export class EndUser {
               });
             return;
           }
-          this.curLineNumber = this.curLineNumber == 0? 1 : 0;
+          this.curLineNumber = this.curLineNumber == 0 ? 1 : 0;
           if (this.delegate && this.delegate.onLineChanged) {
             this.delegate.onLineChanged();
           }
         }
 
-        // Use our configured constraints as options for any Inviter created as result of a REFER
         const referralInviterOptions: InviterOptions = {
           sessionDescriptionHandlerOptions: { constraints: this.constraints }
         };
 
-        // Initialize our session
         this.initSession(invitation, referralInviterOptions);
 
         const uri = this.session.remoteIdentity.uri;
@@ -194,7 +170,6 @@ export class EndUser {
           }
         }
 
-        // Delegate
         if (this.delegate && this.delegate.onCallReceived) {
           this.delegate.onCallReceived(displayName, uri.user, autoAnswer);
         } else {
@@ -210,40 +185,31 @@ export class EndUser {
             });
         }
       },
-      // Handle incoming messages
       onMessage: (message: Message): void => {
-        message.accept().then(() => {          
+        message.accept().then(() => {
           const uri = message.request.from.uri;
           const fromUser = uri.user;
           if (this.delegate && this.delegate.onMessageReceived) {
             this.delegate.onMessageReceived(fromUser, message.request.body);
           }
         });
-      }
+      },
     };
 
-    // Use the SIP.js logger
     this.logger = this.userAgent.getLogger(`sip.EndUser`);
 
-    // Monitor network connectivity and attempt reconnection when we come online
     window.addEventListener(`online`, () => {
       this.logger.log(`[${this.id}] Online`);
       this.attemptReconnection();
     });
   }
 
-  /**
-   * Instance identifier.
-   * @internal
-   */
-  
   get id(): string {
     return (this.options.userAgentOptions && this.options.userAgentOptions.displayName) || `Anonymous`;
   }
 
-  /** The local media stream. Undefined if call not answered. */
   get localMediaStream(): MediaStream | undefined {
-    const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
+    const sdh = this.session ? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
     }
@@ -253,9 +219,8 @@ export class EndUser {
     return sdh.localMediaStream;
   }
 
-  /** The remote media stream. Undefined if call not answered. */
   get remoteMediaStream(): MediaStream | undefined {
-    const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
+    const sdh = this.session ? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
     }
@@ -265,43 +230,22 @@ export class EndUser {
     return sdh.remoteMediaStream;
   }
 
-  /**
-   * The local audio track, if available.
-   * @deprecated Use localMediaStream and get track from the stream.
-   */
   get localAudioTrack(): MediaStreamTrack | undefined {
     return this.localMediaStream?.getTracks().find((track) => track.kind === `audio`);
   }
 
-  /**
-   * The local video track, if available.
-   * @deprecated Use localMediaStream and get track from the stream.
-   */
   get localVideoTrack(): MediaStreamTrack | undefined {
     return this.localMediaStream?.getTracks().find((track) => track.kind === `video`);
   }
 
-  /**
-   * The remote audio track, if available.
-   * @deprecated Use remoteMediaStream and get track from the stream.
-   */
   get remoteAudioTrack(): MediaStreamTrack | undefined {
     return this.remoteMediaStream?.getTracks().find((track) => track.kind === `audio`);
   }
 
-  /**
-   * The remote video track, if available.
-   * @deprecated Use remoteMediaStream and get track from the stream.
-   */
   get remoteVideoTrack(): MediaStreamTrack | undefined {
     return this.remoteMediaStream?.getTracks().find((track) => track.kind === `video`);
   }
 
-  /**
-   * Connect.
-   * @remarks
-   * Start the UserAgent's WebSocket Transport.
-   */
   public connect(): Promise<void> {
     this.logger.log(`[${this.id}] Connecting UserAgent...`);
     this.connectRequested = true;
@@ -311,30 +255,16 @@ export class EndUser {
     return this.userAgent.reconnect();
   }
 
-  /**
-   * Disconnect.
-   * @remarks
-   * Stop the UserAgent's WebSocket Transport.
-   */
   public disconnect(): Promise<void> {
     this.logger.log(`[${this.id}] Disconnecting UserAgent...`);
     this.connectRequested = false;
     return this.userAgent.stop();
   }
 
-  /**
-   * Return true if connected.
-   */
   public isConnected(): boolean {
     return this.userAgent.isConnected();
   }
 
-  /**
-   * Start receiving incoming calls.
-   * @remarks
-   * Send a REGISTER request for the UserAgent's AOR.
-   * Resolves when the REGISTER request is sent, otherwise rejects.
-   */
   public register(
     registererOptions?: RegistererOptions,
     registererRegisterOptions?: RegistererRegisterOptions
@@ -372,12 +302,6 @@ export class EndUser {
     });
   }
 
-  /**
-   * Stop receiving incoming calls.
-   * @remarks
-   * Send an un-REGISTER request for the UserAgent's AOR.
-   * Resolves when the un-REGISTER request is sent, otherwise rejects.
-   */
   public unregister(registererUnregisterOptions?: RegistererUnregisterOptions): Promise<void> {
     this.logger.log(`[${this.id}] Unregistering UserAgent...`);
     this.registerRequested = false;
@@ -391,16 +315,6 @@ export class EndUser {
     });
   }
 
-  /**
-   * Make an outgoing call.
-   * @remarks
-   * Send an INVITE request to create a new Session.
-   * Resolves when the INVITE request is sent, otherwise rejects.
-   * Use `onCallAnswered` delegate method to determine if Session is established.
-   * @param destination - The target destination to call. A SIP address to send the INVITE to.
-   * @param inviterOptions - Optional options for Inviter constructor.
-   * @param inviterInviteOptions - Optional options for Inviter.invite().
-   */
   public call(
     destination: string,
     inviterOptions?: InviterOptions,
@@ -417,7 +331,9 @@ export class EndUser {
       return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
     }
 
-    // Use our configured constraints as InviterOptions if none provided
+    let line = this.getLine(this.curLineNumber);
+    line.target = target;
+
     if (!inviterOptions) {
       inviterOptions = {};
     }
@@ -428,35 +344,18 @@ export class EndUser {
       inviterOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
     }
 
-    // Create a new Inviter for the outgoing Session
     const inviter = new Inviter(this.userAgent, target, inviterOptions);
 
-    // Send INVITE
     return this.sendInvite(inviter, inviterOptions, inviterInviteOptions).then(() => {
       return;
     });
   }
 
-  /**
-   * Hangup a call.
-   * @remarks
-   * Send a BYE request, CANCEL request or reject response to end the current Session.
-   * Resolves when the request/response is sent, otherwise rejects.
-   * Use `onCallTerminated` delegate method to determine if and when call is ended.
-   */
   public hangup(): Promise<void> {
     this.logger.log(`[${this.id}] Hangup...`);
     return this.terminate();
   }
 
-  /**
-   * Answer an incoming call.
-   * @remarks
-   * Accept an incoming INVITE request creating a new Session.
-   * Resolves with the response is sent, otherwise rejects.
-   * Use `onCallAnswered` delegate method to determine if and when call is established.
-   * @param invitationAcceptOptions - Optional options for Inviter.accept().
-   */
   public answer(invitationAcceptOptions?: InvitationAcceptOptions): Promise<void> {
     this.logger.log(`[${this.id}] Accepting Invitation...`);
 
@@ -468,7 +367,6 @@ export class EndUser {
       return Promise.reject(new Error(`Session not instance of Invitation.`));
     }
 
-    // Use our configured constraints as InvitationAcceptOptions if none provided
     if (!invitationAcceptOptions) {
       invitationAcceptOptions = {};
     }
@@ -482,13 +380,6 @@ export class EndUser {
     return this.session.accept(invitationAcceptOptions);
   }
 
-  /**
-   * Decline an incoming call.
-   * @remarks
-   * Reject an incoming INVITE request.
-   * Resolves with the response is sent, otherwise rejects.
-   * Use `onCallTerminated` delegate method to determine if and when call is ended.
-   */
   public decline(): Promise<void> {
     this.logger.log(`[${this.id}] rejecting Invitation...`);
 
@@ -503,82 +394,39 @@ export class EndUser {
     return this.session.reject();
   }
 
-  /**
-   * Hold call
-   * @remarks
-   * Send a re-INVITE with new offer indicating "hold".
-   * Resolves when the re-INVITE request is sent, otherwise rejects.
-   * Use `onCallHold` delegate method to determine if request is accepted or rejected.
-   * See: https://tools.ietf.org/html/rfc6337
-   */
   public hold(): Promise<void> {
     this.logger.log(`[${this.id}] holding session...`);
     return this.setLineHold(true, this.curLineNumber);
   }
 
-  /**
-   * Unhold call.
-   * @remarks
-   * Send a re-INVITE with new offer indicating "unhold".
-   * Resolves when the re-INVITE request is sent, otherwise rejects.
-   * Use `onCallHold` delegate method to determine if request is accepted or rejected.
-   * See: https://tools.ietf.org/html/rfc6337
-   */
   public unhold(): Promise<void> {
     this.logger.log(`[${this.id}] unholding session...`);
     return this.setLineHold(false, this.curLineNumber);
   }
 
-  /**
-   * Hold state.
-   * @remarks
-   * True if session media is on hold.
-   */
   public isHeld(): boolean {
     const line = this.getLine(this.curLineNumber);
     return line.held;
   }
 
-  /**
-   * Mute call.
-   * @remarks
-   * Disable sender's media tracks.
-   */
   public mute(): void {
     this.logger.log(`[${this.id}] disabling media tracks...`);
     this.setLineMute(true, this.curLineNumber);
   }
 
-  /**
-   * Unmute call.
-   * @remarks
-   * Enable sender's media tracks.
-   */
   public unmute(): void {
     this.logger.log(`[${this.id}] enabling media tracks...`);
     this.setLineMute(false, this.curLineNumber);
   }
 
-  /**
-   * Mute state.
-   * @remarks
-   * True if sender's media track is disabled.
-   */
   public isMuted(): boolean {
     const line = this.getLine(this.curLineNumber);
     return line.muted;
   }
 
-  /**
-   * Send DTMF.
-   * @remarks
-   * Send an INFO request with content type application/dtmf-relay.
-   * @param tone - Tone to send.
-   */
   public sendDTMF(tone: string): Promise<void> {
     this.logger.log(`[${this.id}] sending DTMF...`);
 
-    // Validate tone
     if (!/^[0-9A-D#*,]$/.exec(tone)) {
       return Promise.reject(new Error(`Invalid DTMF tone.`));
     }
@@ -602,12 +450,6 @@ export class EndUser {
     });
   }
 
-  /**
-   * Send a message.
-   * @remarks
-   * Send a MESSAGE request.
-   * @param destination - The target destination for the message. A SIP address to send the MESSAGE to.
-   */
   public message(destination: string, message: string): Promise<void> {
     this.logger.log(`[${this.id}] sending message...`);
 
@@ -618,7 +460,6 @@ export class EndUser {
     return new Messager(this.userAgent, target, message).message();
   }
 
-  /** Media constraints. */
   private get constraints(): { audio: boolean; video: boolean } {
     let constraints = { audio: true, video: false }; // default to audio only calls
     if (this.options.media?.constraints) {
@@ -627,17 +468,13 @@ export class EndUser {
     return constraints;
   }
 
-  /**
-   * Attempt reconnection up to `maxReconnectionAttempts` times.
-   * @param reconnectionAttempt - Current attempt number.
-   */
   private attemptReconnection(reconnectionAttempt = 1): void {
     const reconnectionAttempts = this.options.reconnectionAttempts || 3;
     const reconnectionDelay = this.options.reconnectionDelay || 4;
 
     if (!this.connectRequested) {
       this.logger.log(`[${this.id}] Reconnection not currently desired`);
-      return; // If intentionally disconnected, don't reconnect.
+      return;
     }
 
     if (this.attemptingReconnection) {
@@ -666,7 +503,7 @@ export class EndUser {
             `[${this.id}] Reconnection attempt ${reconnectionAttempt} of ${reconnectionAttempts} - aborted`
           );
           this.attemptingReconnection = false;
-          return; // If intentionally disconnected, don't reconnect.
+          return;
         }
         this.userAgent
           .reconnect()
@@ -689,7 +526,6 @@ export class EndUser {
     );
   }
 
-  /** Helper function to remove media from html elements. */
   private cleanupMedia(): void {
     if (this.options.media) {
       if (this.options.media.local1) {
@@ -727,10 +563,9 @@ export class EndUser {
     }
   }
 
-  /** Helper function to enable/disable media tracks. */
   private enableReceiverTracks(enable: boolean, lineNumber: number): void {
     const line = this.getLine(lineNumber);
-    const session : Session = line.session;
+    const session: Session = line.session;
 
     if (!session) {
       throw new Error(`Session does not exist.`);
@@ -746,17 +581,16 @@ export class EndUser {
       throw new Error(`Peer connection closed.`);
     }
 
-    peerConnection.getReceivers().forEach((receiver) => {      
+    peerConnection.getReceivers().forEach((receiver) => {
       if (receiver.track) {
         receiver.track.enabled = enable;
       }
     });
   }
 
-  /** Helper function to enable/disable media tracks. */
   private enableSenderTracks(enable: boolean, lineNumber: number): void {
     const line = this.getLine(lineNumber);
-    const session : Session = line.session;
+    const session: Session = line.session;
 
     if (!session) {
       throw new Error(`Session does not exist.`);
@@ -779,24 +613,16 @@ export class EndUser {
     });
   }
 
-  /**
-   * Setup session delegate and state change handler.
-   * @param session - Session to setup
-   * @param referralInviterOptions - Options for any Inviter created as result of a REFER.
-   */
   private initSession(session: Session, referralInviterOptions?: InviterOptions): void {
-    // Set session
     this.session = session;
 
-    // Call session created callback
     if (this.delegate && this.delegate.onCallCreated) {
       this.delegate.onCallCreated();
     }
 
-    // Setup session state change handler
     this.session.stateChange.addListener((state: SessionState) => {
       if (this.session !== session) {
-        return; // if our session has changed, just return
+        return;
       }
       this.logger.log(`[${this.id}] session state changed to ${state}`);
       switch (state) {
@@ -810,9 +636,11 @@ export class EndUser {
           if (this.delegate && this.delegate.onCallAnswered) {
             this.delegate.onCallAnswered();
           }
+          if (this.curLineNumber == 2) {
+            this.makeConference();
+          }
           break;
         case SessionState.Terminating:
-        // fall through
         case SessionState.Terminated:
           this.session = undefined;
           if (!this.isExistSession()) {
@@ -820,37 +648,44 @@ export class EndUser {
           }
           if (this.delegate && this.delegate.onCallHangup) {
             this.delegate.onCallHangup();
-          }          
+          }
           break;
         default:
           throw new Error(`Unknown session state.`);
       }
     });
 
-    // Setup delegate
     this.session.delegate = {
+      onBye: (bye: Bye): void => {
+        for (let i = 0; i < 2; i++) {
+          const line = this.getLine(i);
+          if (line.session) {
+            const id: string = line.session.id;
+            const byeId: string = bye.request.callId;
+            if (id.toLowerCase().includes(byeId.toLowerCase())) {
+              this.curLineNumber = i;
+            }
+          }
+        }
+      },
       onInfo: (info: Info): void => {
-        // No delegate
         if (this.delegate?.onCallDTMFReceived === undefined) {
           info.reject();
           return;
         }
 
-        // Invalid content type
         const contentType = info.request.getHeader(`content-type`);
         if (!contentType || !/^application\/dtmf-relay/i.exec(contentType)) {
           info.reject();
           return;
         }
 
-        // Invalid body
         const body = info.request.body.split(`\r\n`, 2);
         if (body.length !== 2) {
           info.reject();
           return;
         }
 
-        // Invalid tone
         let tone: string | undefined;
         const toneRegExp = /^(Signal\s*?=\s*?)([0-9A-D#*]{1})(\s)?.*/;
         if (toneRegExp.test(body[0])) {
@@ -861,7 +696,6 @@ export class EndUser {
           return;
         }
 
-        // Invalid duration
         let duration: number | undefined;
         const durationRegExp = /^(Duration\s?=\s?)([0-9]{1,4})(\s)?.*/;
         if (durationRegExp.test(body[1])) {
@@ -897,22 +731,18 @@ export class EndUser {
     };
   }
 
-  /** Helper function to init send then send invite. */
   private sendInvite(
     inviter: Inviter,
     inviterOptions?: InviterOptions,
     inviterInviteOptions?: InviterInviteOptions
   ): Promise<void> {
-    // Initialize our session
     this.initSession(inviter, inviterOptions);
 
-    // Send the INVITE
     return inviter.invite(inviterInviteOptions).then(() => {
       this.logger.log(`[${this.id}] sent INVITE`);
     });
   }
 
-  /** Helper function to attach local media to html elements. */
   private setupLocalMedia(): void {
     if (!this.session) {
       throw new Error(`Session does not exist.`);
@@ -920,9 +750,9 @@ export class EndUser {
 
     let mediaElement;
 
-    if  (this.curLineNumber == 0) {
+    if (this.curLineNumber == 0) {
       mediaElement = this.options.media?.local1?.video;
-    } 
+    }
     else {
       mediaElement = this.options.media?.local2?.video;
     }
@@ -941,8 +771,7 @@ export class EndUser {
     }
   }
 
-  /** Helper function to attach remote media to html elements. */
-  private setupRemoteMedia(): void {    
+  private setupRemoteMedia(): void {
     if (!this.session) {
       throw new Error(`Session does not exist.`);
     }
@@ -978,13 +807,6 @@ export class EndUser {
     }
   }
 
-  /**
-   * End a session.
-   * @remarks
-   * Send a BYE request, CANCEL request or reject response to end the current Session.
-   * Resolves when the request/response is sent, otherwise rejects.
-   * Use `onCallTerminated` delegate method to determine if and when Session is terminated.
-   */
   private terminate(): Promise<void> {
     this.logger.log(`[${this.id}] Terminating...`);
 
@@ -1060,36 +882,6 @@ export class EndUser {
     return Promise.resolve();
   }
 
-  public makeTransfer(
-    destination: string,
-    inviterOptions?: InviterOptions,
-    inviterInviteOptions?: InviterInviteOptions
-  ): Promise<void> {
-    this.logger.log(`[${this.id}] Beginning Transfer...`);
-
-    this.transferTarget = UserAgent.makeURI(destination);
-
-    if (!this.transferTarget) {
-      return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
-    }
-
-    if (!inviterOptions) {
-      inviterOptions = {};
-    }
-    if (!inviterOptions.sessionDescriptionHandlerOptions) {
-      inviterOptions.sessionDescriptionHandlerOptions = {};
-    }
-    if (!inviterOptions.sessionDescriptionHandlerOptions.constraints) {
-      inviterOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
-    }
-
-    const transferInviter = new Inviter(this.userAgent, this.transferTarget, inviterOptions);
-
-    return this.sendInvite(transferInviter, inviterOptions, inviterInviteOptions).then(() => {
-      return;
-    });
-  }
-
   public completeTransfer(): Promise<OutgoingReferRequest> {
     this.logger.log(`[${this.id}] Completing Transfer...`);
 
@@ -1097,22 +889,36 @@ export class EndUser {
       return Promise.reject(new Error(`Session does not exists.`));
     }
 
-    const oldLine = this.getLine(this.curLineNumber === 0? 1:0);
+    const oldLine = this.getLine(this.curLineNumber === 0 ? 1 : 0);
     const oldSession = oldLine.session;
 
     if (!oldSession) {
       return Promise.reject(new Error(`Old Session does not exists.`));
     }
 
-    return oldSession.refer(this.transferTarget);
+    const curLine = this.getLine(this.curLineNumber);
+    if (!curLine.session) {
+      return Promise.reject(new Error(`Current session does not exists.`));
+    }
+
+    return oldSession.refer(curLine.target);
   }
 
   async initConference(lineNumber: number): Promise<void> {
-    this.logger.log(`[${this.id}] Changing Lines for conference...`);
+    this.logger.log(`[${this.id}] Changing Lines...`);
 
     if (lineNumber === this.curLineNumber) {
       return Promise.resolve();
     }
+
+    if (this.session) {
+      if (this.session.state === SessionState.Established) {
+        await this.setLineHold(true, this.curLineNumber);
+      }
+    }
+
+    this.firstLineNumber = this.curLineNumber;
+    this.secondLineNumber = lineNumber;
 
     this.curLineNumber = lineNumber;
 
@@ -1123,18 +929,29 @@ export class EndUser {
     return Promise.resolve();
   }
 
-  public makeConference(
-    destination: string,
+  async completeConference(
+    confDestination: string,
     inviterOptions?: InviterOptions,
     inviterInviteOptions?: InviterInviteOptions
   ): Promise<void> {
-    this.logger.log(`[${this.id}] Beginning Conference...`);
+    this.logger.log(`[${this.id}] Completing Transfer...`);
 
-    this.transferTarget = UserAgent.makeURI(destination);
+    this.confTarget = UserAgent.makeURI(confDestination);
 
-    if (!this.transferTarget) {
-      return Promise.reject(new Error(`Failed to create a valid URI from "${destination}"`));
+    const twoLine = this.getLine(this.secondLineNumber);
+    const twoSession = twoLine.session;
+
+    if (!twoSession) {
+      return Promise.reject(new Error(`Old Session does not exists.`));
     }
+
+    if (twoSession) {
+      if (twoSession.state === SessionState.Established) {
+        await this.setLineHold(true, this.secondLineNumber);
+      }
+    }
+
+    this.curLineNumber = 2;
 
     if (!inviterOptions) {
       inviterOptions = {};
@@ -1146,11 +963,41 @@ export class EndUser {
       inviterOptions.sessionDescriptionHandlerOptions.constraints = this.constraints;
     }
 
-    const confInviter = new Inviter(this.userAgent, this.transferTarget, inviterOptions);
+    const newInviter = new Inviter(this.userAgent, this.confTarget, inviterOptions);
 
-    return this.sendInvite(confInviter, inviterOptions, inviterInviteOptions).then(() => {
+    this.sendInvite(newInviter, inviterOptions, inviterInviteOptions).then(() => {
       return;
     });
+  }
+
+  private makeConference(): void {
+    let id: string;
+
+    const oneline = this.getLine(this.firstLineNumber);
+
+    id = oneline.session.id;
+
+    let oneTarget: URI = this.confTarget;
+    oneTarget.setHeader("Replaces", id.substring(0, id.length - 10));
+    oneTarget.setHeader("from-tag", id.substring(id.length - 10));
+
+    oneline.session.refer(oneTarget);
+
+    const twoline = this.getLine(this.secondLineNumber);
+
+    id = twoline.session.id;
+
+    let twoTarget: URI = this.confTarget;
+    twoTarget.setHeader("Replaces", id.substring(0, id.length - 10));
+    twoTarget.setHeader("from-tag", id.substring(id.length - 10));
+
+    twoline.session.refer(twoTarget);
+  }
+
+  public terminateConference(): Promise<void> {
+    this.logger.log(`[${this.id}] Terminate conference...`);
+    this.curLineNumber = 2;
+    return this.terminate();
   }
 
   async changeLine(lineNumber: number): Promise<void> {
@@ -1189,31 +1036,42 @@ export class EndUser {
     this._curLineNumber = value;
   }
 
+  get firstLineNumber(): number {
+    return this._firstLineNumber;
+  }
+
+  set firstLineNumber(value: number) {
+    this._firstLineNumber = value;
+  }
+
+  get secondLineNumber(): number {
+    return this._secondLineNumber;
+  }
+
+  set secondLineNumber(value: number) {
+    this._secondLineNumber = value;
+  }
+
   get session(): Session {
-    if (this.curLineNumber > 1 || this.curLineNumber < 0) {
+    if (this.curLineNumber > 3 || this.curLineNumber < 0) {
       return undefined;
     }
-
     const curLineSession: LineSession = this.lineSessions[this.curLineNumber];
-    
     return curLineSession.session;
   }
 
   set session(curSession: Session) {
-    if (this.curLineNumber > 1 || this.curLineNumber < 0) {
+    if (this.curLineNumber > 2 || this.curLineNumber < 0) {
       return
     }
-
     this.lineSessions[this.curLineNumber].session = curSession;
   }
 
   private getLine(lineId: number): LineSession {
-    if (lineId > 1 || lineId < 0) {
+    if (lineId > 2 || lineId < 0) {
       return undefined;
     }
-
     const curLine: LineSession = this.lineSessions[lineId];
-
     return curLine;
   }
 
@@ -1230,7 +1088,6 @@ export class EndUser {
     }
 
     line.muted = mute;
-
     this.enableSenderTracks(!line.held && !line.muted, lineNumber);
   }
 
@@ -1243,8 +1100,6 @@ export class EndUser {
     }
 
     const session = lineSession;
-
-    // Just resolve if we are already in correct state
     if (line.held === hold) {
       return Promise.resolve();
     }
@@ -1279,11 +1134,9 @@ export class EndUser {
     sessionDescriptionHandlerOptions.hold = hold;
     session.sessionDescriptionHandlerOptionsReInvite = sessionDescriptionHandlerOptions;
 
-    // Send re-INVITE
     return lineSession
       .invite(options)
       .then(() => {
-        // preemptively enable/disable tracks
         this.setupRemoteMedia();
         this.enableReceiverTracks(!hold, lineNumber);
         this.enableSenderTracks(!hold && !line.muted, lineNumber);
@@ -1300,7 +1153,6 @@ export class EndUser {
     if (!this.session) {
       return false;
     }
-    
     return this.session.state === SessionState.Established;
   }
 

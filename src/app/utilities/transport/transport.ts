@@ -277,9 +277,9 @@ export class Transport implements TransportDefinition {
       this.connectTimeout = setTimeout(() => {
         this.logger.warn(
           `Connect timed out. ` +
-            `Exceeded time set in configuration.connectionTimeout: ` +
-            this.configuration.connectionTimeout +
-            `s.`
+          `Exceeded time set in configuration.connectionTimeout: ` +
+          this.configuration.connectionTimeout +
+          `s.`
         );
         ws.close(1000); // careful here to use a local reference instead of this._ws
       }, this.configuration.connectionTimeout * 1000);

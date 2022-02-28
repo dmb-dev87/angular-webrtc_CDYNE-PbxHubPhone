@@ -39,7 +39,7 @@ export function reducer(
         error: action.payload.error
       }
     }
-    case fromMessageHistories.ActionTypes.UpdateMessageHistories: {      
+    case fromMessageHistories.ActionTypes.UpdateMessageHistories: {
       return {
         ...state,
         loading: false,

@@ -50,7 +50,7 @@ export class MiscControlComponent implements OnInit {
     if (btnText === `conference`) {
       completed = false;
     }
-    else if (btnText === `complete conf`) {
+    else if (btnText === `finish conf`) {
       completed = true;
     }
     this.conference.emit(completed);

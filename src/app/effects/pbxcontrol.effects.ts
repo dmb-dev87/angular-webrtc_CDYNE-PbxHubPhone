@@ -19,7 +19,7 @@ import {
 @Injectable()
 
 export class PbxControlEffects {
-  constructor(private actions: Actions, private pbxControlService: PbxControlService) {}
+  constructor(private actions: Actions, private pbxControlService: PbxControlService) { }
 
   @Effect()
   userGetDirecotry = this.actions.pipe(
@@ -28,7 +28,7 @@ export class PbxControlEffects {
       return this.pbxControlService.userGetDirecotry().pipe(
         map(data => {
           const items = parseContact(data);
-          return new PhoneContacsActions.LoadPhoneContactsSuccess({contacts: items});
+          return new PhoneContacsActions.LoadPhoneContactsSuccess({ contacts: items });
         }),
         catchError(error =>
           of(new PhoneContacsActions.LoadPhoneContactsFailer({ error }))
@@ -44,7 +44,7 @@ export class PbxControlEffects {
       return this.pbxControlService.userGetState(action.payload.extension).pipe(
         map(data => {
           const state = parseState(data);
-          return new PhoneStateActions.LoadPhoneStateSuccess({phoneState: state});
+          return new PhoneStateActions.LoadPhoneStateSuccess({ phoneState: state });
         }),
         catchError(error =>
           of(new PhoneStateActions.LoadPhoneStateFailure({ error }))
@@ -60,7 +60,7 @@ export class PbxControlEffects {
       return this.pbxControlService.webRtcDemo(action.payload.email).pipe(
         map(data => {
           const phoneUser = parseWebRtcDemo(data);
-          return new PhoneUserActions.LoadPhoneUserSuccess({user: phoneUser});
+          return new PhoneUserActions.LoadPhoneUserSuccess({ user: phoneUser });
         }),
         catchError(error =>
           of(new PhoneUserActions.LoadPhoneUserFailure({ error }))
@@ -76,7 +76,7 @@ export class PbxControlEffects {
       return this.pbxControlService.messageGetActiveConversations().pipe(
         map(data => {
           const items = parseMessageContact(data);
-          return new MessageContactsActions.LoadMessageContactsSuccess({contacts: items});
+          return new MessageContactsActions.LoadMessageContactsSuccess({ contacts: items });
         }),
         catchError(error =>
           of(new MessageContactsActions.LoadMessageContactsFailure({ error }))
@@ -91,9 +91,9 @@ export class PbxControlEffects {
     switchMap((action: MessageContactsActions.DeleteMessageContactBegin) => {
       return this.pbxControlService.messageHideConversation(action.payload.contact).pipe(
         map(data => {
-          return new MessageContactsActions.DeleteMessageContactSuccess({contact: action.payload});
+          return new MessageContactsActions.DeleteMessageContactSuccess({ contact: action.payload });
         }),
-        catchError(error => 
+        catchError(error =>
           of(new MessageContactsActions.DeleteMessageContactFailure({ error }))
         )
       );
@@ -106,7 +106,7 @@ export class PbxControlEffects {
     switchMap((action: MessageContactsActions.AddMessageContactBegin) => {
       return this.pbxControlService.messageActivateConversation(action.payload.contact).pipe(
         map(data => {
-          return new MessageContactsActions.AddMessageContactSuccess({contact: action.payload});
+          return new MessageContactsActions.AddMessageContactSuccess({ contact: action.payload });
         }),
         catchError(error =>
           of(new MessageContactsActions.AddMessageContactFailure({ error }))
@@ -122,7 +122,7 @@ export class PbxControlEffects {
       return this.pbxControlService.messageGetMessages(action.payload).pipe(
         map(data => {
           const histories = parseMessageHistories(data);
-          return new MessageHistoriesActions.LoadMessageHistoriesSuccess({histories: histories});
+          return new MessageHistoriesActions.LoadMessageHistoriesSuccess({ histories: histories });
         }),
         catchError(error =>
           of(new MessageHistoriesActions.LoadMessageHistoriesFailure({ error }))

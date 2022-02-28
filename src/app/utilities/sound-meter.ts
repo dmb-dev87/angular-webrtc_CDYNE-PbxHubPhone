@@ -49,7 +49,7 @@ export class RemoteSoundMeter {
   private _audioSource: any;
   private _audioGain: any;
   private _audioChannelSplitter: any;
-  
+
   constructor(context: any) {
     this._audioContext = context;
   }
@@ -83,7 +83,7 @@ export class RemoteSoundMeter {
     }
   }
 
-  calculateAudioLevels(): number  {
+  calculateAudioLevels(): number {
     let outputSum = 0.0;
     for (let channelI = 0; channelI < this._audioAnalyser.length; channelI++) {
       this._audioAnalyser[channelI].getByteFrequencyData(this._freqs[channelI]);
@@ -94,7 +94,7 @@ export class RemoteSoundMeter {
       this._audioLevels[channelI] = value / 256;
       outputSum += this._audioLevels[channelI] * this._audioLevels[channelI];
     }
-    let outputInstant = Math.sqrt(outputSum / this._audioAnalyser.length) * 100; 
+    let outputInstant = Math.sqrt(outputSum / this._audioAnalyser.length) * 100;
     outputInstant = outputInstant > 100 ? 100 : outputInstant;
     return outputInstant;
   }

@@ -16,7 +16,7 @@ export function parseContact(data: any): any {
     const dirRes = body[0].User_GetDirectoryResponse;
     const dirResult = dirRes[0].User_GetDirectoryResult;
     const aPbxUserList = dirResult[0]['a:PbxUserLite'];
-    for(const k in aPbxUserList) {
+    for (const k in aPbxUserList) {
       const item = aPbxUserList[k];
       arr.push({
         extension: item['a:Extension'][0],
@@ -100,10 +100,10 @@ export function parseMessageHistories(data: any): Array<MessageHistory> {
     const body = envelope['s:Body'];
     const dirRes = body[0].Message_GetMessagesResponse;
     const dirResult = dirRes[0].Message_GetMessagesResult;
-    const aMessageList = dirResult[0]['a:SipMessage'] !== undefined? dirResult[0]['a:SipMessage'] : [];
-    for(const k in aMessageList) {
+    const aMessageList = dirResult[0]['a:SipMessage'] !== undefined ? dirResult[0]['a:SipMessage'] : [];
+    for (const k in aMessageList) {
       const item = aMessageList[k];
-      const datetime =new Date(item['a:Entrydate'][0]);
+      const datetime = new Date(item['a:Entrydate'][0]);
       datetime.setTime(datetime.getTime() - 60000 * (datetime.getTimezoneOffset()));
       histories.push({
         body: item['a:Body'][0],
@@ -122,14 +122,14 @@ export function parseMessageContact(data: any): any {
     trim: true,
     explicitArray: true
   });
-  
+
   parser.parseString(data, (err, result: string) => {
     const envelope = result['s:Envelope'];
     const body = envelope['s:Body'];
     const dirRes = body[0].Message_GetActiveConversationsResponse;
     const dirResult = dirRes[0].Message_GetActiveConversationsResult;
     const aPbxUserList = dirResult[0]['a:PbxUserLite'];
-    for(const k in aPbxUserList) {
+    for (const k in aPbxUserList) {
       const item = aPbxUserList[k];
       arr.push({
         extension: item['a:Extension'][0],
