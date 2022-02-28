@@ -1,7 +1,9 @@
 export class PhoneInfo {
   sipUserName: string;
-  sippassword: string;
+  sipPassword: string;
   sipServer: string;
+  sipPort: string;
+  userAgent: string;
   phoneApi: string;
   allowRegistration: boolean;
   registeredIp: string;

@@ -10,6 +10,7 @@ import { AppState, getMessageHistoriesState, getPhoneContactsState, getPhoneUser
 import { environment } from '../../environments/environment';
 import { MessageContact } from '../models/messagecontact';
 import { PhoneUser } from '../models/phoneuser';
+import { PhoneInfo } from '../models/phoneinfo';
 
 export enum DndState {
   Enabled = `DND Enabled`,
@@ -17,13 +18,18 @@ export enum DndState {
   NotAllowed = `DND Not Allowed`
 }
 
-const baseURL = environment.pbxServiceBaseURL;
+let baseURL = environment.pbxServiceBaseURL;
 
 @Injectable({
   providedIn: 'root'
 })
 export class PbxControlService {  
-  constructor(private store: Store<AppState>, private http: HttpClient) {}
+  constructor(private store: Store<AppState>, private http: HttpClient) {
+    const phoneInfo : PhoneInfo = JSON.parse(localStorage.getItem(`WebPhone`));
+    if (phoneInfo) {
+      baseURL = phoneInfo.phoneApi;
+    }
+  }
 
   loadPhoneState(extension: string): void {
     this.store.dispatch(new PhoneStateActions.LoadPhoneStateBegin({extension: extension}));

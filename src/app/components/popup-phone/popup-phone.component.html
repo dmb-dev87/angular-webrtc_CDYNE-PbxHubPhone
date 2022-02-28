@@ -57,19 +57,18 @@
         </app-misc-control>
       </div>
     </div>
-  </div>
-
-  <div>
-    <app-message-panel 
-      *ngIf="isMessage"
-      [messageContacts]="messageContacts"
-      [phoneContacts]="phoneContacts"
-      [extensionsForReceived]="extensionsForReceived"
-      [selectedExtension]="selectedExtension"
-      (changeSelExtension)="onChangeSelExtension($event)"
-      (sendMessage)="onSendMessage($event)"
-      (hidePanel)="onHideMessagePanel()">
-    </app-message-panel>
+    <div>
+      <app-message-panel 
+        *ngIf="isMessage"
+        [messageContacts]="messageContacts"
+        [phoneContacts]="phoneContacts"
+        [extensionsForReceived]="extensionsForReceived"
+        [selectedExtension]="selectedExtension"
+        (changeSelExtension)="onChangeSelExtension($event)"
+        (sendMessage)="onSendMessage($event)"
+        (hidePanel)="onHideMessagePanel()">
+      </app-message-panel>
+    </div>
   </div>
 
   <audio id="remoteAudio1" controls style="margin-top: 50px;" hidden>

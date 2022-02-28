@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { getAudio } from '../../utilities/ui-utils';
-import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
+import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd } from '../../utilities/parse-utils';
@@ -13,7 +13,10 @@ const webSocketServer = environment.socketServer;
 const hostURL = environment.hostURL;
 const userAgent = environment.userAgent;
 const monitorTarget = environment.monitorTarget;
-const ringAudio = new Audio(`assets/sound/ring.mp3`);
+const confTarget = environment.confTarget;
+const incomingRing = new Audio(`assets/sound/incoming_ring.mp3`);
+const outgoingRing = new Audio(`assets/sound/outgoing_ring.mp3`);
+const hangupRing = new Audio(`assets/sound/hangup.mp3`);
 const constraints = {
   audio: true,
   video: false
@@ -66,7 +69,7 @@ export class PhonePanelComponent implements OnInit {
   private lineCount = 0;
 
   private _phoneUser: PhoneUser = undefined;
-  
+
   private micMeterRefresh = null;
   private receiverMeterRefresh = null;
   private userGetRefresh = null;
@@ -75,7 +78,7 @@ export class PhonePanelComponent implements OnInit {
   private audioContext = undefined;
   private phoneUserSubscribe = null;
 
-  constructor(private pbxControlService: PbxControlService) {}
+  constructor(private pbxControlService: PbxControlService) { }
 
   get phoneUser(): PhoneUser {
     return this._phoneUser;
@@ -85,7 +88,7 @@ export class PhonePanelComponent implements OnInit {
     this._phoneUser = phoneUser;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   // EndUser Callback functions
   makeServerConnectCallback(): () => void {
@@ -110,7 +113,7 @@ export class PhonePanelComponent implements OnInit {
       console.log(`[${this.endUser.id}] registered`);
 
       this.userGetRefresh = setInterval(() => {
-        this.pbxControlService.loadPhoneContacts();        
+        this.pbxControlService.loadPhoneContacts();
       }, 3000);
 
       this.pbxControlService.getPhoneContacts().subscribe(phonecontacts => {
@@ -126,7 +129,7 @@ export class PhonePanelComponent implements OnInit {
       this.pbxControlService.toggleDnd().then(response => {
         //call twice because status get toggled when call api
         this.pbxControlService.toggleDnd().then(response => {
-          const dndStatus = parseDnd(response);        
+          const dndStatus = parseDnd(response);
           this.dndStatus = dndStatus === DndState.Enabled ? true : false;
         });
       });
@@ -154,7 +157,7 @@ export class PhonePanelComponent implements OnInit {
       clearInterval(this.userGetRefresh);
       localStorage.removeItem(`user_name`);
       localStorage.removeItem(`user_id`);
-      
+
       this.pbxControlService.updatePhoneUser(null);
       this.phoneUser = null;
 
@@ -177,7 +180,7 @@ export class PhonePanelComponent implements OnInit {
   }
 
   makeMessageReceivedCallback(): () => void {
-    return (fromUser?:string, messageStr?: string) => {
+    return (fromUser?: string, messageStr?: string) => {
       console.log(`[${this.endUser.id}] received message`);
       if (this.isMessage === false) {
         this.receivedMessages++;
@@ -210,12 +213,12 @@ export class PhonePanelComponent implements OnInit {
   makeCallCreatedCallback(): () => void {
     return () => {
       console.log(`[${this.endUser.id}] call created`);
-      
+
       this.callStatus = `Dialing`;
       this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
 
       this.lineCount = this.lineCount + 1;
-      
+
       this.holdBtnDisabled = true;
       this.muteBtnDisabled = true;
       this.beginBtnDisabled = false;
@@ -230,8 +233,16 @@ export class PhonePanelComponent implements OnInit {
     return () => {
       console.log(`[${this.endUser.id}] call answered`);
 
-      ringAudio.pause();
-      ringAudio.currentTime = 0;
+      const invitationState = this.invitationState;
+
+      if (invitationState === true) {
+        incomingRing.pause();
+        incomingRing.currentTime = 0;  
+      } else {
+        outgoingRing.pause();
+        outgoingRing.currentTime = 0;
+      }
+
       this.invitationState = false;
 
       this.callStatus = `Connected`;
@@ -243,7 +254,7 @@ export class PhonePanelComponent implements OnInit {
       this.endBtnDisabled = false;
 
       this.xferBtnDisabled = false;
-      this.confBtnDisabled = false;
+      this.confBtnDisabled = invitationState;
 
       var AudioContext = window.AudioContext;
       this.audioContext = new AudioContext();
@@ -257,13 +268,13 @@ export class PhonePanelComponent implements OnInit {
   }
 
   makeCallReceivedCallback(): () => void {
-    return (displayName?:string, target?:string, autoAnswer?: boolean) => {      
+    return (displayName?: string, target?: string, autoAnswer?: boolean) => {
       console.log(`[${this.endUser.id}] call received`);
       this.invitationState = true;
       this.targetNum = target;
 
       this.callerId = `${displayName} ${target}`;
-      this.callStatus = `Ringing`;      
+      this.callStatus = `Ringing`;
       this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
 
       this.holdBtnDisabled = true;
@@ -277,9 +288,8 @@ export class PhonePanelComponent implements OnInit {
       if (autoAnswer == true) {
         this.onMakeCall();
       } else {
-        ringAudio.loop = true;
-        ringAudio.autoplay = true;
-        ringAudio.play();
+        incomingRing.loop = true;
+        incomingRing.play();
       }
     }
   }
@@ -288,27 +298,41 @@ export class PhonePanelComponent implements OnInit {
     return () => {
       console.log(`[${this.endUser.id}] call hangup`);
 
-      ringAudio.pause();
-      ringAudio.currentTime = 0;
+      if (this.invitationState === true) {
+        incomingRing.pause();
+        incomingRing.currentTime = 0;  
+      } else {
+        outgoingRing.pause();
+        outgoingRing.currentTime = 0;
+      }
+
+      hangupRing.loop = false;
+      hangupRing.play();      
+
       this.invitationState = false;
 
       this.selectLine === `1` ? this.lineStatusOne = `CallerID Info` : this.lineStatusTwo = `CallerID Info`;
-      
       this.lineCount = this.lineCount - 1;
 
-      if (this.lineCount > 0) {        
+      if (this.lineCount > 0) {
         this.selectLine = this.selectLine === `1` ? `2` : `1`;
         this.changeLine(this.selectLine);
         if (this.transferState === true) {
           this.transferState = false;
         }
+        if (this.confState === true) {
+          this.endBtnDisabled = false;
+        }
       } else {
+        this.selectLine = `1`;
+        this.changeLine(this.selectLine);
+
         this.callerId = ``;
         this.callStatus = `Call Ended`;
 
         this.holdStatus = false;
         this.muteStatus = false;
-  
+
         this.holdBtnDisabled = true;
         this.muteBtnDisabled = true;
         this.beginBtnDisabled = false;
@@ -323,8 +347,8 @@ export class PhonePanelComponent implements OnInit {
   }
 
   makeCallHoldCallback(): () => void {
-    return (held?:boolean, lineNumber?:number) => {
-      console.log(`[${this.endUser.id}], [${lineNumber+1}] call hold.`);
+    return (held?: boolean, lineNumber?: number) => {
+      console.log(`[${this.endUser.id}], [${lineNumber + 1}] call hold.`);
       this.holdStatus = this.endUser.isHeld();
       if (held == false) {
         var AudioContext = window.AudioContext;
@@ -351,7 +375,7 @@ export class PhonePanelComponent implements OnInit {
 
       this.holdStatus = this.endUser.isHeld();
       this.muteStatus = this.endUser.isMuted();
-      
+
       const sessionEstablished = this.endUser.isEstablished();
 
       this.holdBtnDisabled = !sessionEstablished;
@@ -461,7 +485,7 @@ export class PhonePanelComponent implements OnInit {
   unregister(): void {
     this.endUser
       .unregister()
-      .then(() => {        
+      .then(() => {
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to unregister`);
@@ -472,7 +496,7 @@ export class PhonePanelComponent implements OnInit {
   disconnect(): void {
     this.endUser
       .disconnect()
-      .then(() => {        
+      .then(() => {
       })
       .catch((error: Error) => {
         console.error(`[${this.endUser.id}] failed to disconnect`);
@@ -490,7 +514,7 @@ export class PhonePanelComponent implements OnInit {
     if (toneNum && this.endUser.isEstablished()) {
       this.endUser
         .sendDTMF(toneNum)
-        .then(() => {          
+        .then(() => {
         })
         .catch((error: Error) => {
           console.error(`[${this.endUser.id}] failed to send DTMF`);
@@ -527,7 +551,7 @@ export class PhonePanelComponent implements OnInit {
 
     if (value) {
       this.endUser.mute();
-      if (this.endUser.isMuted() === false) {        
+      if (this.endUser.isMuted() === false) {
         console.error(`[${this.endUser.id}] failed to mute call`);
       }
     }
@@ -556,6 +580,16 @@ export class PhonePanelComponent implements OnInit {
           console.error(err);
         });
     }
+    else if (this.confState === true) {
+      this.endUser.terminateConference()
+        .then(() => {
+          this.confState = false;
+        })
+        .catch((err: Error) => {
+          console.error(`Failed to terminate conference call`);
+          console.error(err);
+        })
+    }
     else {
       this.endUser.hangup().catch((err: Error) => {
         console.error(`Failed to hangup call`);
@@ -573,7 +607,7 @@ export class PhonePanelComponent implements OnInit {
     if (this.invitationState === true) {
       this.endUser
         .answer(undefined)
-        .catch( (err: Error) => {
+        .catch((err: Error) => {
           console.error(`[${this.endUser.id}] failed to answer call`);
           console.error(err);
           return;
@@ -581,68 +615,28 @@ export class PhonePanelComponent implements OnInit {
     }
     else {
       const target = `sip:${this.targetNum}@${hostURL}`;
-      if (this.transferState === true) {
-        this.endUser
-          .makeTransfer(target, undefined, {
-            requestDelegate: {
-              onReject: (response) => {
-                console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
-                message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.warn(message);
-                this.transferState = false;
-              }
+
+      outgoingRing.loop = true;
+      outgoingRing.play();
+
+      this.endUser
+        .call(target, undefined, {
+          requestDelegate: {
+            onReject: (response) => {
+              console.warn(`[${this.endUser.id}] INVITE rejected`);
+              let message = `Session invitation to "${this.targetNum}" rejected.\n`;
+              message += `Reason: ${response.message.reasonPhrase}\n`;
+              message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+              message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+              console.warn(message);
             }
-          })
-          .catch((error: Error) => {
-            console.error(`[${this.endUser.id}] failed to transfer call`);
-            console.error(error);
-            return;
-          });
-      }
-      else if (this.confState === true) {
-        this.endUser
-          .makeConference(target, undefined, {
-            requestDelegate: {
-              onReject: (response) => {
-                console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
-                message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.warn(message);
-                this.confState = false;
-              }
-            }
-          })
-          .catch((error: Error) => {
-            console.error(`[${this.endUser.id}] failed to conference call`);
-            console.error(error);
-            return;
-          })
-      }
-      else {
-        this.endUser
-          .call(target, undefined, {
-            requestDelegate: {
-              onReject: (response) => {
-                console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
-                message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.warn(message);
-              }
-            }
-          })
-          .catch((err: Error) => {
-            console.error(`Failed to place call`);
-            console.error(err);
-            return;
-          });
-      }
+          }
+        })
+        .catch((err: Error) => {
+          console.error(`Failed to place call`);
+          console.error(err);
+          return;
+        });
     }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -650,8 +644,8 @@ export class PhonePanelComponent implements OnInit {
   // Misc Controller Events
   onMakeTransfer(completed: boolean): void {
     if (completed === false) {
-      const changeLineNumber = this.selectLine === `1`? 1 : 0;
-      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      const changeLineNumber = this.selectLine === `1` ? 1 : 0;
+      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.endUser
         .initTransfer(changeLineNumber)
         .then(() => {
@@ -666,7 +660,7 @@ export class PhonePanelComponent implements OnInit {
     }
     else {
       this.transferState = false;
-      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.lineCount = this.lineCount - 1;
       this.endUser
         .completeTransfer()
@@ -680,8 +674,9 @@ export class PhonePanelComponent implements OnInit {
 
   onMakeConference(completed: boolean): void {
     if (completed === false) {
-      const changeLineNumber = this.selectLine === `1`? 1 : 0;
-      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      const changeLineNumber = this.selectLine === `1` ? 1 : 0;
+      this.selectLine = this.selectLine === `1` ? `2` : `1`;
+      this.confState = true;
       this.endUser
         .initConference(changeLineNumber)
         .then(() => {
@@ -689,19 +684,32 @@ export class PhonePanelComponent implements OnInit {
           return;
         })
         .catch((error: Error) => {
-          this.transferState = false;
+          this.confState = false;
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
         });
     }
     else {
-      this.confState = false;
-      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      this.confState = true;
+      this.selectLine = this.selectLine === `1` ? `2` : `1`;
+      const target = `sip:${confTarget}@${hostURL}`;
       this.endUser
-        .completeConference()
-        .catch((error: Error) => {
-          console.error(`[${this.endUser.id}] failed to complete transfer call`);
-          console.error(error);
+        .completeConference(target, undefined, {
+          requestDelegate: {
+            onReject: (response) => {
+              console.warn(`[${this.endUser.id}] INVITE rejected`);
+              let message = `Session invitation to "${this.targetNum}" rejected.\n`;
+              message += `Reason: ${response.message.reasonPhrase}\n`;
+              message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+              message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+              console.warn(message);
+            }
+          }
+        })
+        .catch((err: Error) => {
+          this.confState = false;
+          console.error(`[${this.endUser.id}] failed to complete conference call`);
+          console.error(err);
         });
     }
     return;
@@ -721,7 +729,7 @@ export class PhonePanelComponent implements OnInit {
             message += `Reason: ${response.message.reasonPhrase}\n`;
             message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
             message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-            console.log(message);
+            console.warn(message);
           }
         }
       })
@@ -729,7 +737,7 @@ export class PhonePanelComponent implements OnInit {
         console.error(`Failed to place call`);
         console.error(err);
         return;
-      });    
+      });
   }
 
   onMessageDialog(): void {
@@ -785,13 +793,13 @@ export class PhonePanelComponent implements OnInit {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   handleMeterLocal(stream: any): void {
     this.localSoundMeter = new LocalSoundMeter(this.audioContext);
     this.localSoundMeter.connectToSource(stream, (e: Error) => {
       this.micMeterRefresh = setInterval(() => {
         this.micLiveMeter = this.localSoundMeter.inputInstant;
-      }, 1000/15);
+      }, 1000 / 15);
     });
   }
 
@@ -800,7 +808,7 @@ export class PhonePanelComponent implements OnInit {
     this.remoteSoundMeter.connectToSource(stream, (e: Error) => {
       this.receiverMeterRefresh = setInterval(() => {
         this.receiverLiveMeter = this.remoteSoundMeter.calculateAudioLevels();
-      }, 1000/15);
+      }, 1000 / 15);
     });
   }
 

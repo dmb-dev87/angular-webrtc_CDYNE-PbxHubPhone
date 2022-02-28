@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { getAudio } from '../../utilities/ui-utils';
-import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/platform/web/end-user';
+import { EndUser, EndUserOptions, EndUserDelegate } from '../../utilities/end-user';
 import { PhoneUser } from '../../models/phoneuser';
 import { DndState, PbxControlService } from '../../services/pbxcontrol.service';
 import { parseDnd } from '../../utilities/parse-utils';
@@ -10,11 +10,11 @@ import { MessageContact } from 'src/app/models/messagecontact';
 import { PhoneContact } from 'src/app/models/phonecontact';
 import { PhoneInfo } from 'src/app/models/phoneinfo';
 
-const webSocketServer = environment.socketServer;
-const hostURL = environment.hostURL;
-const userAgent = environment.userAgent;
 const monitorTarget = environment.monitorTarget;
-const ringAudio = new Audio(`assets/sound/ring.mp3`);
+const confTarget = environment.confTarget;
+const incomingRing  = new Audio(`assets/sound/incoming_ring.mp3`);
+const outgoingRing = new Audio(`assets/sound/outgoing_ring.mp3`);
+const hangupRing = new Audio(`assets/sound/hangup.mp3`);
 const constraints = {
   audio: true,
   video: false
@@ -77,6 +77,10 @@ export class PopupPhoneComponent implements OnInit {
   private audioContext = undefined;
   private phoneUserSubscribe = null;
 
+  private webSocketServer = environment.socketServer;
+  private hostURL = environment.hostURL;
+  private userAgent = environment.userAgent;
+
   constructor(private pbxControlService: PbxControlService) {}
 
   get phoneUser(): PhoneUser {
@@ -97,9 +101,17 @@ export class PopupPhoneComponent implements OnInit {
 
   ngOnInit(): void {
     this.phoneInfo = JSON.parse(localStorage.getItem(`WebPhone`));
+
     if (this.phoneInfo) {
+      this.webSocketServer = `wss://${this.phoneInfo.sipServer}:${this.phoneInfo.sipPort}`;
+      this.hostURL = this.phoneInfo.sipServer;
+      this.userAgent = this.phoneInfo.userAgent;
       localStorage.setItem(`user_name`, this.phoneInfo.sipUserName);
       this.connect();
+    } else {
+      this.webSocketServer = environment.socketServer;
+      this.hostURL = environment.hostURL;
+      this.userAgent = environment.userAgent;
     }
   }
 
@@ -229,6 +241,7 @@ export class PopupPhoneComponent implements OnInit {
       console.log(`[${this.endUser.id}] call created`);
       
       this.callStatus = `Dialing`;
+      this.selectLine === `1` ? this.lineStatusOne = this.targetNum : this.lineStatusTwo = this.targetNum;
 
       this.lineCount = this.lineCount + 1;
       
@@ -246,8 +259,16 @@ export class PopupPhoneComponent implements OnInit {
     return () => {
       console.log(`[${this.endUser.id}] call answered`);
 
-      ringAudio.pause();
-      ringAudio.currentTime = 0;
+      const invitationState = this.invitationState;
+
+      if (invitationState === true) {
+        incomingRing.pause();
+        incomingRing.currentTime = 0;  
+      } else {
+        outgoingRing.pause();
+        outgoingRing.currentTime = 0;
+      }
+
       this.invitationState = false;
 
       this.callStatus = `Connected`;
@@ -259,7 +280,7 @@ export class PopupPhoneComponent implements OnInit {
       this.endBtnDisabled = false;
 
       this.xferBtnDisabled = false;
-      this.confBtnDisabled = false;
+      this.confBtnDisabled = invitationState;
 
       var AudioContext = window.AudioContext;
       this.audioContext = new AudioContext();
@@ -288,13 +309,13 @@ export class PopupPhoneComponent implements OnInit {
       this.endBtnDisabled = false;
 
       this.xferBtnDisabled = true;
+      this.confBtnDisabled = true;
 
       if (autoAnswer == true) {
         this.onMakeCall();
       } else {
-        ringAudio.loop = true;
-        ringAudio.autoplay = true;
-        ringAudio.play();
+        incomingRing.loop = true;
+        incomingRing.play();
       }
     }
   }
@@ -303,12 +324,20 @@ export class PopupPhoneComponent implements OnInit {
     return () => {
       console.log(`[${this.endUser.id}] call hangup`);
 
-      ringAudio.pause();
-      ringAudio.currentTime = 0;
+      if (this.invitationState === true) {
+        incomingRing.pause();
+        incomingRing.currentTime = 0;
+      } else {
+        outgoingRing.pause();
+        outgoingRing.currentTime = 0;
+      }
+
+      hangupRing.loop = false;
+      hangupRing.play();
+
       this.invitationState = false;
 
-      this.selectLine === `1` ? this.lineStatusOne = `CallerID Info` : this.lineStatusTwo = `CallerID Info`;
-      
+      this.selectLine === `1` ? this.lineStatusOne = `CallerID Info` : this.lineStatusTwo = `CallerID Info`;      
       this.lineCount = this.lineCount - 1;
 
       if (this.lineCount > 0) {
@@ -317,10 +346,19 @@ export class PopupPhoneComponent implements OnInit {
         if (this.transferState === true) {
           this.transferState = false;
         }
+        if (this.confState === true) {
+          this.endBtnDisabled = false;
+        }
       } else {
+        this.selectLine = `1`;
+        this.changeLine(this.selectLine);
+
         this.callerId = ``;
         this.callStatus = `Call Ended`;
-  
+
+        this.holdStatus = false;
+        this.muteStatus = false;
+
         this.holdBtnDisabled = true;
         this.muteBtnDisabled = true;
         this.beginBtnDisabled = false;
@@ -423,16 +461,16 @@ export class PopupPhoneComponent implements OnInit {
         }
       },
       userAgentOptions: {
-        authorizationPassword: this.phoneInfo.sippassword,
+        authorizationPassword: this.phoneInfo.sipPassword,
         authorizationUsername: this.phoneInfo.sipUserName,
         forceRport: true,
         contactName: `${this.phoneInfo.firstName} ${this.phoneInfo.lastName}`,
-        userAgentString: userAgent,
+        userAgentString: this.userAgent,
       },
-      aor: `sip:${this.phoneInfo.extension.toString()}@${hostURL}`
+      aor: `sip:${this.phoneInfo.extension.toString()}@${this.hostURL}`
     };
 
-    this.endUser = new EndUser(webSocketServer, endUserOptions);
+    this.endUser = new EndUser(this.webSocketServer, endUserOptions);
 
     const delegate: EndUserDelegate = {
       onCallCreated: this.makeCallCreatedCallback(),
@@ -557,6 +595,17 @@ export class PopupPhoneComponent implements OnInit {
           console.error(err);
         });
     }
+    else if (this.confState === true) {
+      this.endUser
+        .terminateConference()
+        .then(() => {
+          this.confState = false;
+        })
+        .catch((err: Error) => {
+          console.error(`Failed to terminate conference call`);
+          console.error(err);
+        })
+    }
     else {
       this.endUser.hangup().catch((err: Error) => {
         console.error(`Failed to hangup call`);
@@ -581,69 +630,29 @@ export class PopupPhoneComponent implements OnInit {
         });
     }
     else {
-      const target = `sip:${this.targetNum}@${hostURL}`;
-      if (this.transferState === true) {
-        this.endUser
-          .makeTransfer(target, undefined, {
-            requestDelegate: {
-              onReject: (response) => {
-                console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
-                message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.warn(message);
-                this.transferState = false;
-              }
+      const target = `sip:${this.targetNum}@${this.hostURL}`;
+
+      outgoingRing.loop = true;
+      outgoingRing.play();
+      
+      this.endUser
+        .call(target, undefined, {
+          requestDelegate: {
+            onReject: (response) => {
+              console.warn(`[${this.endUser.id}] INVITE rejected`);
+              let message = `Session invitation to "${this.targetNum}" rejected.\n`;
+              message += `Reason: ${response.message.reasonPhrase}\n`;
+              message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+              message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+              console.warn(message);
             }
-          })
-          .catch((error: Error) => {
-            console.error(`[${this.endUser.id}] failed to transfer call`);
-            console.error(error);
-            return;
-          });
-      }
-      else if (this.confState === true) {
-        this.endUser
-          .makeConference(target, undefined, {
-            requestDelegate: {
-              onReject: (response) => {
-                console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
-                message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.warn(message);
-                this.confState = false;
-              }
-            }
-          })
-          .catch((error: Error) => {
-            console.error(`[${this.endUser.id}] failed to conference call`);
-            console.error(error);
-            return;
-          })
-      }
-      else {
-        this.endUser
-          .call(target, undefined, {
-            requestDelegate: {
-              onReject: (response) => {
-                console.warn(`[${this.endUser.id}] INVITE rejected`);
-                let message = `Session invitation to "${this.targetNum}" rejected.\n`;
-                message += `Reason: ${response.message.reasonPhrase}\n`;
-                message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
-                message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
-                console.warn(message);
-              }
-            }
-          })
-          .catch((err: Error) => {
-            console.error(`Failed to place call`);
-            console.error(err);
-            return;
-          });
-      }
+          }
+        })
+        .catch((err: Error) => {
+          console.error(`Failed to place call`);
+          console.error(err);
+          return;
+        });
     }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -690,17 +699,30 @@ export class PopupPhoneComponent implements OnInit {
           return;
         })
         .catch((error: Error) => {
-          this.transferState = false;
+          this.confState = false;
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
         });
     }
     else {
-      this.confState = false;
+      this.confState = true;
       this.selectLine = this.selectLine === `1`? `2` : `1`;
+      const target = `sip:${confTarget}@${this.hostURL}`;
       this.endUser
-        .completeConference()
+        .completeConference(target, undefined, {
+          requestDelegate: {
+            onReject: (response) => {
+              console.warn(`[${this.endUser.id}] INVITE rejected`);
+              let message = `Session invitation to "${this.targetNum}" rejected.\n`;
+              message += `Reason: ${response.message.reasonPhrase}\n`;
+              message += `Perhaps "${this.targetNum}" is not connected or registered?\n`;
+              message += `Or perhaps "${this.targetNum}" did not grant access to video?\n`;
+              console.warn(message);
+            }
+          }
+        })
         .catch((error: Error) => {
+          this.confState = false;
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
           console.error(error);
         });
@@ -712,7 +734,7 @@ export class PopupPhoneComponent implements OnInit {
     if (this.endUser === null) {
       return;
     }
-    const target = `sip:${monitorTarget}@${hostURL}`;
+    const target = `sip:${monitorTarget}@${this.hostURL}`;
     this.endUser
       .call(target, undefined, {
         requestDelegate: {
@@ -735,6 +757,12 @@ export class PopupPhoneComponent implements OnInit {
 
   onMessageDialog(): void {
     this.isMessage = !this.isMessage;
+    if (this.isMessage === true && window.innerWidth < 942) {
+      window.resizeBy(622, 0);
+    }
+    if (this.isMessage === false && window.innerWidth > 320) {
+      window.resizeBy(-622, 0);
+    }
     this.receivedMessages = 0;
   }
 
@@ -772,7 +800,7 @@ export class PopupPhoneComponent implements OnInit {
     if (this.endUser === null) {
       return;
     }
-    const target = `sip:${extensionNum}@${hostURL}`
+    const target = `sip:${extensionNum}@${this.hostURL}`
     this.endUser
       .message(target, messageStr)
       .catch((error: Error) => {
