@@ -22,11 +22,11 @@ const baseURL = environment.pbxServiceBaseURL;
 @Injectable({
   providedIn: 'root'
 })
-export class PbxControlService {  
-  constructor(private store: Store<AppState>, private http: HttpClient) {}
+export class PbxControlService {
+  constructor(private store: Store<AppState>, private http: HttpClient) { }
 
   loadPhoneState(extension: string): void {
-    this.store.dispatch(new PhoneStateActions.LoadPhoneStateBegin({extension: extension}));
+    this.store.dispatch(new PhoneStateActions.LoadPhoneStateBegin({ extension: extension }));
   }
 
   userGetState(extension: string): any {
@@ -51,11 +51,11 @@ export class PbxControlService {
   }
 
   updatePhoneUser(phoneUser: PhoneUser): void {
-    this.store.dispatch(new PhoneUserActions.UpdatePhoneUserBegin({user: phoneUser}));
+    this.store.dispatch(new PhoneUserActions.UpdatePhoneUserBegin({ user: phoneUser }));
   }
 
   loadPhoneUser(email: string): void {
-    this.store.dispatch(new PhoneUserActions.LoadPhoneUserBegin({email: email}));
+    this.store.dispatch(new PhoneUserActions.LoadPhoneUserBegin({ email: email }));
   }
 
   webRtcDemo(email: string): any {
@@ -83,7 +83,7 @@ export class PbxControlService {
   }
 
   userGetDirecotry(): any {
-    const user_name = localStorage.getItem(`user_name`);    
+    const user_name = localStorage.getItem(`user_name`);
     const soapAction = `"http://tempuri.org/IPBXControl/User_GetDirectory"`;
     const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><User_GetDirectory xmlns="http://tempuri.org/"><UserKey>${user_name}</UserKey></User_GetDirectory></s:Body></s:Envelope>`;
 
@@ -128,7 +128,7 @@ export class PbxControlService {
   messageGetActiveConversations(): any {
     const user_name = localStorage.getItem(`user_name`);
     const soapAction = `"http://tempuri.org/IPBXControl/Message_GetActiveConversations"`;
-    const body =`<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><Message_GetActiveConversations xmlns="http://tempuri.org/"><UserKey>${user_name}</UserKey></Message_GetActiveConversations></s:Body></s:Envelope>`;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><Message_GetActiveConversations xmlns="http://tempuri.org/"><UserKey>${user_name}</UserKey></Message_GetActiveConversations></s:Body></s:Envelope>`;
 
     return this.http.post(baseURL, body, {
       headers: new HttpHeaders()
@@ -147,7 +147,7 @@ export class PbxControlService {
   }
 
   addMessageContact(contact: any) {
-    this.store.dispatch(new MessageContactsActions.AddMessageContactBegin({contact: contact}));
+    this.store.dispatch(new MessageContactsActions.AddMessageContactBegin({ contact: contact }));
   }
 
   messageActivateConversation(addContact: MessageContact): any {
@@ -168,7 +168,7 @@ export class PbxControlService {
   }
 
   deleteMessageContact(contact: any) {
-    this.store.dispatch(new MessageContactsActions.DeleteMessageContactBegin({contact: contact}));
+    this.store.dispatch(new MessageContactsActions.DeleteMessageContactBegin({ contact: contact }));
   }
 
   messageHideConversation(hideContact: MessageContact) {
@@ -189,7 +189,7 @@ export class PbxControlService {
   }
 
   loadMessageHistories(extension: string): void {
-    this.store.dispatch(new MessageHistoriesActions.LoadMessageHistoriesBegin({extension: extension, messageId: 0}));
+    this.store.dispatch(new MessageHistoriesActions.LoadMessageHistoriesBegin({ extension: extension, messageId: 0 }));
   }
 
   messageGetMessages(payload: any): any {
@@ -214,10 +214,10 @@ export class PbxControlService {
   }
 
   updateMessageHistories(histories: any): void {
-    this.store.dispatch(new MessageHistoriesActions.UpdateMessageHistories({histories: histories}));
+    this.store.dispatch(new MessageHistoriesActions.UpdateMessageHistories({ histories: histories }));
   }
 
   addMessageHistory(history: any): void {
-    this.store.dispatch(new MessageHistoriesActions.AddMessageHistory({history: history}));
+    this.store.dispatch(new MessageHistoriesActions.AddMessageHistory({ history: history }));
   }
 }

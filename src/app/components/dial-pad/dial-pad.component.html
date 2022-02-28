@@ -15,7 +15,7 @@
       <button *ngFor="let n of ['7', '8', '9'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
     </div>
     <div class=" row">
-      <button *ngFor="let n of ['#', '0', '*'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
+      <button *ngFor="let n of ['*', '0', '#'];" class=" btn btn-fill btn-number" (click)="clickNumber(n)">{{n}}</button>
     </div>
     <div class=" row">
       <button class=" btn btn-fill btn-number" (click)="clickNumber('clear')">Clear</button>

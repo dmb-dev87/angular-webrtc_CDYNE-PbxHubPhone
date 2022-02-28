@@ -10,12 +10,15 @@ export class MiscControlComponent implements OnInit {
   @Output() transfer = new EventEmitter<boolean>();
   @Output() monitor = new EventEmitter();
   @Output() message = new EventEmitter();
+  @Output() conference = new EventEmitter<boolean>();
   
   @Input() xferBtnDisabled: boolean;
   @Input() transferState: boolean;
   @Input() monitorBtnDisabled: boolean;
   @Input() messageBtnDisabled: boolean;
   @Input() receivedMessages: number;
+  @Input() confBtnDisabled: boolean;
+  @Input() confState: boolean;
 
   constructor() {}
 
@@ -39,5 +42,17 @@ export class MiscControlComponent implements OnInit {
 
   onMessage(): void {
     this.message.emit();
+  }
+
+  onMakeConference(): void {
+    let completed = false;
+    const btnText = getButtonText(`conf-call`).toLowerCase();
+    if (btnText === `conference`) {
+      completed = false;
+    }
+    else if (btnText === `finish conf`) {
+      completed = true;
+    }
+    this.conference.emit(completed);
   }
 }

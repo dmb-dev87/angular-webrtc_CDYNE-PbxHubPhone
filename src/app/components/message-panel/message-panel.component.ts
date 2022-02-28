@@ -70,7 +70,7 @@ export class MessagePanelComponent implements OnInit, AfterViewInit {
         grouped.push({
           actualDay: actualDay,
           messages: messages
-        });        
+        });
       } else {
         group.messages.push(msg);
       }

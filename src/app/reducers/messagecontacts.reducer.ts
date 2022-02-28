@@ -49,8 +49,8 @@ export function reducer(
     case fromMessageContacts.ActionTypes.DeleteMessageContactSuccess: {
       let newContacts = Object.assign([], state.contacts);
       const hideContact = action.payload.contact;
-      newContacts.forEach( (item, index) => {
-        if(item === hideContact.contact) {
+      newContacts.forEach((item, index) => {
+        if (item === hideContact.contact) {
           newContacts.splice(index, 1);
         }
       });
