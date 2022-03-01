@@ -399,7 +399,7 @@ export class PhonePanelComponent implements OnInit {
       if (this.phoneUser) {
         // set user information to localstorage
         localStorage.setItem(`user_name`, this.phoneUser.authName);
-        localStorage.setItem(`user_id`, this.phoneUser.clientId);
+        localStorage.setItem(`client_id`, this.phoneUser.clientId);
         this.connect();
       }
     })
