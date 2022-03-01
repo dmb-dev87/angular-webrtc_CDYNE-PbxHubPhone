@@ -33,6 +33,7 @@
           [holdToggle]="holdStatus"
           [muteToggle]="muteStatus"
           [phoneContacts]="phoneContacts"
+          (clickNumber)="onClickNumber($event)"
           (changeNumber)="onChangeNumber($event)"
           (hold)="onHold($event)"
           (mute)="onMute($event)"

@@ -107,6 +107,7 @@ export class PopupPhoneComponent implements OnInit {
       this.hostURL = this.phoneInfo.sipServer;
       this.userAgent = this.phoneInfo.userAgent;
       localStorage.setItem(`user_name`, this.phoneInfo.sipUserName);
+      localStorage.setItem(`client_id`, this.phoneInfo.clientId);
       this.connect();
     } else {
       this.webSocketServer = environment.socketServer;
@@ -536,6 +537,19 @@ export class PopupPhoneComponent implements OnInit {
   // Phone Control Events Emitter
   onChangeNumber(value: string): void {
     this.targetNum = value;
+  }
+
+  onClickNumber(toneNum: string): void {
+    if (toneNum && this.endUser.isEstablished()) {
+      this.endUser
+        .sendDTMF(toneNum)
+        .then(() => {
+        })
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to send DTMF`);
+          console.error(error);
+        })
+    }
   }
 
   onHold(value: boolean): void {

@@ -43,7 +43,7 @@ export class PhoneControlComponent implements OnInit {
   }
 
   onHangupCall(): void {
-    this.hangupCall.emit();
+    this.hangupCall.emit();    
   }
 
   onMakeCall(): void {

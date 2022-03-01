@@ -11,4 +11,5 @@ export class PhoneInfo {
   lastName: string;
   extension: number;
   userId: number;
+  clientId: string;
 }

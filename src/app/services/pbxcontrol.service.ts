@@ -111,9 +111,9 @@ export class PbxControlService {
 
   toggleDnd(): Promise<any> {
     const user_name = localStorage.getItem(`user_name`);
-    const user_id = localStorage.getItem(`user_id`);
+    const client_id = localStorage.getItem(`client_id`);
     const soapAction = `"http://tempuri.org/IPBXControl/ToggleDnd"`;
-    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><ToggleDnd xmlns="http://tempuri.org/"><ClientID>${user_id}</ClientID><UserID>${user_name}</UserID></ToggleDnd></s:Body></s:Envelope> `;
+    const body = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><ToggleDnd xmlns="http://tempuri.org/"><ClientID>${client_id}</ClientID><UserID>${user_name}</UserID></ToggleDnd></s:Body></s:Envelope> `;
 
     return this.http.post(baseURL, body, {
       headers: new HttpHeaders()
