@@ -288,6 +288,7 @@ export class PhonePanelComponent implements OnInit {
       if (autoAnswer == true) {
         this.onMakeCall();
       } else {
+        incomingRing.volume = 0.8;
         incomingRing.loop = true;
         incomingRing.play();
       }
@@ -305,7 +306,8 @@ export class PhonePanelComponent implements OnInit {
         outgoingRing.pause();
         outgoingRing.currentTime = 0;
       }
-
+      
+      hangupRing.volume = 0.5;
       hangupRing.loop = false;
       hangupRing.play();
 
@@ -616,6 +618,7 @@ export class PhonePanelComponent implements OnInit {
     else {
       const target = `sip:${this.targetNum}@${hostURL}`;
 
+      outgoingRing.volume = 0.8;
       outgoingRing.loop = true;
       outgoingRing.play();
 
