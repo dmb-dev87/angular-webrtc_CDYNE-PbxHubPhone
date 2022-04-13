@@ -49,8 +49,10 @@ export class PhonePanelComponent implements OnInit {
   holdStatus = false;
   muteStatus = false;
 
-  xferBtnDisabled = true;
-  transferState = false;
+  axferBtnDisabled = true;
+  transferStateA = false;
+  bxferBtnDisabled = true;
+  transferStateB = false;
   monitorBtnDisabled = true;
   messageBtnDisabled = true;
   confState = false;
@@ -143,7 +145,8 @@ export class PhonePanelComponent implements OnInit {
       this.beginBtnDisabled = false;
       this.endBtnDisabled = true;
 
-      this.xferBtnDisabled = true;
+      this.axferBtnDisabled = true;
+      this.bxferBtnDisabled = true;
       this.monitorBtnDisabled = false;
       this.messageBtnDisabled = false;
       this.confBtnDisabled = true;
@@ -172,7 +175,8 @@ export class PhonePanelComponent implements OnInit {
       this.beginBtnDisabled = true;
       this.endBtnDisabled = true;
 
-      this.xferBtnDisabled = true;
+      this.axferBtnDisabled = true;
+      this.bxferBtnDisabled = true;
       this.monitorBtnDisabled = true;
       this.messageBtnDisabled = true;
       this.confBtnDisabled = true;
@@ -224,7 +228,8 @@ export class PhonePanelComponent implements OnInit {
       this.beginBtnDisabled = false;
       this.endBtnDisabled = false;
 
-      this.xferBtnDisabled = true;
+      this.axferBtnDisabled = true;
+      this.bxferBtnDisabled = true;
       this.confBtnDisabled = true;
     };
   }
@@ -253,7 +258,8 @@ export class PhonePanelComponent implements OnInit {
       this.beginBtnDisabled = true;
       this.endBtnDisabled = false;
 
-      this.xferBtnDisabled = false;
+      this.axferBtnDisabled = false;
+      this.bxferBtnDisabled = false;
       this.confBtnDisabled = invitationState;
 
       var AudioContext = window.AudioContext;
@@ -282,7 +288,8 @@ export class PhonePanelComponent implements OnInit {
       this.beginBtnDisabled = false;
       this.endBtnDisabled = false;
 
-      this.xferBtnDisabled = true;
+      this.axferBtnDisabled = true;
+      this.bxferBtnDisabled = true;
       this.confBtnDisabled = true;
 
       if (autoAnswer == true) {
@@ -318,16 +325,22 @@ export class PhonePanelComponent implements OnInit {
 
       if (this.lineCount > 0) {
         this.selectLine = this.selectLine === `1` ? `2` : `1`;
-        this.changeLine(this.selectLine);
-        if (this.transferState === true) {
-          this.transferState = false;
+
+        if (this.transferStateA === false && this.transferStateB === false) {
+          this.changeLine(this.selectLine);
+        }
+        
+        if (this.transferStateA === true) {
+          this.transferStateA = false;
+        }
+        if (this.transferStateB === true) {
+          this.transferStateB = false;
         }
         if (this.confState === true) {
           this.endBtnDisabled = false;
         }
       } else {
         this.selectLine = `1`;
-        this.changeLine(this.selectLine);
 
         this.callerId = ``;
         this.callStatus = `Call Ended`;
@@ -340,7 +353,8 @@ export class PhonePanelComponent implements OnInit {
         this.beginBtnDisabled = false;
         this.endBtnDisabled = true;
 
-        this.xferBtnDisabled = true;
+        this.axferBtnDisabled = true;
+        this.bxferBtnDisabled = true;
         this.confBtnDisabled = true;
 
         this.handleMeterStop();
@@ -385,7 +399,8 @@ export class PhonePanelComponent implements OnInit {
       this.endBtnDisabled = !sessionEstablished;
       this.beginBtnDisabled = sessionEstablished;
 
-      this.xferBtnDisabled = this.transferState;
+      this.axferBtnDisabled = this.transferStateA;
+      this.bxferBtnDisabled = this.transferStateB;
       this.confBtnDisabled = this.confState;
     }
   }
@@ -645,28 +660,45 @@ export class PhonePanelComponent implements OnInit {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Misc Controller Events
-  onMakeTransfer(completed: boolean): void {
+  onMakeTransferA(completed: boolean): void {
     if (completed === false) {
       const changeLineNumber = this.selectLine === `1` ? 1 : 0;
       this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.endUser
         .initTransfer(changeLineNumber)
         .then(() => {
-          this.transferState = true;
+          this.transferStateA = true;
           return;
         })
         .catch((error: Error) => {
-          this.transferState = false;
+          this.transferStateA = false;
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
         });
     }
     else {
-      this.transferState = false;
+      this.transferStateA = false;
       this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.lineCount = this.lineCount - 1;
       this.endUser
-        .completeTransfer()
+        .completeTransferA()
+        .catch((error: Error) => {
+          console.error(`[${this.endUser.id}] failed to complete transfer call`);
+          console.error(error);
+        });
+    }
+    return;
+  }
+
+  onMakeTransferB(completed: boolean): void {
+    if (completed === false) {
+      this.transferStateB = true;
+    }
+    else {
+      this.transferStateB = false;
+      const target = `sip:${this.targetNum}@${hostURL}`;
+      this.endUser
+        .completeTransferB(target)
         .catch((error: Error) => {
           console.error(`[${this.endUser.id}] failed to complete transfer call`);
           console.error(error);
