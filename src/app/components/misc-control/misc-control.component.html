@@ -1,6 +1,7 @@
 <div class=" row">
   <div class=" btns-panel">
-    <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call" (click)="onMakeTransfer()" [disabled]="xferBtnDisabled">{{transferState?"Complete X-fer":"X-fer"}}</button>
+    <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call-a" (click)="onMakeTransferA()" [disabled]="axferBtnDisabled">{{transferStateA?"Complete X-fer":"Attended X-fer"}}</button>
+    <button class=" btn btn-fill btn-normal phone-ctrlbtn" id="transfer-call-b" (click)="onMakeTransferB()" [disabled]="bxferBtnDisabled">{{transferStateB?"Complete X-fer":"Blind X-fer"}}</button>
     <button class=" btn btn-fill btn-normal phone-ctrlbtn" (click)="onDialMonitor()" [disabled]="monitorBtnDisabled">Monitor</button>
   </div>
 </div>

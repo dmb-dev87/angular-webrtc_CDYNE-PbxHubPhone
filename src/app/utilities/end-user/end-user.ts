@@ -879,14 +879,14 @@ export class EndUser {
     return Promise.resolve();
   }
 
-  public completeTransfer(): Promise<OutgoingReferRequest> {
-    this.logger.log(`[${this.id}] Completing Transfer...`);
+  public completeTransferA(): Promise<OutgoingReferRequest> {
+    this.logger.log(`[${this.id}] Completing Attended Transfer...`);
 
     if (!this.session && this.session.state !== SessionState.Established) {
       return Promise.reject(new Error(`Session does not exists.`));
     }
 
-    const oldLine = this.getLine(this.curLineNumber === 0 ? 1:0);
+    const oldLine = this.getLine(this.curLineNumber === 0 ? 1 : 0);
     const oldSession = oldLine.session;
 
     if (!oldSession) {
@@ -899,6 +899,25 @@ export class EndUser {
     }
 
     return oldSession.refer(curLine.target);
+  }
+
+  public completeTransferB(destination: string): Promise<OutgoingReferRequest> {
+    this.logger.log(`[${this.id}] Completing Blind Transfer...`);
+
+    const target = UserAgent.makeURI(destination);
+
+    if (!this.session && this.session.state !== SessionState.Established) {
+      return Promise.reject(new Error(`Session does not exists.`));
+    }
+
+    const oldLine = this.getLine(this.curLineNumber);
+    const oldSession = oldLine.session;
+
+    if (!oldSession) {
+      return Promise.reject(new Error(`Old Session does not exists.`));
+    }
+
+    return oldSession.refer(target);
   }
 
   async initConference(lineNumber: number): Promise<void> {

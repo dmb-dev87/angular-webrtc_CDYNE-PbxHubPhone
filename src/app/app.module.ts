@@ -13,7 +13,6 @@ import { FormsModule } from '@angular/forms';
 import { MaterialModule } from './material.module';
 import { ClickOutsideModule } from 'ng-click-outside';
 
-import { PhonePanelComponent } from './components/phone-panel/phone-panel.component';
 import { LineInfoComponent } from './components/line-info/line-info.component';
 import { PhoneControlComponent } from './components/phone-control/phone-control.component';
 import { UserInfoComponent } from './components/user-info/user-info.component';
@@ -25,7 +24,6 @@ import { PopupPhoneComponent } from './components/popup-phone/popup-phone.compon
 @NgModule({
   declarations: [
     AppComponent,
-    PhonePanelComponent,
     LineInfoComponent,
     PhoneControlComponent,
     UserInfoComponent,
