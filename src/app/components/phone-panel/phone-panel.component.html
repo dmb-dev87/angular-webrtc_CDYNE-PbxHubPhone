@@ -42,14 +42,17 @@
     </div>
     <div class=" col-lg-3 col-md-6 col-sm-12 control-pad">
       <app-misc-control
-        [transferState]="transferState"
-        [xferBtnDisabled]="xferBtnDisabled"
+        [transferStateA]="transferStateA"
+        [transferStateB]="transferStateB"
+        [axferBtnDisabled]="axferBtnDisabled"
+        [bxferBtnDisabled]="bxferBtnDisabled"
         [monitorBtnDisabled]="monitorBtnDisabled"
         [messageBtnDisabled]="messageBtnDisabled"
         [receivedMessages]="receivedMessages"
         [confState]="confState"
         [confBtnDisabled]="confBtnDisabled"
-        (transfer)="onMakeTransfer($event)"
+        (transferA)="onMakeTransferA($event)"
+        (transferB)="onMakeTransferB($event)"
         (monitor)="onDialMonitor()"
         (message)="onMessageDialog()"
         (conference)="onMakeConference($event)">
