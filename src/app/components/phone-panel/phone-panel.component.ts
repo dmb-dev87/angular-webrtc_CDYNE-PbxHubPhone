@@ -325,20 +325,11 @@ export class PhonePanelComponent implements OnInit {
 
       if (this.lineCount > 0) {
         this.selectLine = this.selectLine === `1` ? `2` : `1`;
+        this.changeLine(this.selectLine);
 
-        if (this.transferStateA === false && this.transferStateB === false) {
-          this.changeLine(this.selectLine);
-        }
-        
-        if (this.transferStateA === true) {
-          this.transferStateA = false;
-        }
-        if (this.transferStateB === true) {
-          this.transferStateB = false;
-        }
-        if (this.confState === true) {
-          this.endBtnDisabled = false;
-        }
+        this.transferStateA = false;
+        this.transferStateB = false;
+        this.endBtnDisabled = this.confState === true ? false : this.endBtnDisabled;
       } else {
         this.selectLine = `1`;
 
@@ -399,6 +390,10 @@ export class PhonePanelComponent implements OnInit {
       this.endBtnDisabled = !sessionEstablished;
       this.beginBtnDisabled = sessionEstablished;
 
+      if (this.transferStateA) {
+        this.transferStateA = false;        
+      }
+      
       this.axferBtnDisabled = this.transferStateA;
       this.bxferBtnDisabled = this.transferStateB;
       this.confBtnDisabled = this.confState;

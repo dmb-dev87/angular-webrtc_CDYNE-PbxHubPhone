@@ -1,3 +1,16 @@
+diff --git a/node_modules/sip.js/lib/api/session.js b/node_modules/sip.js/lib/api/session.js
+index 8a908f4..d7fe4f2 100644
+--- a/node_modules/sip.js/lib/api/session.js
++++ b/node_modules/sip.js/lib/api/session.js
+@@ -694,7 +694,7 @@ export class Session {
+      */
+     onByeRequest(request) {
+         this.logger.log("Session.onByeRequest");
+-        if (this.state !== SessionState.Established) {
++        if (this.state === SessionState.Terminated) {
+             this.logger.error(`BYE received while in state ${this.state}, dropping request`);
+             return;
+         }
 diff --git a/node_modules/sip.js/lib/core/user-agent-core/user-agent-core.js b/node_modules/sip.js/lib/core/user-agent-core/user-agent-core.js
 index 18b4257..1f143b1 100644
 --- a/node_modules/sip.js/lib/core/user-agent-core/user-agent-core.js
