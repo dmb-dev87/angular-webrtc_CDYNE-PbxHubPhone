@@ -352,20 +352,11 @@ export class PopupPhoneComponent implements OnInit {
 
       if (this.lineCount > 0) {
         this.selectLine = this.selectLine === `1` ? `2` : `1`;
-    
-        if (this.transferStateA === false && this.transferStateB === false) {
-          this.changeLine(this.selectLine);
-        }
-        
-        if (this.transferStateA === true) {
-          this.transferStateA = false;
-        }
-        if (this.transferStateB === true) {
-          this.transferStateB = false;
-        }
-        if (this.confState === true) {
-          this.endBtnDisabled = false;
-        }
+        this.changeLine(this.selectLine);
+
+        this.transferStateA = false;
+        this.transferStateB = false;
+        this.endBtnDisabled = this.confState === true ? false : this.endBtnDisabled;
       } else {
         this.selectLine = `1`;
     
@@ -425,6 +416,10 @@ export class PopupPhoneComponent implements OnInit {
       this.muteBtnDisabled = !sessionEstablished;
       this.endBtnDisabled = !sessionEstablished;
       this.beginBtnDisabled = sessionEstablished;
+
+      if (this.transferStateA === true) {
+        this.transferStateA = false;        
+      }
 
       this.axferBtnDisabled = this.transferStateA;
       this.bxferBtnDisabled = this.transferStateB;
