@@ -382,7 +382,7 @@ export class PopupPhoneComponent implements OnInit {
 
   makeCallHoldCallback(): () => void {
     return (held?:boolean, lineNumber?:number) => {
-      console.log(`[${this.endUser.id}], [${lineNumber+1}] call hold.`);
+      console.log(`[${this.endUser.id}], [${lineNumber}] call hold.`);
       this.holdStatus = this.endUser.isHeld();
       if (held == false) {
         var AudioContext = window.AudioContext;
@@ -401,8 +401,10 @@ export class PopupPhoneComponent implements OnInit {
   }
 
   makeLineChangedCallback(): () => void {
-    return () => {
-      console.log(`[${this.endUser.id}] line changed.`);
+    return (lineNumber?: number) => {
+      console.log(`[${this.endUser.id}] line changed to ${lineNumber}.`);
+
+      this.selectLine = (lineNumber).toString();
 
       this.callerId = this.oldCallerId;
       this.callStatus = this.oldCallerId;
@@ -687,10 +689,8 @@ export class PopupPhoneComponent implements OnInit {
   // Misc Controller Events
   onMakeTransferA(completed: boolean): void {
     if (completed === false) {
-      const changeLineNumber = this.selectLine === `1` ? 1 : 0;
-      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.endUser
-        .initTransfer(changeLineNumber)
+        .changeLine(this.selectLine === `1` ? 2 : 1)
         .then(() => {
           this.transferStateA = true;
           return;
@@ -699,11 +699,10 @@ export class PopupPhoneComponent implements OnInit {
           this.transferStateA = false;
           console.error(`[${this.endUser.id}] failed to change line`);
           console.error(error);
-        });
+        })
     }
     else {
       this.transferStateA = false;
-      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.lineCount = this.lineCount - 1;
       this.endUser
         .completeTransferA()
@@ -734,10 +733,9 @@ export class PopupPhoneComponent implements OnInit {
 
   onMakeConference(completed: boolean): void {
     if (completed === false) {
-      const changeLineNumber = this.selectLine === `1`? 1 : 0;
-      this.selectLine = this.selectLine === `1`? `2` : `1`;
+      this.confState = true;
       this.endUser
-        .initConference(changeLineNumber)
+        .initConference(this.selectLine === `1` ? 2 : 1)
         .then(() => {
           this.confState = true;
           return;
@@ -750,7 +748,6 @@ export class PopupPhoneComponent implements OnInit {
     }
     else {
       this.confState = true;
-      this.selectLine = this.selectLine === `1`? `2` : `1`;
       const target = `sip:${confTarget}@${this.hostURL}`;
       this.endUser
         .completeConference(target, undefined, {
@@ -814,8 +811,8 @@ export class PopupPhoneComponent implements OnInit {
 
   // Line Info Events
   changeLine(selectLine: string): void {
-    this.selectLine = selectLine;
-    const lineNumber = this.selectLine === `1` ? 0 : 1;
+    const lineNumber = parseInt(selectLine, 10);
+
     if (this.endUser === null) {
       return;
     }

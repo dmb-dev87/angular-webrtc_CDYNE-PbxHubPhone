@@ -23,11 +23,14 @@ import {
   UserAgentOptions,
   UserAgentState
 } from 'sip.js';
-import {Logger, OutgoingReferRequest} from 'sip.js/lib/core';
-import {SessionDescriptionHandler, SessionDescriptionHandlerOptions} from 'sip.js/lib/platform/web/session-description-handler';
-import {Transport} from '../transport';
-import {EndUserDelegate} from './end-user-delegate';
-import {EndUserOptions} from './end-user-options';
+import { Logger, OutgoingReferRequest } from 'sip.js/lib/core';
+import {
+  SessionDescriptionHandler,
+  SessionDescriptionHandlerOptions
+} from 'sip.js/lib/platform/web/session-description-handler';
+import { Transport } from '../transport';
+import { EndUserDelegate } from './end-user-delegate';
+import { EndUserOptions } from './end-user-options';
 
 interface LineSession {
   target: URI;
@@ -48,13 +51,13 @@ export class EndUser {
   private userAgent: UserAgent;
   private confTarget: URI | undefined = undefined;
   private lineSessions: Array<LineSession> = [
-    {target: undefined, session: undefined, held: false, muted: false},
-    {target: undefined, session: undefined, held: false, muted: false},
-    {target: undefined, session: undefined, held: false, muted: false}
+    { target: undefined, session: undefined, held: false, muted: false },
+    { target: undefined, session: undefined, held: false, muted: false },
+    { target: undefined, session: undefined, held: false, muted: false }
   ];
-  private _curLineNumber: number = 0;
-  private _firstLineNumber: number = 0;
-  private _secondLineNumber: number = 0;
+  private _curLineNumber: number = 1;
+  private _firstLineNumber: number = 1;
+  private _secondLineNumber: number = 1;
 
   constructor(server: string, options: EndUserOptions = {}) {
 
@@ -128,7 +131,7 @@ export class EndUser {
       onInvite: (invitation: Invitation): void => {
         this.logger.log(`[${this.id}] Received INVITE`);
         if (this.session) {
-          const line = this.getLine(this.curLineNumber == 0? 1 : 0);
+          const line = this.getLine(this.curLineNumber == 1 ? 2 : 1);
           if (line.session) {
             this.logger.warn(`[${this.id}] Session already in progress, rejecting INVITE...`);
             invitation
@@ -142,9 +145,10 @@ export class EndUser {
               });
             return;
           }
-          this.curLineNumber = this.curLineNumber == 0? 1 : 0;
+          
+          this.curLineNumber = this.curLineNumber == 1 ? 2 : 1;
           if (this.delegate && this.delegate.onLineChanged) {
-            this.delegate.onLineChanged();
+            this.delegate.onLineChanged(this.curLineNumber);
           }
         }
 
@@ -183,7 +187,7 @@ export class EndUser {
         }
       },
       onMessage: (message: Message): void => {
-        message.accept().then(() => {          
+        message.accept().then(() => {
           const uri = message.request.from.uri;
           const fromUser = uri.user;
           if (this.delegate && this.delegate.onMessageReceived) {
@@ -206,7 +210,7 @@ export class EndUser {
   }
 
   get localMediaStream(): MediaStream | undefined {
-    const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
+    const sdh = this.session ? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
     }
@@ -217,7 +221,7 @@ export class EndUser {
   }
 
   get remoteMediaStream(): MediaStream | undefined {
-    const sdh = this.session? this.session.sessionDescriptionHandler : undefined;
+    const sdh = this.session ? this.session.sessionDescriptionHandler : undefined;
     if (!sdh) {
       return undefined;
     }
@@ -562,7 +566,7 @@ export class EndUser {
 
   private enableReceiverTracks(enable: boolean, lineNumber: number): void {
     const line = this.getLine(lineNumber);
-    const session : Session = line.session;
+    const session: Session = line.session;
 
     if (!session) {
       throw new Error(`Session does not exist.`);
@@ -578,7 +582,7 @@ export class EndUser {
       throw new Error(`Peer connection closed.`);
     }
 
-    peerConnection.getReceivers().forEach((receiver) => {      
+    peerConnection.getReceivers().forEach((receiver) => {
       if (receiver.track) {
         receiver.track.enabled = enable;
       }
@@ -587,7 +591,7 @@ export class EndUser {
 
   private enableSenderTracks(enable: boolean, lineNumber: number): void {
     const line = this.getLine(lineNumber);
-    const session : Session = line.session;
+    const session: Session = line.session;
 
     if (!session) {
       throw new Error(`Session does not exist.`);
@@ -633,8 +637,8 @@ export class EndUser {
           if (this.delegate && this.delegate.onCallAnswered) {
             this.delegate.onCallAnswered();
           }
-          if (this.curLineNumber == 2) {
-            this.makeConference();            
+          if (this.curLineNumber == 3) {
+            this.makeConference();
           }
           break;
         case SessionState.Terminating:
@@ -654,11 +658,11 @@ export class EndUser {
 
     this.session.delegate = {
       onBye: (bye: Bye): void => {
-        for(let i = 0; i < 2; i++) {
+        for (let i = 1; i < 3; i++) {
           const line = this.getLine(i);
           if (line.session) {
             const id: string = line.session.id;
-            const byeId: string = bye.request.callId;            
+            const byeId: string = bye.request.callId;
             if (id.toLowerCase().includes(byeId.toLowerCase())) {
               this.curLineNumber = i;
             }
@@ -747,9 +751,9 @@ export class EndUser {
 
     let mediaElement;
 
-    if  (this.curLineNumber == 0) {
+    if (this.curLineNumber == 1) {
       mediaElement = this.options.media?.local1?.video;
-    } 
+    }
     else {
       mediaElement = this.options.media?.local2?.video;
     }
@@ -768,14 +772,14 @@ export class EndUser {
     }
   }
 
-  private setupRemoteMedia(): void {    
+  private setupRemoteMedia(): void {
     if (!this.session) {
       throw new Error(`Session does not exist.`);
     }
 
     let mediaElement;
 
-    if (this.curLineNumber == 0) {
+    if (this.curLineNumber == 1) {
       mediaElement = this.options.media?.remote1?.video || this.options.media?.remote1?.audio;
     }
     else {
@@ -851,34 +855,6 @@ export class EndUser {
     return Promise.resolve();
   }
 
-  async initTransfer(lineNumber: number): Promise<void> {
-    this.logger.log(`[${this.id}] Changing Lines...`);
-
-    if (lineNumber === this.curLineNumber) {
-      return Promise.resolve();
-    }
-
-    if (this.session) {
-      if (this.session.state === SessionState.Established) {
-        await this.setLineHold(true, this.curLineNumber);
-      }
-    }
-
-    this.curLineNumber = lineNumber;
-
-    if (this.session) {
-      if (this.session.state === SessionState.Established) {
-        await this.setLineHold(false, this.curLineNumber);
-      }
-    }
-
-    if (this.delegate && this.delegate.onLineChanged) {
-      this.delegate.onLineChanged();
-    }
-
-    return Promise.resolve();
-  }
-
   public completeTransferA(): Promise<OutgoingReferRequest> {
     this.logger.log(`[${this.id}] Completing Attended Transfer...`);
 
@@ -886,7 +862,7 @@ export class EndUser {
       return Promise.reject(new Error(`Session does not exists.`));
     }
 
-    const oldLine = this.getLine(this.curLineNumber === 0 ? 1 : 0);
+    const oldLine = this.getLine(this.curLineNumber === 1 ? 2 : 1);
     const oldSession = oldLine.session;
 
     if (!oldSession) {
@@ -939,7 +915,7 @@ export class EndUser {
     this.curLineNumber = lineNumber;
 
     if (this.delegate && this.delegate.onLineChanged) {
-      this.delegate.onLineChanged();
+      this.delegate.onLineChanged(this.curLineNumber);
     }
 
     return Promise.resolve();
@@ -967,7 +943,7 @@ export class EndUser {
       }
     }
 
-    this.curLineNumber = 2;
+    this.curLineNumber = 3;
 
     if (!inviterOptions) {
       inviterOptions = {};
@@ -986,14 +962,14 @@ export class EndUser {
     });
   }
 
-  private makeConference() : void {
-    let id : string;
+  private makeConference(): void {
+    let id: string;
 
     const oneline = this.getLine(this.firstLineNumber);
 
     id = oneline.session.id;
 
-    let oneTarget : URI = this.confTarget;
+    let oneTarget: URI = this.confTarget;
     oneTarget.setHeader("Replaces", id.substring(0, id.length - 10));
     oneTarget.setHeader("from-tag", id.substring(id.length - 10));
 
@@ -1003,7 +979,7 @@ export class EndUser {
 
     id = twoline.session.id;
 
-    let twoTarget : URI = this.confTarget;
+    let twoTarget: URI = this.confTarget;
     twoTarget.setHeader("Replaces", id.substring(0, id.length - 10));
     twoTarget.setHeader("from-tag", id.substring(id.length - 10));
 
@@ -1012,7 +988,7 @@ export class EndUser {
 
   public terminateConference(): Promise<void> {
     this.logger.log(`[${this.id}] Terminate conference...`);
-    this.curLineNumber = 2;
+    this.curLineNumber = 3;
     return this.terminate();
   }
 
@@ -1038,7 +1014,7 @@ export class EndUser {
     }
 
     if (this.delegate && this.delegate.onLineChanged) {
-      this.delegate.onLineChanged();
+      this.delegate.onLineChanged(this.curLineNumber);
     }
 
     return Promise.resolve();
@@ -1069,25 +1045,25 @@ export class EndUser {
   }
 
   get session(): Session {
-    if (this.curLineNumber > 3 || this.curLineNumber < 0) {
+    if (this.curLineNumber > 3 || this.curLineNumber < 1) {
       return undefined;
     }
-    const curLineSession: LineSession = this.lineSessions[this.curLineNumber];
+    const curLineSession: LineSession = this.lineSessions[this.curLineNumber - 1];
     return curLineSession.session;
   }
 
   set session(curSession: Session) {
-    if (this.curLineNumber > 2 || this.curLineNumber < 0) {
+    if (this.curLineNumber > 3 || this.curLineNumber < 1) {
       return
     }
-    this.lineSessions[this.curLineNumber].session = curSession;
+    this.lineSessions[this.curLineNumber - 1].session = curSession;
   }
 
-  private getLine(lineId: number): LineSession {
-    if (lineId > 2 || lineId < 0) {
+  private getLine(lineNumber: number): LineSession {
+    if (lineNumber > 3 || lineNumber < 1) {
       return undefined;
     }
-    const curLine: LineSession = this.lineSessions[lineId];
+    const curLine: LineSession = this.lineSessions[lineNumber - 1];
     return curLine;
   }
 
