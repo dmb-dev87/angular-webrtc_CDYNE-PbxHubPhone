@@ -21,5 +21,5 @@ export interface EndUserDelegate {
 
   onServerDisconnect?(error?: Error): void;
 
-  onLineChanged?(): void;
+  onLineChanged?(lineNumber: number): void;
 }
