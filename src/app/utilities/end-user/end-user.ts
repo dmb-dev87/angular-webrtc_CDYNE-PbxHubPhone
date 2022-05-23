@@ -55,9 +55,9 @@ export class EndUser {
     { target: undefined, session: undefined, held: false, muted: false },
     { target: undefined, session: undefined, held: false, muted: false }
   ];
-  private _curLineNumber: number = 0;
-  private _firstLineNumber: number = 0;
-  private _secondLineNumber: number = 0;
+  private _curLineNumber: number = 1;
+  private _firstLineNumber: number = 1;
+  private _secondLineNumber: number = 1;
 
   constructor(server: string, options: EndUserOptions = {}) {
 
@@ -131,7 +131,7 @@ export class EndUser {
       onInvite: (invitation: Invitation): void => {
         this.logger.log(`[${this.id}] Received INVITE`);
         if (this.session) {
-          const line = this.getLine(this.curLineNumber == 0 ? 1 : 0);
+          const line = this.getLine(this.curLineNumber == 1 ? 2 : 1);
           if (line.session) {
             this.logger.warn(`[${this.id}] Session already in progress, rejecting INVITE...`);
             invitation
@@ -145,9 +145,10 @@ export class EndUser {
               });
             return;
           }
-          this.curLineNumber = this.curLineNumber == 0 ? 1 : 0;
+          
+          this.curLineNumber = this.curLineNumber == 1 ? 2 : 1;
           if (this.delegate && this.delegate.onLineChanged) {
-            this.delegate.onLineChanged();
+            this.delegate.onLineChanged(this.curLineNumber);
           }
         }
 
@@ -636,7 +637,7 @@ export class EndUser {
           if (this.delegate && this.delegate.onCallAnswered) {
             this.delegate.onCallAnswered();
           }
-          if (this.curLineNumber == 2) {
+          if (this.curLineNumber == 3) {
             this.makeConference();
           }
           break;
@@ -657,7 +658,7 @@ export class EndUser {
 
     this.session.delegate = {
       onBye: (bye: Bye): void => {
-        for (let i = 0; i < 2; i++) {
+        for (let i = 1; i < 3; i++) {
           const line = this.getLine(i);
           if (line.session) {
             const id: string = line.session.id;
@@ -750,7 +751,7 @@ export class EndUser {
 
     let mediaElement;
 
-    if (this.curLineNumber == 0) {
+    if (this.curLineNumber == 1) {
       mediaElement = this.options.media?.local1?.video;
     }
     else {
@@ -778,7 +779,7 @@ export class EndUser {
 
     let mediaElement;
 
-    if (this.curLineNumber == 0) {
+    if (this.curLineNumber == 1) {
       mediaElement = this.options.media?.remote1?.video || this.options.media?.remote1?.audio;
     }
     else {
@@ -854,34 +855,6 @@ export class EndUser {
     return Promise.resolve();
   }
 
-  async initTransfer(lineNumber: number): Promise<void> {
-    this.logger.log(`[${this.id}] Changing Lines...`);
-
-    if (lineNumber === this.curLineNumber) {
-      return Promise.resolve();
-    }
-
-    if (this.session) {
-      if (this.session.state === SessionState.Established) {
-        await this.setLineHold(true, this.curLineNumber);
-      }
-    }
-
-    this.curLineNumber = lineNumber;
-
-    if (this.session) {
-      if (this.session.state === SessionState.Established) {
-        await this.setLineHold(false, this.curLineNumber);
-      }
-    }
-
-    if (this.delegate && this.delegate.onLineChanged) {
-      this.delegate.onLineChanged();
-    }
-
-    return Promise.resolve();
-  }
-
   public completeTransferA(): Promise<OutgoingReferRequest> {
     this.logger.log(`[${this.id}] Completing Attended Transfer...`);
 
@@ -889,7 +862,7 @@ export class EndUser {
       return Promise.reject(new Error(`Session does not exists.`));
     }
 
-    const oldLine = this.getLine(this.curLineNumber === 0 ? 1 : 0);
+    const oldLine = this.getLine(this.curLineNumber === 1 ? 2 : 1);
     const oldSession = oldLine.session;
 
     if (!oldSession) {
@@ -942,7 +915,7 @@ export class EndUser {
     this.curLineNumber = lineNumber;
 
     if (this.delegate && this.delegate.onLineChanged) {
-      this.delegate.onLineChanged();
+      this.delegate.onLineChanged(this.curLineNumber);
     }
 
     return Promise.resolve();
@@ -970,7 +943,7 @@ export class EndUser {
       }
     }
 
-    this.curLineNumber = 2;
+    this.curLineNumber = 3;
 
     if (!inviterOptions) {
       inviterOptions = {};
@@ -1015,7 +988,7 @@ export class EndUser {
 
   public terminateConference(): Promise<void> {
     this.logger.log(`[${this.id}] Terminate conference...`);
-    this.curLineNumber = 2;
+    this.curLineNumber = 3;
     return this.terminate();
   }
 
@@ -1041,7 +1014,7 @@ export class EndUser {
     }
 
     if (this.delegate && this.delegate.onLineChanged) {
-      this.delegate.onLineChanged();
+      this.delegate.onLineChanged(this.curLineNumber);
     }
 
     return Promise.resolve();
@@ -1072,25 +1045,25 @@ export class EndUser {
   }
 
   get session(): Session {
-    if (this.curLineNumber > 3 || this.curLineNumber < 0) {
+    if (this.curLineNumber > 3 || this.curLineNumber < 1) {
       return undefined;
     }
-    const curLineSession: LineSession = this.lineSessions[this.curLineNumber];
+    const curLineSession: LineSession = this.lineSessions[this.curLineNumber - 1];
     return curLineSession.session;
   }
 
   set session(curSession: Session) {
-    if (this.curLineNumber > 2 || this.curLineNumber < 0) {
+    if (this.curLineNumber > 3 || this.curLineNumber < 1) {
       return
     }
-    this.lineSessions[this.curLineNumber].session = curSession;
+    this.lineSessions[this.curLineNumber - 1].session = curSession;
   }
 
-  private getLine(lineId: number): LineSession {
-    if (lineId > 2 || lineId < 0) {
+  private getLine(lineNumber: number): LineSession {
+    if (lineNumber > 3 || lineNumber < 1) {
       return undefined;
     }
-    const curLine: LineSession = this.lineSessions[lineId];
+    const curLine: LineSession = this.lineSessions[lineNumber - 1];
     return curLine;
   }
 

@@ -276,6 +276,7 @@ export class PhonePanelComponent implements OnInit {
   makeCallReceivedCallback(): () => void {
     return (displayName?: string, target?: string, autoAnswer?: boolean) => {
       console.log(`[${this.endUser.id}] call received`);
+
       this.invitationState = true;
       this.targetNum = target;
 
@@ -324,8 +325,7 @@ export class PhonePanelComponent implements OnInit {
       this.lineCount = this.lineCount - 1;
 
       if (this.lineCount > 0) {
-        this.selectLine = this.selectLine === `1` ? `2` : `1`;
-        this.changeLine(this.selectLine);
+        this.changeLine(this.selectLine === `1` ? `2` : `1`);
 
         this.transferStateA = false;
         this.transferStateB = false;
@@ -355,7 +355,7 @@ export class PhonePanelComponent implements OnInit {
 
   makeCallHoldCallback(): () => void {
     return (held?: boolean, lineNumber?: number) => {
-      console.log(`[${this.endUser.id}], [${lineNumber + 1}] call hold.`);
+      console.log(`[${this.endUser.id}], [${lineNumber}] call hold.`);
       this.holdStatus = this.endUser.isHeld();
       if (held == false) {
         var AudioContext = window.AudioContext;
@@ -374,8 +374,10 @@ export class PhonePanelComponent implements OnInit {
   }
 
   makeLineChangedCallback(): () => void {
-    return () => {
-      console.log(`[${this.endUser.id}] line changed.`);
+    return (lineNumber?: number) => {
+      console.log(`[${this.endUser.id}] line changed to ${lineNumber}`);
+
+      this.selectLine = (lineNumber).toString();
 
       this.callerId = this.oldCallerId;
       this.callStatus = this.oldCallStatus;
@@ -390,10 +392,6 @@ export class PhonePanelComponent implements OnInit {
       this.endBtnDisabled = !sessionEstablished;
       this.beginBtnDisabled = sessionEstablished;
 
-      if (this.transferStateA) {
-        this.transferStateA = false;        
-      }
-      
       this.axferBtnDisabled = this.transferStateA;
       this.bxferBtnDisabled = this.transferStateB;
       this.confBtnDisabled = this.confState;
@@ -657,10 +655,8 @@ export class PhonePanelComponent implements OnInit {
   // Misc Controller Events
   onMakeTransferA(completed: boolean): void {
     if (completed === false) {
-      const changeLineNumber = this.selectLine === `1` ? 1 : 0;
-      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.endUser
-        .initTransfer(changeLineNumber)
+        .changeLine(this.selectLine === `1` ? 2 : 1)
         .then(() => {
           this.transferStateA = true;
           return;
@@ -673,7 +669,6 @@ export class PhonePanelComponent implements OnInit {
     }
     else {
       this.transferStateA = false;
-      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.lineCount = this.lineCount - 1;
       this.endUser
         .completeTransferA()
@@ -704,11 +699,9 @@ export class PhonePanelComponent implements OnInit {
 
   onMakeConference(completed: boolean): void {
     if (completed === false) {
-      const changeLineNumber = this.selectLine === `1` ? 1 : 0;
-      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       this.confState = true;
       this.endUser
-        .initConference(changeLineNumber)
+        .initConference(this.selectLine === `1` ? 2 : 1)
         .then(() => {
           this.confState = true;
           return;
@@ -721,7 +714,6 @@ export class PhonePanelComponent implements OnInit {
     }
     else {
       this.confState = true;
-      this.selectLine = this.selectLine === `1` ? `2` : `1`;
       const target = `sip:${confTarget}@${hostURL}`;
       this.endUser
         .completeConference(target, undefined, {
@@ -779,8 +771,8 @@ export class PhonePanelComponent implements OnInit {
 
   // Line Info Events
   changeLine(selectLine: string): void {
-    this.selectLine = selectLine;
-    const lineNumber = this.selectLine === `1` ? 0 : 1;
+    const lineNumber = parseInt(selectLine, 10);
+
     if (this.endUser === null) {
       return;
     }
